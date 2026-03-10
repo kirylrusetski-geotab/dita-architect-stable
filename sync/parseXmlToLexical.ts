@@ -139,7 +139,7 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
         case 'postreq':
         case 'p':
         case 'cmd':
-        case 'note':
+        case 'note': {
           if (tagName === 'note') {
             const quote = $createQuoteNode();
             parseTextNodes(xmlNode).forEach(n => quote.append(n));
@@ -155,6 +155,7 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
             originMap.set(p.getKey(), { tag: 'p', bodyIndex });
           }
           return p;
+        }
 
         case 'steps':
         case 'ol': {

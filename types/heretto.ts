@@ -16,8 +16,8 @@ export interface HerettoSearchResult extends HerettoItem {
 
 export type HerettoSearchStatus =
   | { phase: 'idle' }
-  | { phase: 'searching'; foldersVisited: number; foldersTotal: number }
-  | { phase: 'done'; foldersVisited: number }
+  | { phase: 'searching'; foldersVisited: number; foldersTotal: number; foldersFailed: number }
+  | { phase: 'done'; foldersVisited: number; foldersFailed: number }
   | { phase: 'cancelled'; foldersVisited: number };
 
 // `verified` and `unrecognizedElements` are only meaningful in the 'results'

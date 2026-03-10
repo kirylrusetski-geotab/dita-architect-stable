@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createEditor } from 'lexical';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode } from '@lexical/list';
@@ -44,10 +44,6 @@ function normalizeXml(xml: string): string {
   normalized = normalized.replace(/>\s+</g, '><');
   // Trim leading/trailing whitespace
   return normalized.trim();
-}
-
-function expectXmlEqual(actual: string, expected: string) {
-  expect(normalizeXml(actual)).toBe(normalizeXml(expected));
 }
 
 function getBodyContent(xml: string): string {

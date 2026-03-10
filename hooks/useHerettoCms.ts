@@ -5,7 +5,7 @@ import type { HerettoItem, HerettoSearchResult, HerettoSearchStatus, ImportVerif
 import { HERETTO_ROOT_UUID, herettoFolderCache } from '../constants/heretto';
 import { parseHerettoFolder, getFolderName } from '../lib/heretto-utils';
 import { escapeXml, getTopicId, findUnrecognizedElements, compareXml } from '../lib/xml-utils';
-import { formatXml } from '../components/MonacoDitaEditor';
+import { formatXml } from '../lib/xml-utils';
 import { toast } from 'sonner';
 
 interface UseHerettoCmsParams {
@@ -18,7 +18,7 @@ interface UseHerettoCmsParams {
 
 export function useHerettoCms({
   activeTab,
-  tabs,
+  tabs: _tabs,
   setTabs,
   setActiveTabId,
   setConfirmModal,
@@ -128,20 +128,36 @@ export function useHerettoCms({
   }, [activeTab?.xmlContent, activeTab?.herettoFile, activeTab?.id, setTabs]);
 
   // Poll for remote changes on Heretto (per-tab)
+  const pollFailCountRef = useRef(0);
   useEffect(() => {
     if (!activeTab?.herettoFile) return;
     const tabId = activeTab.id;
     const file = activeTab.herettoFile;
+    pollFailCountRef.current = 0;
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`/heretto-api/all-files/${file.uuid}/content`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          pollFailCountRef.current++;
+          if (pollFailCountRef.current === 3) {
+            toast.error(res.status === 401 || res.status === 403
+              ? 'Heretto credentials may have expired — reconnect in Heretto Status'
+              : `Heretto sync check failing (HTTP ${res.status})`);
+          }
+          return;
+        }
+        pollFailCountRef.current = 0;
         const remote = await res.text();
         setTabs(prev => prev.map(t => {
           if (t.id !== tabId) return t;
           return { ...t, herettoRemoteChanged: remote !== t.savedXmlRef.current };
         }));
-      } catch { /* silent */ }
+      } catch {
+        pollFailCountRef.current++;
+        if (pollFailCountRef.current === 3) {
+          toast.error('Cannot reach Heretto — check your network connection');
+        }
+      }
     }, 30000);
     return () => clearInterval(interval);
   }, [activeTab?.herettoFile?.uuid, activeTab?.id, setTabs]);
@@ -175,16 +191,17 @@ export function useHerettoCms({
     const queue: [string, string[]][] = [[rootUuid, []]];
     let foldersVisited = 0;
     let foldersTotal = 1;
+    let foldersFailed = 0;
 
     setHerettoSearchResults([]);
-    setHerettoSearchStatus({ phase: 'searching', foldersVisited: 0, foldersTotal: 1 });
+    setHerettoSearchStatus({ phase: 'searching', foldersVisited: 0, foldersTotal: 1, foldersFailed: 0 });
 
     while (queue.length > 0) {
       if (signal.aborted) return;
 
       const batch = queue.splice(0, Math.min(5, queue.length));
       const batchPromises = batch.map(async ([uuid, pathSegments]) => {
-        if (signal.aborted) return [];
+        if (signal.aborted) return { matched: [] as HerettoSearchResult[], subfolders: [] as [string, string[]][], failed: false };
 
         let items: HerettoItem[];
         if (herettoFolderCache.has(uuid)) {
@@ -192,12 +209,12 @@ export function useHerettoCms({
         } else {
           try {
             const res = await fetch(`/heretto-api/all-files/${uuid}`, { signal });
-            if (!res.ok) return [];
+            if (!res.ok) return { matched: [] as HerettoSearchResult[], subfolders: [] as [string, string[]][], failed: true };
             const xml = await res.text();
             items = parseHerettoFolder(xml);
             herettoFolderCache.set(uuid, items);
           } catch {
-            return [];
+            return { matched: [] as HerettoSearchResult[], subfolders: [] as [string, string[]][], failed: true };
           }
         }
 
@@ -215,15 +232,19 @@ export function useHerettoCms({
           }
         }
 
-        return { matched, subfolders };
+        return { matched, subfolders, failed: false };
       });
 
       const batchResults = await Promise.all(batchPromises);
       if (signal.aborted) return;
 
       for (const result of batchResults) {
-        if (!result || Array.isArray(result)) continue;
-        const { matched, subfolders } = result;
+        if (!result) continue;
+        const { matched, subfolders, failed } = result;
+        if (failed) {
+          foldersFailed++;
+          continue;
+        }
         if (matched.length > 0) {
           results.push(...matched);
           setHerettoSearchResults([...results]);
@@ -233,11 +254,11 @@ export function useHerettoCms({
       }
 
       foldersVisited += batch.length;
-      setHerettoSearchStatus({ phase: 'searching', foldersVisited, foldersTotal });
+      setHerettoSearchStatus({ phase: 'searching', foldersVisited, foldersTotal, foldersFailed });
     }
 
     if (!signal.aborted) {
-      setHerettoSearchStatus({ phase: 'done', foldersVisited });
+      setHerettoSearchStatus({ phase: 'done', foldersVisited, foldersFailed });
     }
   }, []);
 
@@ -339,7 +360,7 @@ export function useHerettoCms({
         verified,
         unrecognizedElements,
       } : null);
-    } catch (err) {
+    } catch {
       if (abort.signal.aborted) return;
       setImportVerification(null);
       toast.error('Failed to open file from Heretto');
@@ -414,7 +435,8 @@ export function useHerettoCms({
       }));
     } catch (err) {
       if (abort.signal.aborted) return;
-      toast.error('Failed to save to Heretto');
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to save to Heretto: ${message}`);
     } finally {
       if (!abort.signal.aborted) setHerettoSaving(false);
     }
@@ -448,7 +470,8 @@ export function useHerettoCms({
       toast.success(`Refreshed ${file.name} from Heretto`);
     } catch (err) {
       if (abort.signal.aborted) return;
-      toast.error('Failed to refresh from Heretto');
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to refresh from Heretto: ${message}`);
     } finally {
       if (!abort.signal.aborted) setHerettoRefreshing(false);
     }

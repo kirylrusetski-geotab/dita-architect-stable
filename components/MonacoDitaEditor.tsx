@@ -382,174 +382,10 @@ function findParentElement(text: string, offset: number): string | null {
   return stack.length > 0 ? stack[stack.length - 1] : null;
 }
 
-type XmlToken = { type: 'opening' | 'closing' | 'self-closing' | 'text' | 'comment' | 'pi' | 'doctype'; text: string };
-
-function tokenizeXml(xml: string): XmlToken[] {
-  const tokens: XmlToken[] = [];
-  let i = 0;
-
-  while (i < xml.length) {
-    if (xml[i] === '<') {
-      // Comment
-      if (xml.startsWith('<!--', i)) {
-        const end = xml.indexOf('-->', i + 4);
-        const ce = end === -1 ? xml.length : end + 3;
-        tokens.push({ type: 'comment', text: xml.substring(i, ce) });
-        i = ce; continue;
-      }
-      // PI
-      if (xml.startsWith('<?', i)) {
-        const end = xml.indexOf('?>', i + 2);
-        const pe = end === -1 ? xml.length : end + 2;
-        tokens.push({ type: 'pi', text: xml.substring(i, pe) });
-        i = pe; continue;
-      }
-      // DOCTYPE
-      if (xml.startsWith('<!', i)) {
-        const end = xml.indexOf('>', i + 2);
-        const de = end === -1 ? xml.length : end + 1;
-        tokens.push({ type: 'doctype', text: xml.substring(i, de) });
-        i = de; continue;
-      }
-      // Tag — advance past quotes
-      let j = i + 1;
-      while (j < xml.length && xml[j] !== '>') {
-        if (xml[j] === '"') { j = xml.indexOf('"', j + 1); if (j === -1) j = xml.length; else j++; }
-        else if (xml[j] === "'") { j = xml.indexOf("'", j + 1); if (j === -1) j = xml.length; else j++; }
-        else j++;
-      }
-      const tag = xml.substring(i, j + 1);
-      if (tag.startsWith('</')) tokens.push({ type: 'closing', text: tag });
-      else if (tag.endsWith('/>')) tokens.push({ type: 'self-closing', text: tag });
-      else tokens.push({ type: 'opening', text: tag });
-      i = j + 1;
-    } else {
-      let j = i;
-      while (j < xml.length && xml[j] !== '<') j++;
-      tokens.push({ type: 'text', text: xml.substring(i, j) });
-      i = j;
-    }
-  }
-  return tokens;
-}
-
-// Inline DITA elements that must stay on the same line as surrounding text
-const INLINE_ELEMENTS = new Set([
-  'ph', 'codeph', 'b', 'i', 'strong', 'em', 'xref', 'uicontrol', 'term',
-  'keyword', 'filepath', 'varname', 'cmdname', 'msgph', 'menucascade',
-  'wintitle', 'fn', 'cite', 'q', 'tm', 'option', 'parmname', 'apiname',
-  'userinput', 'systemoutput', 'synph', 'abbreviated-form', 'indexterm',
-  'boolean', 'state',
-]);
-
-function getTokenTagName(tok: XmlToken): string {
-  const match = tok.text.match(/^<\/?([a-zA-Z][\w.-]*)/);
-  return match ? match[1].toLowerCase() : '';
-}
-
-/** Merge runs of text + inline elements into single text tokens so the
- *  formatter keeps them on one line instead of splitting across lines. */
-function mergeInlineRuns(tokens: XmlToken[]): XmlToken[] {
-  const result: XmlToken[] = [];
-  let i = 0;
-
-  while (i < tokens.length) {
-    const tok = tokens[i];
-    const isText = tok.type === 'text';
-    const isInlineOpen = tok.type === 'opening' && INLINE_ELEMENTS.has(getTokenTagName(tok));
-    const isInlineSelf = tok.type === 'self-closing' && INLINE_ELEMENTS.has(getTokenTagName(tok));
-
-    if (isText || isInlineOpen || isInlineSelf) {
-      // Try to collect a run of text + inline elements
-      let j = i;
-      let depth = 0;
-      let merged = '';
-      let hasInline = false;
-
-      while (j < tokens.length) {
-        const t = tokens[j];
-        const tn = getTokenTagName(t);
-
-        if (t.type === 'text') {
-          merged += t.text;
-          j++;
-        } else if (t.type === 'opening' && INLINE_ELEMENTS.has(tn)) {
-          merged += t.text.trim();
-          depth++;
-          hasInline = true;
-          j++;
-        } else if (t.type === 'closing' && INLINE_ELEMENTS.has(tn) && depth > 0) {
-          merged += t.text.trim();
-          depth--;
-          j++;
-        } else if (t.type === 'self-closing' && INLINE_ELEMENTS.has(tn)) {
-          merged += t.text.trim();
-          hasInline = true;
-          j++;
-        } else {
-          break;
-        }
-      }
-
-      if (hasInline && depth === 0) {
-        result.push({ type: 'text', text: merged });
-        i = j;
-      } else {
-        // Unbalanced or no inline elements — emit tokens individually
-        for (let k = i; k < j; k++) {
-          result.push(tokens[k]);
-        }
-        i = j;
-      }
-    } else {
-      result.push(tok);
-      i++;
-    }
-  }
-  return result;
-}
-
-export function formatXml(xml: string): string {
-  const indent = '  ';
-  const tokens = mergeInlineRuns(tokenizeXml(xml.trim()));
-  let result = '';
-  let level = 0;
-
-  for (let i = 0; i < tokens.length; i++) {
-    const tok = tokens[i];
-
-    if (tok.type === 'pi' || tok.type === 'doctype') {
-      result += tok.text.trim() + '\n';
-    } else if (tok.type === 'comment') {
-      result += indent.repeat(level) + tok.text.trim() + '\n';
-    } else if (tok.type === 'closing') {
-      level = Math.max(0, level - 1);
-      result += indent.repeat(level) + tok.text.trim() + '\n';
-    } else if (tok.type === 'self-closing') {
-      result += indent.repeat(level) + tok.text.trim() + '\n';
-    } else if (tok.type === 'opening') {
-      // Inline collapse: <tag>text</tag> on one line
-      if (
-        i + 2 < tokens.length &&
-        tokens[i + 1].type === 'text' &&
-        tokens[i + 2].type === 'closing'
-      ) {
-        const text = tokens[i + 1].text.trim();
-        result += indent.repeat(level) + tok.text.trim() + text + tokens[i + 2].text.trim() + '\n';
-        i += 2;
-      } else {
-        result += indent.repeat(level) + tok.text.trim() + '\n';
-        level++;
-      }
-    } else if (tok.type === 'text') {
-      const trimmed = tok.text.trim();
-      if (trimmed) {
-        result += indent.repeat(level) + trimmed + '\n';
-      }
-    }
-  }
-  return result.trimEnd();
-}
+// formatXml is defined in lib/xml-utils.ts and re-exported here for backwards compatibility
+// with the Monaco formatting provider registration below.
+import { formatXml } from '../lib/xml-utils';
+export { formatXml };
 
 // ── Monaco Provider Registration (once per session) ─────────────────────────
 
@@ -886,7 +722,7 @@ export const MonacoDitaEditor: React.FC<MonacoDitaEditorProps> = ({
       });
     }
 
-    const rootMatch = content.match(/<(?![\?!])(\w+)(?:\s+[^>]*)?>/);
+    const rootMatch = content.match(/<(?![?!])(\w+)(?:\s+[^>]*)?>/);
     if (rootMatch) {
       const rootTag = rootMatch[1];
       const validRoots = ['task', 'concept', 'reference', 'topic'];

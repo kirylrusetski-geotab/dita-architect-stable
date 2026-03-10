@@ -13,7 +13,7 @@ interface UseLocalFileParams {
 
 export function useLocalFile({
   activeTab,
-  tabs,
+  tabs: _tabs,
   setTabs,
   setActiveTabId,
 }: UseLocalFileParams) {

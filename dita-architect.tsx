@@ -632,7 +632,7 @@ export default function ProfessionalDitaEditor() {
                   />
                 </div>
                 <div className="flex items-center justify-between text-xs" style={{ color: 'var(--app-text-muted)' }}>
-                  <span>Scanning folders… {herettoSearchStatus.foldersVisited} / {herettoSearchStatus.foldersTotal}</span>
+                  <span>Scanning folders… {herettoSearchStatus.foldersVisited} / {herettoSearchStatus.foldersTotal}{herettoSearchStatus.foldersFailed > 0 ? ` (${herettoSearchStatus.foldersFailed} failed)` : ''}</span>
                   <button
                     onClick={() => {
                       herettoSearchAbortRef.current?.abort();
@@ -684,8 +684,13 @@ export default function ProfessionalDitaEditor() {
                 // Search results mode
                 <>
                   {herettoSearchResults.length === 0 && herettoSearchStatus.phase === 'done' && (
-                    <div className="flex items-center justify-center h-full py-12 text-sm" style={{ color: 'var(--app-text-muted)' }}>
-                      No results found
+                    <div className="flex flex-col items-center justify-center h-full py-12 text-sm" style={{ color: 'var(--app-text-muted)' }}>
+                      <span>No results found</span>
+                      {herettoSearchStatus.foldersFailed > 0 && (
+                        <span className="mt-1 text-xs" style={{ color: 'var(--app-text-error, #ef4444)' }}>
+                          {herettoSearchStatus.foldersFailed} folder{herettoSearchStatus.foldersFailed !== 1 ? 's' : ''} could not be searched
+                        </span>
+                      )}
                     </div>
                   )}
                   {herettoSearchResults.length === 0 && herettoSearchStatus.phase === 'cancelled' && (
@@ -737,6 +742,11 @@ export default function ProfessionalDitaEditor() {
                   {herettoSearchResults.length > 0 && herettoSearchStatus.phase === 'done' && (
                     <div className="px-3 py-2 text-xs" style={{ color: 'var(--app-text-muted)' }}>
                       {herettoSearchResults.length} result{herettoSearchResults.length !== 1 ? 's' : ''} found
+                      {herettoSearchStatus.foldersFailed > 0 && (
+                        <span style={{ color: 'var(--app-text-error, #ef4444)' }}>
+                          {' '}({herettoSearchStatus.foldersFailed} folder{herettoSearchStatus.foldersFailed !== 1 ? 's' : ''} failed)
+                        </span>
+                      )}
                     </div>
                   )}
                 </>

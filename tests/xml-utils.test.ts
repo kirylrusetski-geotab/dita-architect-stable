@@ -1,10 +1,15 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock the MonacoDitaEditor import before importing xml-utils
-vi.mock('../components/MonacoDitaEditor', () => ({
-  formatXml: vi.fn((xml: string) => xml.trim()),
-}));
+// Partially mock xml-utils so we can control formatXml in compareXml tests
+// while keeping all other functions as their real implementations.
+vi.mock('../lib/xml-utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/xml-utils')>();
+  return {
+    ...actual,
+    formatXml: vi.fn((xml: string) => xml.trim()),
+  };
+});
 
 import {
   escapeXml,
@@ -14,9 +19,8 @@ import {
   compareXml,
   formatRelativeTime,
   convertDitaTopic,
+  formatXml,
 } from '../lib/xml-utils';
-
-import { formatXml } from '../components/MonacoDitaEditor';
 
 // ─── escapeXml ───────────────────────────────────────────────────────────────
 

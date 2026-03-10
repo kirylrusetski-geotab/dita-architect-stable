@@ -128,56 +128,56 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
 
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Undo">
-        <button onClick={() => { editor.dispatchCommand(UNDO_COMMAND, undefined); toast('Undo action performed'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Undo" onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Undo className="w-4 h-4" />
         </button>
       </Tooltip>
       <Tooltip content="Redo">
-        <button onClick={() => { editor.dispatchCommand(REDO_COMMAND, undefined); toast('Redo action performed'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Redo" onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Redo className="w-4 h-4" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Heading 1">
-        <button onClick={() => { formatHeading('h1'); toast('Formatted as Heading 1'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Heading 1" onClick={() => formatHeading('h1')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Heading1 className="w-4 h-4" />
         </button>
       </Tooltip>
       <Tooltip content="Heading 2">
-        <button onClick={() => { formatHeading('h2'); toast('Formatted as Heading 2'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Heading 2" onClick={() => formatHeading('h2')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Heading2 className="w-4 h-4" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Bold">
-        <button onClick={() => { editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold'); toast('Toggled Bold'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Bold" onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <span className="font-bold font-serif">B</span>
         </button>
       </Tooltip>
       <Tooltip content="Italic">
-        <button onClick={() => { editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic'); toast('Toggled Italic'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Italic" onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <span className="italic font-serif">I</span>
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Numbered List">
-        <button onClick={() => { editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined); toast('Inserted Numbered List'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Numbered list" onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <ListOrdered className="w-4 h-4" />
         </button>
       </Tooltip>
       <Tooltip content="Bulleted List">
-        <button onClick={() => { editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined); toast('Inserted Bulleted List'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Bulleted list" onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <List className="w-4 h-4" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Warning Note">
-        <button onClick={() => { formatQuote(); toast('Inserted Warning Note'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Warning note" onClick={() => formatQuote()} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <AlertTriangle className="w-3.5 h-3.5" />
         </button>
       </Tooltip>
       <Tooltip content="Insert Link">
-        <button onClick={() => {
+        <button aria-label="Insert link" onClick={() => {
           const url = window.prompt('Enter URL:');
           if (url) {
             const trimmed = url.trim().toLowerCase();
@@ -186,7 +186,6 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
               return;
             }
             editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
-            toast('Inserted Link');
           }
         }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Link className="w-3.5 h-3.5" />
@@ -194,13 +193,13 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Enter Edit Mode">
-        <button onClick={onEnterEditMode} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Enter edit mode" onClick={onEnterEditMode} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Pencil className="w-3.5 h-3.5" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Clear Contents">
-        <button onClick={() => { editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined); toast.error('Cleared Editor Contents'); }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Clear contents" onClick={() => { if (window.confirm('Clear all editor contents? This cannot be undone.')) { editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined); toast('Cleared editor contents'); } }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Trash2 className="w-4 h-4" />
         </button>
       </Tooltip>
@@ -210,6 +209,7 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
         <div className="ml-auto flex items-center gap-1">
           <Tooltip content="Accept Edits">
             <button
+              aria-label="Accept edits"
               onClick={onAcceptEdits}
               className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors"
               style={{ color: '#22c55e' }}
@@ -222,6 +222,7 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
           </Tooltip>
           <Tooltip content="Reject Edits">
             <button
+              aria-label="Reject edits"
               onClick={onRejectEdits}
               className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors"
               style={{ color: '#ef4444' }}

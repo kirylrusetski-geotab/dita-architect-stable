@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $getRoot, $getNodeByKey, type EditorState, type LexicalNode } from 'lexical';
 import {
-  TrackedDeletionNode,
   $createTrackedDeletionNode,
   $isTrackedDeletionNode,
 } from './TrackedDeletionNode';
@@ -101,7 +100,6 @@ const diffWords = (oldText: string, newText: string): DiffOp[] => {
   return ops;
 };
 
-const TRACKED_CLASSES = ['tracked-addition'] as const;
 
 /**
  * Collect leaf-level block nodes that directly contain inline/text content.
@@ -356,7 +354,7 @@ export const TrackedChangesPlugin = ({
         let position = 0;
         for (const op of change.diff) {
           if (op.type === 'delete') {
-            const descriptor = `${change.key}::${position}::${op.text}`;
+            const descriptor = `${change.key}\0${position}\0${op.text}`;
             desiredDeletions.set(descriptor, {
               blockKey: change.key,
               deletedText: op.text,

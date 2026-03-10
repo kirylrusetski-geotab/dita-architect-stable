@@ -75,7 +75,7 @@ const serializeInlineContent = (lexicalNode: any, doc: Document): Node[] => {
   lexicalNode.getChildren().forEach((child: any) => {
     if (child.getType() === 'tracked-deletion') return;
     if (child.getType() === 'text') {
-      let text = child.getTextContent();
+      const text = child.getTextContent();
       const isBold = child.hasFormat('bold');
       const isItalic = child.hasFormat('italic');
       const isCode = child.hasFormat('code');
@@ -221,7 +221,7 @@ const patchInlineNodes = (domEl: Element, lexicalNode: any): boolean => {
   const segments: { node: Node; normText: string; start: number; end: number }[] = [];
   for (let i = 0; i < domSegments.length; i++) {
     const node = domSegments[i];
-    let normText = (node.textContent || '').replace(/[ \t]*\n[ \t\n]*/g, ' ');
+    const normText = (node.textContent || '').replace(/[ \t]*\n[ \t\n]*/g, ' ');
     segments.push({ node, normText, start: 0, end: 0 });
   }
   // Trim leading whitespace on first text segment
@@ -719,7 +719,7 @@ const areTypesCompatible = (
   domTag: string,
   lexType: string,
   lexOrigin: { tag: string; bodyIndex: number } | undefined,
-  rootTag: string,
+  _rootTag: string,
 ): boolean => {
   const taskBodyTags = ['prereq', 'context', 'result', 'postreq'];
   if (domTag === 'p' && lexType === 'paragraph' && !taskBodyTags.includes(lexOrigin?.tag ?? '')) return true;
@@ -874,9 +874,6 @@ export const serializeLexicalToXml = (editorState: any, originalXml: string, ori
       });
 
       // Process in document order: walk all DOM children
-      let otherIdx = 0;
-      let sectionIdx = 0;
-
       for (const child of domChildren) {
         if (lexGroupIdx >= groupedNodes.length) break;
         const tag = child.tagName.toLowerCase();
@@ -890,7 +887,6 @@ export const serializeLexicalToXml = (editorState: any, originalXml: string, ori
         if (tag === 'section' && group.type === 'section') {
           patchSection(child, group.nodes, clonedDoc, rootTag, originMap);
           lexGroupIdx++;
-          sectionIdx++;
         } else if (tag !== 'section' && group.type === 'single') {
           const lexNode = group.nodes[0];
           const lexType = lexNode.getType();
@@ -908,7 +904,6 @@ export const serializeLexicalToXml = (editorState: any, originalXml: string, ori
             bodyEl.removeChild(child);
             lexGroupIdx++;
           }
-          otherIdx++;
         } else if (tag === 'section' && group.type === 'single') {
           // DOM has a section but Lexical has a non-section node
           // The section might have been deleted — remove it and insert the new node
@@ -928,15 +923,7 @@ export const serializeLexicalToXml = (editorState: any, originalXml: string, ori
         }
       }
 
-      // Remove remaining unmatched recognized DOM children
-      const remainingRecognized = Array.from(bodyEl.children).filter(c => {
-        const t = c.tagName.toLowerCase();
-        return RECOGNIZED_BODY_TAGS.has(t);
-      });
-      // Count how many recognized elements we've consumed
-      // We need to remove any recognized elements that weren't matched
-      // This is tricky — instead, let's count from the end
-      // Actually, the loop above handles replacements inline, so remaining
+      // The loop above handles replacements inline, so remaining
       // Lexical groups just need to be appended.
 
       for (let i = lexGroupIdx; i < groupedNodes.length; i++) {

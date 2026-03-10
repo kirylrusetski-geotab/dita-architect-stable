@@ -19,7 +19,7 @@ interface EditModePluginProps {
 
 export const EditModePlugin = ({
   tabId,
-  editMode,
+  editMode: _editMode,
   masterXml,
   snapshotRef,
   onEnterEditMode,
