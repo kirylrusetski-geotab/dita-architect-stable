@@ -32,6 +32,7 @@ import { TopicTypeModal } from './components/TopicTypeModal';
 import { SaveTopicModal } from './components/SaveTopicModal';
 import { HerettoStatusModal } from './components/HerettoStatusModal';
 import { HerettoBrowserModal } from './components/HerettoBrowserModal';
+import { ReleaseNotesModal } from './components/ReleaseNotesModal';
 import { ImportVerificationModal } from './components/ImportVerificationModal';
 import { SYNTAX_THEME_OPTIONS } from './components/MonacoDitaEditor';
 import type { XmlError } from './components/MonacoDitaEditor';
@@ -107,6 +108,7 @@ const HerettoLogo = ({ className, style }: { className?: string; style?: React.C
 export default function ProfessionalDitaEditor() {
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
   const [isNewTopicModalOpen, setIsNewTopicModalOpen] = useState(false);
+  const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
   const {
@@ -189,9 +191,6 @@ export default function ProfessionalDitaEditor() {
     showErrorPanel,
     setShowErrorPanel,
     errorPanelRef,
-    isDitaMenuOpen,
-    setIsDitaMenuOpen,
-    ditaMenuRef,
     isFileOptionsOpen,
     setIsFileOptionsOpen,
     fileOptionsRef,
@@ -257,6 +256,11 @@ export default function ProfessionalDitaEditor() {
           saveHerettoCredentials={saveHerettoCredentials}
           onClose={() => setIsHerettoStatusOpen(false)}
         />
+      )}
+
+      {/* Release Notes Modal */}
+      {isReleaseNotesOpen && (
+        <ReleaseNotesModal onClose={() => setIsReleaseNotesOpen(false)} />
       )}
 
       {/* Confirmation Modal */}
@@ -346,96 +350,34 @@ export default function ProfessionalDitaEditor() {
         }}
       >
         <div className="flex items-center gap-3">
-          <div className="relative" ref={ditaMenuRef}>
-            <button
-              onClick={() => setIsDitaMenuOpen(prev => !prev)}
-              onKeyDown={e => {
-                if (e.key === 'ArrowDown') {
-                  e.preventDefault();
-                  if (!isDitaMenuOpen) setIsDitaMenuOpen(true);
-                  setTimeout(() => {
-                    const first = ditaMenuRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
-                    first?.focus();
-                  }, 0);
-                }
-              }}
-              aria-haspopup="true"
-              aria-expanded={isDitaMenuOpen}
-              className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors cursor-pointer hover-app"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-dita-500 to-dita-600 flex items-center justify-center shadow-lg shadow-dita-500/20">
-                <BookOpen className="text-white w-5 h-5" />
-              </div>
-              <div className="text-left">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-xl font-bold tracking-tight" style={{ color: 'var(--app-text-primary)' }}>
-                    DITA <span className="text-dita-500">Architect</span>
-                  </h2>
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDitaMenuOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--app-text-muted)' }} />
-                </div>
-                <div className="flex items-center gap-2 text-xs mt-0.5" style={{ color: 'var(--app-text-muted)' }}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${activeTab.lastUpdatedBy === 'editor' ? 'bg-purple-500' : 'bg-blue-500'}`}></span>
-                  Last update: {activeTab.lastUpdatedBy === 'editor' ? 'Visual Editor' : 'Source Code'}
-                  <span style={{ opacity: 0.6 }}>&middot; Press Ctrl+Enter to sync between editors</span>
-                </div>
-              </div>
-            </button>
-
-            {isDitaMenuOpen && (
-              <div
-                className="absolute top-full left-0 mt-1 rounded-lg shadow-xl border py-1 z-50 min-w-[160px]"
-                role="menu"
-                onKeyDown={e => {
-                  const items = Array.from(ditaMenuRef.current?.querySelectorAll('[role="menuitem"]') ?? []) as HTMLElement[];
-                  const idx = items.indexOf(e.target as HTMLElement);
-                  if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length]?.focus(); }
-                  else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length]?.focus(); }
-                  else if (e.key === 'Escape') { e.preventDefault(); setIsDitaMenuOpen(false); }
-                }}
-                style={{
-                  backgroundColor: 'var(--app-surface-raised)',
-                  borderColor: 'var(--app-border-subtle)',
-                }}
-              >
+          <div className="flex items-center gap-3 px-2 py-1.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-dita-500 to-dita-600 flex items-center justify-center shadow-lg shadow-dita-500/20">
+              <BookOpen className="text-white w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-xl font-bold tracking-tight" style={{ color: 'var(--app-text-primary)' }}>
+                  DITA <span className="text-dita-500">Architect</span>
+                </h2>
                 <button
-                  role="menuitem"
-                  onClick={() => { setIsDitaMenuOpen(false); setIsNewTopicModalOpen(true); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
-                  style={{ color: 'var(--app-text-secondary)' }}
+                  onClick={() => setIsReleaseNotesOpen(true)}
+                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full transition-colors cursor-pointer hover-app"
+                  style={{
+                    color: 'var(--app-text-muted)',
+                    backgroundColor: 'var(--app-surface-raised)',
+                    border: '1px solid var(--app-border-subtle)',
+                  }}
+                  aria-label="View release notes"
                 >
-                  <FilePlus className="w-3.5 h-3.5" />
-                  New Topic
-                </button>
-                <button
-                  role="menuitem"
-                  onClick={() => { setIsDitaMenuOpen(false); handleUploadClick(); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
-                  style={{ color: 'var(--app-text-secondary)' }}
-                >
-                  <FolderOpen className="w-3.5 h-3.5" />
-                  Open Topic
-                </button>
-                <button
-                  role="menuitem"
-                  onClick={() => { setIsDitaMenuOpen(false); openSaveModal(); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
-                  style={{ color: 'var(--app-text-secondary)' }}
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  Save Topic
-                </button>
-                <div className="my-1 mx-2" style={{ borderTop: '1px solid var(--app-border-subtle)' }} />
-                <button
-                  role="menuitem"
-                  onClick={() => { setIsDitaMenuOpen(false); setIsConvertModalOpen(true); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
-                  style={{ color: 'var(--app-text-secondary)' }}
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Convert Topic Type
+                  v0.5
                 </button>
               </div>
-            )}
+              <div className="flex items-center gap-2 text-xs mt-0.5" style={{ color: 'var(--app-text-muted)' }}>
+                <span className={`w-1.5 h-1.5 rounded-full ${activeTab.lastUpdatedBy === 'editor' ? 'bg-purple-500' : 'bg-blue-500'}`}></span>
+                Last update: {activeTab.lastUpdatedBy === 'editor' ? 'Visual Editor' : 'Source Code'}
+                <span style={{ opacity: 0.6 }}>&middot; Press Ctrl+Enter to sync between editors</span>
+              </div>
+            </div>
           </div>
         </div>
 

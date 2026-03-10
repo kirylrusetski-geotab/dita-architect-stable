@@ -48,9 +48,6 @@ export function useEditorUi({
   const [showErrorPanel, setShowErrorPanel] = useState(false);
   const errorPanelRef = useRef<HTMLDivElement>(null);
 
-  const [isDitaMenuOpen, setIsDitaMenuOpen] = useState(false);
-  const ditaMenuRef = useRef<HTMLDivElement>(null);
-
   const [isFileOptionsOpen, setIsFileOptionsOpen] = useState(false);
   const fileOptionsRef = useRef<HTMLDivElement>(null);
 
@@ -83,9 +80,6 @@ export function useEditorUi({
     const handler = (e: MouseEvent) => {
       if (herettoDropdownRef.current && !herettoDropdownRef.current.contains(e.target as Node)) {
         setIsHerettoDropdownOpen(false);
-      }
-      if (ditaMenuRef.current && !ditaMenuRef.current.contains(e.target as Node)) {
-        setIsDitaMenuOpen(false);
       }
       if (fileOptionsRef.current && !fileOptionsRef.current.contains(e.target as Node)) {
         setIsFileOptionsOpen(false);
@@ -138,9 +132,6 @@ export function useEditorUi({
     showErrorPanel,
     setShowErrorPanel,
     errorPanelRef,
-    isDitaMenuOpen,
-    setIsDitaMenuOpen,
-    ditaMenuRef,
     isFileOptionsOpen,
     setIsFileOptionsOpen,
     fileOptionsRef,
