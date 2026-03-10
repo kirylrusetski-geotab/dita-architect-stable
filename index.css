@@ -450,6 +450,33 @@ body {
   cursor: default;
 }
 
+/* Hover utility classes — replace inline onMouseEnter/onMouseLeave handlers */
+.hover-toolbar:hover {
+  background-color: var(--editor-toolbar-hover);
+}
+.hover-app:hover {
+  background-color: var(--app-hover);
+}
+.hover-btn:hover {
+  background-color: var(--app-btn-hover);
+}
+.hover-text:hover {
+  color: var(--app-text-primary);
+}
+.hover-app-text:hover {
+  background-color: var(--app-hover);
+  color: var(--app-text-primary);
+}
+.hover-heretto:hover {
+  background-color: #0f766e;
+}
+.hover-accept:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+.hover-reject:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
 /* Heretto Browser Modal */
 .heretto-item:last-child {
   border-bottom: none !important;

@@ -39,6 +39,10 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
   const [editor] = useLexicalComposerContext();
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkError, setLinkError] = useState('');
+  const linkInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -81,12 +85,22 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsThemeOpen(prev => !prev)}
-          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest mr-2 rounded px-2 py-1 transition-colors"
+          onKeyDown={e => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              if (!isThemeOpen) setIsThemeOpen(true);
+              setTimeout(() => {
+                const first = dropdownRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
+                first?.focus();
+              }, 0);
+            }
+          }}
+          aria-haspopup="true"
+          aria-expanded={isThemeOpen}
+          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest mr-2 rounded px-2 py-1 transition-colors hover-toolbar"
           style={{
             color: 'var(--editor-toolbar-text)',
           }}
-          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <FileText className="w-4 h-4" />
           {currentLabel}
@@ -96,6 +110,14 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
         {isThemeOpen && (
           <div
             className="absolute top-full left-0 mt-1 rounded-lg shadow-xl border py-1 min-w-[140px]"
+            role="menu"
+            onKeyDown={e => {
+              const items = Array.from(dropdownRef.current?.querySelectorAll('[role="menuitem"]') ?? []) as HTMLElement[];
+              const idx = items.indexOf(e.target as HTMLElement);
+              if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length]?.focus(); }
+              else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length]?.focus(); }
+              else if (e.key === 'Escape') { e.preventDefault(); setIsThemeOpen(false); }
+            }}
             style={{
               backgroundColor: 'var(--editor-toolbar-bg)',
               borderColor: 'var(--editor-toolbar-border)',
@@ -105,18 +127,17 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
             {THEME_OPTIONS.map(opt => (
               <button
                 key={opt.value}
+                role="menuitem"
                 onClick={() => {
                   onThemeChange(opt.value);
                   setIsThemeOpen(false);
                 }}
-                className="w-full text-left px-3 py-1.5 text-xs font-medium transition-colors flex items-center justify-between"
+                className="w-full text-left px-3 py-1.5 text-xs font-medium transition-colors flex items-center justify-between hover-toolbar"
                 style={{
                   color: opt.value === currentTheme
                     ? 'var(--editor-accent, #0ea5e9)'
                     : 'var(--editor-toolbar-text-strong)',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 {opt.label}
                 {opt.value === currentTheme && <span>&#10003;</span>}
@@ -128,81 +149,164 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
 
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Undo">
-        <button aria-label="Undo" onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Undo" onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <Undo className="w-4 h-4" />
         </button>
       </Tooltip>
       <Tooltip content="Redo">
-        <button aria-label="Redo" onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Redo" onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <Redo className="w-4 h-4" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Heading 1">
-        <button aria-label="Heading 1" onClick={() => formatHeading('h1')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Heading 1" onClick={() => formatHeading('h1')} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <Heading1 className="w-4 h-4" />
         </button>
       </Tooltip>
       <Tooltip content="Heading 2">
-        <button aria-label="Heading 2" onClick={() => formatHeading('h2')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Heading 2" onClick={() => formatHeading('h2')} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <Heading2 className="w-4 h-4" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Bold">
-        <button aria-label="Bold" onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Bold" onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <span className="font-bold font-serif">B</span>
         </button>
       </Tooltip>
       <Tooltip content="Italic">
-        <button aria-label="Italic" onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Italic" onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <span className="italic font-serif">I</span>
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Numbered List">
-        <button aria-label="Numbered list" onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Numbered list" onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <ListOrdered className="w-4 h-4" />
         </button>
       </Tooltip>
       <Tooltip content="Bulleted List">
-        <button aria-label="Bulleted list" onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Bulleted list" onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <List className="w-4 h-4" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Warning Note">
-        <button aria-label="Warning note" onClick={() => formatQuote()} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Warning note" onClick={() => formatQuote()} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <AlertTriangle className="w-3.5 h-3.5" />
         </button>
       </Tooltip>
       <Tooltip content="Insert Link">
         <button aria-label="Insert link" onClick={() => {
-          const url = window.prompt('Enter URL:');
-          if (url) {
-            const trimmed = url.trim().toLowerCase();
-            if (trimmed.startsWith('javascript:') || trimmed.startsWith('data:') || trimmed.startsWith('vbscript:')) {
-              toast.error('Invalid URL scheme');
-              return;
-            }
-            editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
-          }
-        }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+          setLinkUrl('');
+          setLinkError('');
+          setIsLinkModalOpen(true);
+          setTimeout(() => linkInputRef.current?.focus(), 0);
+        }} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <Link className="w-3.5 h-3.5" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Enter Edit Mode">
-        <button aria-label="Enter edit mode" onClick={onEnterEditMode} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Enter edit mode" onClick={onEnterEditMode} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <Pencil className="w-3.5 h-3.5" />
         </button>
       </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Clear Contents">
-        <button aria-label="Clear contents" onClick={() => { if (window.confirm('Clear all editor contents? This cannot be undone.')) { editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined); toast('Cleared editor contents'); } }} className="p-1 rounded transition-colors" style={{ color: 'var(--editor-toolbar-text-strong)' }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--editor-toolbar-hover)')} onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button aria-label="Clear contents" onClick={() => { if (window.confirm('Clear all editor contents? This cannot be undone.')) { editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined); toast('Cleared editor contents'); } }} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
           <Trash2 className="w-4 h-4" />
         </button>
       </Tooltip>
+
+      {/* Insert Link Modal */}
+      {isLinkModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 100 }}
+          onClick={() => setIsLinkModalOpen(false)}
+        >
+          <div
+            className="rounded-xl p-6 shadow-2xl w-[400px]"
+            style={{
+              backgroundColor: 'var(--app-surface)',
+              border: '1px solid var(--app-border-subtle)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--app-text-primary)' }}>Insert Link</h3>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
+              URL
+            </label>
+            <input
+              ref={linkInputRef}
+              type="url"
+              value={linkUrl}
+              onChange={e => { setLinkUrl(e.target.value); setLinkError(''); }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const trimmed = linkUrl.trim().toLowerCase();
+                  if (!linkUrl.trim()) return;
+                  if (trimmed.startsWith('javascript:') || trimmed.startsWith('data:') || trimmed.startsWith('vbscript:')) {
+                    setLinkError('Invalid URL scheme');
+                    return;
+                  }
+                  editor.dispatchCommand(TOGGLE_LINK_COMMAND, linkUrl.trim());
+                  setIsLinkModalOpen(false);
+                }
+                if (e.key === 'Escape') setIsLinkModalOpen(false);
+              }}
+              placeholder="https://example.com"
+              className="w-full px-3 py-2 rounded-lg text-sm mb-1"
+              style={{
+                backgroundColor: 'var(--app-surface-raised)',
+                border: `1px solid ${linkError ? '#ef4444' : 'var(--app-border-subtle)'}`,
+                color: 'var(--app-text-primary)',
+                outline: 'none',
+              }}
+            />
+            {linkError && (
+              <p className="text-xs mb-2" style={{ color: '#ef4444' }}>{linkError}</p>
+            )}
+            {!linkError && (
+              <p className="text-[10px] mb-4" style={{ color: 'var(--app-text-muted)' }}>
+                Press Enter to insert, Escape to cancel.
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsLinkModalOpen(false)}
+                className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors hover-btn"
+                style={{
+                  backgroundColor: 'var(--app-surface-raised)',
+                  border: '1px solid var(--app-border-subtle)',
+                  color: 'var(--app-text-secondary)',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const trimmed = linkUrl.trim().toLowerCase();
+                  if (!linkUrl.trim()) return;
+                  if (trimmed.startsWith('javascript:') || trimmed.startsWith('data:') || trimmed.startsWith('vbscript:')) {
+                    setLinkError('Invalid URL scheme');
+                    return;
+                  }
+                  editor.dispatchCommand(TOGGLE_LINK_COMMAND, linkUrl.trim());
+                  setIsLinkModalOpen(false);
+                }}
+                disabled={!linkUrl.trim()}
+                className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Insert Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Mode accept/reject controls */}
       {editMode && (
@@ -211,10 +315,8 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
             <button
               aria-label="Accept edits"
               onClick={onAcceptEdits}
-              className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors hover-accept"
               style={{ color: '#22c55e' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               <Check className="w-3.5 h-3.5" />
               Accept
@@ -224,10 +326,8 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
             <button
               aria-label="Reject edits"
               onClick={onRejectEdits}
-              className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors hover-reject"
               style={{ color: '#ef4444' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               <X className="w-3.5 h-3.5" />
               Reject

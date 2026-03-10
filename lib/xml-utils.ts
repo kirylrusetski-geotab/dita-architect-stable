@@ -292,7 +292,8 @@ export const compareXml = (a: string, b: string): 'identical' | 'formatting' | '
   return nodesEqual(docA.documentElement, docB.documentElement) ? 'formatting' : 'different';
 };
 
-export type DitaTopicType = 'task' | 'concept' | 'reference';
+import type { DitaTopicType } from '../constants/dita';
+export type { DitaTopicType };
 
 const BODY_TAG_MAP: Record<string, string> = {
   task: 'taskbody',

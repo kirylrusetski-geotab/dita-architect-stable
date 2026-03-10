@@ -127,16 +127,33 @@ export function useHerettoCms({
     if (dirty !== activeTab.herettoDirty) setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, herettoDirty: dirty } : t));
   }, [activeTab?.xmlContent, activeTab?.herettoFile, activeTab?.id, setTabs]);
 
-  // Poll for remote changes on Heretto (per-tab)
+  // Poll for remote changes on Heretto (per-tab) with exponential backoff
   const pollFailCountRef = useRef(0);
   useEffect(() => {
     if (!activeTab?.herettoFile) return;
     const tabId = activeTab.id;
     const file = activeTab.herettoFile;
     pollFailCountRef.current = 0;
-    const interval = setInterval(async () => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const BASE_INTERVAL = 30_000;
+    const MAX_INTERVAL = 5 * 60_000; // 5 minutes cap
+
+    const schedule = () => {
+      const fails = pollFailCountRef.current;
+      // Exponential backoff: 30s, 60s, 120s, 240s, capped at 5min
+      const backoff = Math.min(BASE_INTERVAL * Math.pow(2, fails), MAX_INTERVAL);
+      // Add jitter: ±25% to avoid thundering herd
+      const jitter = backoff * (0.75 + Math.random() * 0.5);
+      timer = setTimeout(poll, jitter);
+    };
+
+    const poll = async () => {
+      if (cancelled) return;
       try {
         const res = await fetch(`/heretto-api/all-files/${file.uuid}/content`);
+        if (cancelled) return;
         if (!res.ok) {
           pollFailCountRef.current++;
           if (pollFailCountRef.current === 3) {
@@ -144,6 +161,7 @@ export function useHerettoCms({
               ? 'Heretto credentials may have expired — reconnect in Heretto Status'
               : `Heretto sync check failing (HTTP ${res.status})`);
           }
+          schedule();
           return;
         }
         pollFailCountRef.current = 0;
@@ -153,13 +171,17 @@ export function useHerettoCms({
           return { ...t, herettoRemoteChanged: remote !== t.savedXmlRef.current };
         }));
       } catch {
+        if (cancelled) return;
         pollFailCountRef.current++;
         if (pollFailCountRef.current === 3) {
           toast.error('Cannot reach Heretto — check your network connection');
         }
       }
-    }, 30000);
-    return () => clearInterval(interval);
+      if (!cancelled) schedule();
+    };
+
+    schedule();
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [activeTab?.herettoFile?.uuid, activeTab?.id, setTabs]);
 
   const herettoNavigate = useCallback(async (uuid: string, name: string, resetBreadcrumbs?: boolean) => {

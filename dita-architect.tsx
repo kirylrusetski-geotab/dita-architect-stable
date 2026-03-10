@@ -26,11 +26,15 @@ import { DitaCodeBlockNode } from './components/DitaCodeBlockNode';
 import { DitaImageNode } from './components/DitaImageNode';
 import { DitaPhRefNode } from './components/DitaPhRefNode';
 import { TrackedDeletionNode } from './components/TrackedDeletionNode';
-import { Code, CheckCircle, AlertTriangle, BookOpen, Save, FolderOpen, RefreshCw, FilePlus, ChevronDown, CloudUpload, Folder, FileText, Loader2, X, PanelRightClose, PanelRightOpen, Network, MapIcon, Search, XCircle } from 'lucide-react';
+import { Code, CheckCircle, AlertTriangle, BookOpen, Save, FolderOpen, RefreshCw, FilePlus, ChevronDown, CloudUpload, FileText, Loader2, X, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { ConfirmModal } from './components/ConfirmModal';
+import { TopicTypeModal } from './components/TopicTypeModal';
+import { SaveTopicModal } from './components/SaveTopicModal';
+import { HerettoStatusModal } from './components/HerettoStatusModal';
+import { HerettoBrowserModal } from './components/HerettoBrowserModal';
+import { ImportVerificationModal } from './components/ImportVerificationModal';
 import { SYNTAX_THEME_OPTIONS } from './components/MonacoDitaEditor';
 import type { XmlError } from './components/MonacoDitaEditor';
-import type { HerettoItem, HerettoSearchResult } from './types/heretto';
-import { HERETTO_ROOT_UUID } from './constants/heretto';
 import { formatRelativeTime } from './lib/xml-utils';
 import { useEditorUi } from './hooks/useEditorUi';
 import { useTabManager } from './hooks/useTabManager';
@@ -219,72 +223,6 @@ export default function ProfessionalDitaEditor() {
     setActiveTabId,
   });
 
-  const renderModal = (
-    isOpen: boolean,
-    onClose: () => void,
-    title: string,
-    description: string,
-    onSelect: (type: 'task' | 'concept' | 'reference') => void,
-    disabledType?: string,
-  ) => {
-    if (!isOpen) return null;
-    return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div
-          className="rounded-xl p-6 w-96 shadow-2xl"
-          style={{
-            backgroundColor: 'var(--app-surface)',
-            border: '1px solid var(--app-border-subtle)',
-          }}
-        >
-          <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--app-text-primary)' }}>{title}</h3>
-          <p className="text-sm mb-6" style={{ color: 'var(--app-text-muted)' }}>{description}</p>
-          <div className="space-y-2">
-            {(['task', 'concept', 'reference'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => onSelect(type)}
-                disabled={disabledType === type}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all"
-                style={{
-                  backgroundColor: 'var(--app-surface-raised)',
-                  border: '1px solid var(--app-border-subtle)',
-                  color: disabledType === type ? 'var(--app-text-muted)' : 'var(--app-text-secondary)',
-                  cursor: disabledType === type ? 'not-allowed' : 'pointer',
-                  opacity: disabledType === type ? 0.6 : 1,
-                }}
-                onMouseEnter={e => {
-                  if (disabledType !== type) {
-                    e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)';
-                    e.currentTarget.style.color = 'var(--app-text-primary)';
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (disabledType !== type) {
-                    e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)';
-                    e.currentTarget.style.color = 'var(--app-text-secondary)';
-                  }
-                }}
-              >
-                <span className="capitalize font-medium">{type}</span>
-                {disabledType === type && <CheckCircle className="w-4 h-4" />}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={onClose}
-            className="mt-6 w-full py-2 text-sm transition-colors"
-            style={{ color: 'var(--app-text-muted)' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text-primary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-text-muted)')}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="h-screen flex flex-col overflow-hidden" data-theme={appTheme} style={{ backgroundColor: 'var(--app-bg)' }}>
       {/* Drop overlay */}
@@ -310,707 +248,91 @@ export default function ProfessionalDitaEditor() {
 
       {/* Heretto Status Modal */}
       {isHerettoStatusOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div
-            className="rounded-xl p-6 w-[420px] shadow-2xl"
-            style={{
-              backgroundColor: 'var(--app-surface)',
-              border: '1px solid var(--app-border-subtle)',
-            }}
-          >
-            <div className="flex items-center gap-2 mb-5">
-              <HerettoLogo className="w-5 h-5" style={{ color: '#14b8a6' }} />
-              <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>Heretto Status</h3>
-            </div>
-
-            {/* Connection status */}
-            <div className="flex items-center gap-2 mb-5">
-              <div
-                className="flex-1 rounded-lg px-3 py-2 text-sm flex items-center gap-2"
-                style={{
-                  backgroundColor: herettoConnected
-                    ? 'rgba(16, 185, 129, 0.1)'
-                    : 'rgba(239, 68, 68, 0.1)',
-                  border: `1px solid ${herettoConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                  color: herettoConnected ? '#10b981' : '#ef4444',
-                }}
-              >
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: herettoConnected ? '#10b981' : '#ef4444' }}
-                />
-                {herettoConnected ? 'Connected' : 'Not connected'}
-              </div>
-              <button
-                onClick={testHerettoConnection}
-                disabled={herettoStatusChecking}
-                className="px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 shrink-0"
-                style={{
-                  backgroundColor: 'var(--app-surface-raised)',
-                  border: '1px solid var(--app-border-subtle)',
-                  color: 'var(--app-text-secondary)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)')}
-              >
-                {herettoStatusChecking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                Test
-              </button>
-            </div>
-
-            {/* Email */}
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
-              Email
-            </label>
-            <input
-              type="text"
-              value={herettoCredentials.email}
-              onChange={e => setHerettoCredentials(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none mb-4"
-              style={{
-                backgroundColor: 'var(--app-surface-raised)',
-                border: '1px solid var(--app-border-subtle)',
-                color: 'var(--app-text-primary)',
-              }}
-              onFocus={e => (e.currentTarget.style.borderColor = 'var(--editor-accent)')}
-              onBlur={e => (e.currentTarget.style.borderColor = 'var(--app-border-subtle)')}
-              placeholder="user@example.com"
-            />
-
-            {/* Token */}
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
-              API Token
-            </label>
-            <input
-              type="password"
-              value={herettoCredentials.token}
-              onChange={e => setHerettoCredentials(prev => ({ ...prev, token: e.target.value }))}
-              className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none mb-1"
-              style={{
-                backgroundColor: 'var(--app-surface-raised)',
-                border: '1px solid var(--app-border-subtle)',
-                color: 'var(--app-text-primary)',
-              }}
-              onFocus={e => (e.currentTarget.style.borderColor = 'var(--editor-accent)')}
-              onBlur={e => (e.currentTarget.style.borderColor = 'var(--app-border-subtle)')}
-              placeholder="Your Heretto API token"
-            />
-            <p className="text-[10px] mb-5" style={{ color: 'var(--app-text-muted)' }}>
-              Stored locally in ~/heretto.json. Never sent to the browser.
-            </p>
-
-            {/* Actions */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsHerettoStatusOpen(false)}
-                className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--app-surface-raised)',
-                  border: '1px solid var(--app-border-subtle)',
-                  color: 'var(--app-text-secondary)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)')}
-              >
-                Close
-              </button>
-              <button
-                onClick={saveHerettoCredentials}
-                disabled={herettoStatusChecking}
-                className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {herettoStatusChecking && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+        <HerettoStatusModal
+          herettoConnected={herettoConnected}
+          herettoStatusChecking={herettoStatusChecking}
+          herettoCredentials={herettoCredentials}
+          setHerettoCredentials={setHerettoCredentials}
+          testHerettoConnection={testHerettoConnection}
+          saveHerettoCredentials={saveHerettoCredentials}
+          onClose={() => setIsHerettoStatusOpen(false)}
+        />
       )}
 
       {/* Confirmation Modal */}
       {confirmModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div
-            className="rounded-xl p-6 w-96 shadow-2xl"
-            style={{
-              backgroundColor: 'var(--app-surface)',
-              border: '1px solid var(--app-border-subtle)',
-            }}
-          >
-            <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--app-text-primary)' }}>Confirm</h3>
-            <p className="text-sm mb-6" style={{ color: 'var(--app-text-secondary)' }}>{confirmModal.message}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setConfirmModal(null)}
-                className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--app-surface-raised)',
-                  border: '1px solid var(--app-border-subtle)',
-                  color: 'var(--app-text-secondary)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)')}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmModal.onConfirm}
-                className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onClose={() => setConfirmModal(null)}
+        />
       )}
 
       {/* New Topic Modal */}
-      {renderModal(
-        isNewTopicModalOpen,
-        () => setIsNewTopicModalOpen(false),
-        'New Topic',
-        'Select a DITA topic type to start with.',
-        handleNewTopic,
+      {isNewTopicModalOpen && (
+        <TopicTypeModal
+          title="New Topic"
+          description="Select a DITA topic type to start with."
+          onSelect={handleNewTopic}
+          onClose={() => setIsNewTopicModalOpen(false)}
+        />
       )}
 
       {/* Convert Topic Modal */}
-      {renderModal(
-        isConvertModalOpen,
-        () => setIsConvertModalOpen(false),
-        'Convert Topic Type',
-        'Select the target DITA topic type. This will update the root element and body tag.',
-        handleConvertTopic,
-        currentTopicType,
+      {isConvertModalOpen && (
+        <TopicTypeModal
+          title="Convert Topic Type"
+          description="Select the target DITA topic type. This will update the root element and body tag."
+          onSelect={handleConvertTopic}
+          onClose={() => setIsConvertModalOpen(false)}
+          disabledType={currentTopicType}
+        />
       )}
 
       {/* Save Topic Modal */}
       {isSaveModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div
-            className="rounded-xl p-6 w-96 shadow-2xl"
-            style={{
-              backgroundColor: 'var(--app-surface)',
-              border: '1px solid var(--app-border-subtle)',
-            }}
-          >
-            <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--app-text-primary)' }}>Save Topic</h3>
-            <p className="text-sm mb-5" style={{ color: 'var(--app-text-muted)' }}>
-              Choose a file name, then pick where to save it.
-            </p>
-
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
-              File name
-            </label>
-            <input
-              type="text"
-              value={saveFileName}
-              onChange={e => setSaveFileName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleSaveConfirm(); }}
-              autoFocus
-              className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none mb-1"
-              style={{
-                backgroundColor: 'var(--app-surface-raised)',
-                border: '1px solid var(--app-border-subtle)',
-                color: 'var(--app-text-primary)',
-              }}
-              onFocus={e => (e.currentTarget.style.borderColor = 'var(--editor-accent)')}
-              onBlur={e => (e.currentTarget.style.borderColor = 'var(--app-border-subtle)')}
-            />
-            <p className="text-[10px] mb-5" style={{ color: 'var(--app-text-muted)' }}>
-              .dita extension will be added automatically if not provided.
-            </p>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsSaveModalOpen(false)}
-                className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--app-surface-raised)',
-                  border: '1px solid var(--app-border-subtle)',
-                  color: 'var(--app-text-secondary)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)')}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveConfirm}
-                className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+        <SaveTopicModal
+          saveFileName={saveFileName}
+          setSaveFileName={setSaveFileName}
+          onSave={handleSaveConfirm}
+          onClose={() => setIsSaveModalOpen(false)}
+        />
       )}
 
       {/* Heretto Browser Modal */}
       {isHerettoBrowserOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div
-            className="rounded-xl p-6 w-[520px] max-h-[80vh] flex flex-col shadow-2xl"
-            style={{
-              backgroundColor: 'var(--app-surface)',
-              border: '1px solid var(--app-border-subtle)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--app-text-primary)' }}>
-                <HerettoLogo className="w-5 h-5" style={{ color: '#14b8a6' }} />
-                {herettoBrowserMode === 'open' ? 'Open from Heretto' : 'Save to Heretto'}
-              </h3>
-            </div>
-
-            {/* Search input */}
-            {herettoBrowserMode === 'open' && (
-              <div className="relative mb-3">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--app-text-muted)' }} />
-                <input
-                  type="text"
-                  value={herettoSearchQuery}
-                  onChange={e => setHerettoSearchQuery(e.target.value)}
-                  placeholder={
-                    herettoBreadcrumbs.length > 1
-                      ? `Search in ${herettoBreadcrumbs[herettoBreadcrumbs.length - 1].name}…`
-                      : 'Search all files…'
-                  }
-                  className="w-full pl-9 pr-9 py-2 rounded-lg text-sm outline-none"
-                  style={{
-                    backgroundColor: 'var(--app-surface-raised)',
-                    border: '1px solid var(--app-border-subtle)',
-                    color: 'var(--app-text-primary)',
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--editor-accent)')}
-                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--app-border-subtle)')}
-                />
-                {herettoSearchQuery && (
-                  <button
-                    onClick={() => setHerettoSearchQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded transition-colors"
-                    style={{ color: 'var(--app-text-muted)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text-primary)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-text-muted)')}
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Scope indicator — when searching from a subfolder */}
-            {herettoSearchQuery.trim() && herettoBreadcrumbs.length > 1 && (
-              <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: 'var(--app-text-muted)' }}>
-                <span>Searching in {herettoBreadcrumbs.slice(1).map(b => b.name).join('/')}</span>
-                <span>&middot;</span>
-                <button
-                  onClick={() => {
-                    herettoSearchAbortRef.current?.abort();
-                    const abort = new AbortController();
-                    herettoSearchAbortRef.current = abort;
-                    setHerettoSearchQuery(herettoSearchQuery); // keep the query
-                    herettoSearch(herettoSearchQuery.trim(), HERETTO_ROOT_UUID, abort.signal);
-                  }}
-                  className="hover:underline transition-colors"
-                  style={{ color: 'var(--editor-accent)' }}
-                >
-                  Search all
-                </button>
-              </div>
-            )}
-
-            {/* Search progress bar */}
-            {herettoSearchStatus.phase === 'searching' && (
-              <div className="mb-3">
-                <div className="w-full h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--app-surface-raised)' }}>
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.max(5, Math.round((herettoSearchStatus.foldersVisited / Math.max(1, herettoSearchStatus.foldersTotal)) * 100))}%`,
-                      backgroundColor: 'var(--editor-accent)',
-                    }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xs" style={{ color: 'var(--app-text-muted)' }}>
-                  <span>Scanning folders… {herettoSearchStatus.foldersVisited} / {herettoSearchStatus.foldersTotal}{herettoSearchStatus.foldersFailed > 0 ? ` (${herettoSearchStatus.foldersFailed} failed)` : ''}</span>
-                  <button
-                    onClick={() => {
-                      herettoSearchAbortRef.current?.abort();
-                      setHerettoSearchStatus({ phase: 'cancelled', foldersVisited: herettoSearchStatus.foldersVisited });
-                    }}
-                    className="hover:underline transition-colors"
-                    style={{ color: 'var(--editor-accent)' }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Breadcrumbs — hide when searching */}
-            {!herettoSearchQuery.trim() && (
-              <div className="flex items-center gap-1 text-xs mb-3 flex-wrap" style={{ color: 'var(--app-text-muted)' }}>
-                {herettoBreadcrumbs.map((crumb, idx) => (
-                  <React.Fragment key={crumb.uuid}>
-                    {idx > 0 && <span>/</span>}
-                    <button
-                      onClick={() => {
-                        setHerettoBreadcrumbs(prev => prev.slice(0, idx + 1));
-                        herettoNavigate(crumb.uuid, crumb.name, true).then(() => {
-                          setHerettoBreadcrumbs(prev => prev.slice(0, idx + 1));
-                        });
-                      }}
-                      className="hover:underline transition-colors px-1 py-0.5 rounded"
-                      style={{ color: idx === herettoBreadcrumbs.length - 1 ? 'var(--app-text-primary)' : 'var(--app-text-muted)' }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      {crumb.name}
-                    </button>
-                  </React.Fragment>
-                ))}
-              </div>
-            )}
-
-            {/* File list / Search results */}
-            <div
-              className="flex-1 overflow-y-auto rounded-lg border min-h-[200px] max-h-[400px]"
-              style={{
-                backgroundColor: 'var(--app-surface-raised)',
-                borderColor: 'var(--app-border-subtle)',
-              }}
-            >
-              {herettoSearchQuery.trim() ? (
-                // Search results mode
-                <>
-                  {herettoSearchResults.length === 0 && herettoSearchStatus.phase === 'done' && (
-                    <div className="flex flex-col items-center justify-center h-full py-12 text-sm" style={{ color: 'var(--app-text-muted)' }}>
-                      <span>No results found</span>
-                      {herettoSearchStatus.foldersFailed > 0 && (
-                        <span className="mt-1 text-xs" style={{ color: 'var(--app-text-error, #ef4444)' }}>
-                          {herettoSearchStatus.foldersFailed} folder{herettoSearchStatus.foldersFailed !== 1 ? 's' : ''} could not be searched
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {herettoSearchResults.length === 0 && herettoSearchStatus.phase === 'cancelled' && (
-                    <div className="flex items-center justify-center h-full py-12 text-sm" style={{ color: 'var(--app-text-muted)' }}>
-                      Search cancelled — 0 results
-                    </div>
-                  )}
-                  {herettoSearchResults.length === 0 && (herettoSearchStatus.phase === 'searching' || herettoSearchStatus.phase === 'idle') && (
-                    <div className="flex items-center justify-center h-full py-12">
-                      <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--editor-accent)' }} />
-                    </div>
-                  )}
-                  {herettoSearchResults.map(item => (
-                    <button
-                      key={item.uuid}
-                      onClick={() => setHerettoSelected(prev => prev?.uuid === item.uuid ? null : item)}
-                      onDoubleClick={() => handleHerettoOpen(item)}
-                      className="w-full text-left px-3 py-2 text-sm flex items-center gap-2.5 transition-colors heretto-item"
-                      style={{
-                        borderBottom: '1px solid var(--app-border-subtle)',
-                        color: 'var(--app-text-secondary)',
-                        backgroundColor: herettoSelected?.uuid === item.uuid ? 'var(--app-hover)' : 'transparent',
-                      }}
-                      onMouseEnter={e => {
-                        if (herettoSelected?.uuid !== item.uuid) e.currentTarget.style.backgroundColor = 'var(--app-hover)';
-                      }}
-                      onMouseLeave={e => {
-                        if (herettoSelected?.uuid !== item.uuid) e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      {item.name.endsWith('.sitemap') ? (
-                        <Network className="w-4 h-4 shrink-0" style={{ color: '#f59e0b' }} />
-                      ) : item.name.endsWith('.ditamap') ? (
-                        <MapIcon className="w-4 h-4 shrink-0" style={{ color: '#8b5cf6' }} />
-                      ) : (
-                        <FileText className="w-4 h-4 shrink-0" style={{ color: 'var(--app-text-muted)' }} />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate">{item.name}</div>
-                        <div className="truncate text-xs mt-0.5" style={{ color: 'var(--app-text-muted)' }}>{item.path}</div>
-                      </div>
-                    </button>
-                  ))}
-                  {herettoSearchResults.length > 0 && herettoSearchStatus.phase === 'cancelled' && (
-                    <div className="px-3 py-2 text-xs" style={{ color: 'var(--app-text-muted)' }}>
-                      Search cancelled — {herettoSearchResults.length} result{herettoSearchResults.length !== 1 ? 's' : ''} so far
-                    </div>
-                  )}
-                  {herettoSearchResults.length > 0 && herettoSearchStatus.phase === 'done' && (
-                    <div className="px-3 py-2 text-xs" style={{ color: 'var(--app-text-muted)' }}>
-                      {herettoSearchResults.length} result{herettoSearchResults.length !== 1 ? 's' : ''} found
-                      {herettoSearchStatus.foldersFailed > 0 && (
-                        <span style={{ color: 'var(--app-text-error, #ef4444)' }}>
-                          {' '}({herettoSearchStatus.foldersFailed} folder{herettoSearchStatus.foldersFailed !== 1 ? 's' : ''} failed)
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </>
-              ) : (
-                // Normal browse mode
-                <>
-                  {herettoBrowsing ? (
-                    <div className="flex items-center justify-center h-full py-12">
-                      <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--editor-accent)' }} />
-                    </div>
-                  ) : herettoItems.length === 0 ? (
-                    <div className="flex items-center justify-center h-full py-12 text-sm" style={{ color: 'var(--app-text-muted)' }}>
-                      Empty folder
-                    </div>
-                  ) : (
-                    herettoItems.map(item => (
-                      <button
-                        key={item.uuid}
-                        onClick={() => {
-                          if (item.type === 'folder') {
-                            herettoNavigate(item.uuid, item.name);
-                          } else {
-                            setHerettoSelected(prev => prev?.uuid === item.uuid ? null : item);
-                          }
-                        }}
-                        onDoubleClick={() => {
-                          if (item.type === 'folder') return;
-                          if (herettoBrowserMode === 'open') handleHerettoOpen(item);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2.5 transition-colors heretto-item"
-                        style={{
-                          borderBottom: '1px solid var(--app-border-subtle)',
-                          color: 'var(--app-text-secondary)',
-                          backgroundColor: herettoSelected?.uuid === item.uuid ? 'var(--app-hover)' : 'transparent',
-                        }}
-                        onMouseEnter={e => {
-                          if (herettoSelected?.uuid !== item.uuid) e.currentTarget.style.backgroundColor = 'var(--app-hover)';
-                        }}
-                        onMouseLeave={e => {
-                          if (herettoSelected?.uuid !== item.uuid) e.currentTarget.style.backgroundColor = 'transparent';
-                        }}
-                      >
-                        {item.type === 'folder' ? (
-                          <Folder className="w-4 h-4 shrink-0" style={{ color: 'var(--editor-accent)' }} />
-                        ) : item.name.endsWith('.sitemap') ? (
-                          <Network className="w-4 h-4 shrink-0" style={{ color: '#f59e0b' }} />
-                        ) : item.name.endsWith('.ditamap') ? (
-                          <MapIcon className="w-4 h-4 shrink-0" style={{ color: '#8b5cf6' }} />
-                        ) : (
-                          <FileText className="w-4 h-4 shrink-0" style={{ color: 'var(--app-text-muted)' }} />
-                        )}
-                        <span className="truncate">{item.name}</span>
-                        {item.type === 'folder' && (
-                          <ChevronDown className="w-3 h-3 -rotate-90 ml-auto shrink-0" style={{ color: 'var(--app-text-muted)' }} />
-                        )}
-                      </button>
-                    ))
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Save mode: filename input */}
-            {herettoBrowserMode === 'save' && (
-              <div className="mt-3">
-                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--app-text-secondary)' }}>
-                  File name
-                </label>
-                <input
-                  type="text"
-                  value={herettoSaveFileName}
-                  onChange={e => setHerettoSaveFileName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none"
-                  style={{
-                    backgroundColor: 'var(--app-surface-raised)',
-                    border: '1px solid var(--app-border-subtle)',
-                    color: 'var(--app-text-primary)',
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--editor-accent)')}
-                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--app-border-subtle)')}
-                />
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setIsHerettoBrowserOpen(false)}
-                className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--app-surface-raised)',
-                  border: '1px solid var(--app-border-subtle)',
-                  color: 'var(--app-text-secondary)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)')}
-              >
-                Cancel
-              </button>
-              {herettoBrowserMode === 'open' ? (
-                <button
-                  onClick={() => { if (herettoSelected && herettoSelected.type === 'file') handleHerettoOpen(herettoSelected as HerettoItem | HerettoSearchResult); }}
-                  disabled={!herettoSelected || herettoSelected.type === 'folder'}
-                  className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Open
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    const currentFolder = herettoBreadcrumbs[herettoBreadcrumbs.length - 1];
-                    if (currentFolder) handleHerettoSaveNew(currentFolder.uuid);
-                  }}
-                  disabled={herettoSaving || !herettoSaveFileName.trim()}
-                  className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {herettoSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  Save here
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <HerettoBrowserModal
+          mode={herettoBrowserMode}
+          searchQuery={herettoSearchQuery}
+          setSearchQuery={setHerettoSearchQuery}
+          breadcrumbs={herettoBreadcrumbs}
+          setBreadcrumbs={setHerettoBreadcrumbs}
+          searchAbortRef={herettoSearchAbortRef}
+          search={herettoSearch}
+          searchStatus={herettoSearchStatus}
+          setSearchStatus={setHerettoSearchStatus}
+          searchResults={herettoSearchResults}
+          selected={herettoSelected}
+          setSelected={setHerettoSelected}
+          browsing={herettoBrowsing}
+          items={herettoItems}
+          navigate={herettoNavigate}
+          onOpen={handleHerettoOpen}
+          saveFileName={herettoSaveFileName}
+          setSaveFileName={setHerettoSaveFileName}
+          saving={herettoSaving}
+          onSaveNew={handleHerettoSaveNew}
+          onClose={() => setIsHerettoBrowserOpen(false)}
+        />
       )}
 
       {/* Import Verification Modal */}
       {importVerification && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div
-            className="rounded-xl p-6 w-[440px] shadow-2xl"
-            style={{
-              backgroundColor: 'var(--app-surface)',
-              border: '1px solid var(--app-border-subtle)',
-            }}
-          >
-            {importVerification.phase === 'downloading' && (
-              <>
-                <div className="flex items-center gap-3 mb-4">
-                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--editor-accent)' }} />
-                  <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
-                    Downloading topic...
-                  </h3>
-                </div>
-                <div className="w-full h-1.5 rounded-full overflow-hidden mb-3" style={{ backgroundColor: 'var(--app-surface-raised)' }}>
-                  <div
-                    className="h-full rounded-full animate-pulse"
-                    style={{ width: '33%', backgroundColor: 'var(--editor-accent)' }}
-                  />
-                </div>
-                <p className="text-xs font-mono truncate" style={{ color: 'var(--app-text-muted)' }}>
-                  {importVerification.item.name}
-                </p>
-              </>
-            )}
-
-            {importVerification.phase === 'verifying' && (
-              <>
-                <div className="flex items-center gap-3 mb-4">
-                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--editor-accent)' }} />
-                  <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
-                    Verifying integrity...
-                  </h3>
-                </div>
-                <div className="w-full h-1.5 rounded-full overflow-hidden mb-3" style={{ backgroundColor: 'var(--app-surface-raised)' }}>
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: '66%', backgroundColor: 'var(--editor-accent)' }}
-                  />
-                </div>
-                <p className="text-xs" style={{ color: 'var(--app-text-muted)' }}>
-                  Re-fetching to confirm download integrity
-                </p>
-              </>
-            )}
-
-            {importVerification.phase === 'results' && (
-              <>
-                {importVerification.verified && importVerification.unrecognizedElements.length === 0 ? (
-                  <div className="flex items-center gap-3 mb-4">
-                    <CheckCircle className="w-5 h-5 text-emerald-500" />
-                    <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
-                      Ready to open
-                    </h3>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 mb-4">
-                    <AlertTriangle className="w-5 h-5 text-amber-500" />
-                    <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
-                      Review before opening
-                    </h3>
-                  </div>
-                )}
-
-                {/* Integrity status */}
-                <div
-                  className="rounded-lg px-3 py-2 text-sm mb-3 flex items-center gap-2"
-                  style={{
-                    backgroundColor: importVerification.verified
-                      ? 'rgba(16, 185, 129, 0.1)'
-                      : 'rgba(245, 158, 11, 0.1)',
-                    border: `1px solid ${importVerification.verified ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
-                    color: importVerification.verified ? '#10b981' : '#f59e0b',
-                  }}
-                >
-                  {importVerification.verified ? (
-                    <><CheckCircle className="w-4 h-4 shrink-0" /> Integrity check passed</>
-                  ) : (
-                    <><AlertTriangle className="w-4 h-4 shrink-0" /> Integrity check failed &mdash; content differed between fetches</>
-                  )}
-                </div>
-
-                {/* Unrecognized elements — only show when there are unsupported elements */}
-                {importVerification.unrecognizedElements.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs font-medium mb-2" style={{ color: 'var(--app-text-secondary)' }}>
-                    Unsupported DITA elements
-                  </p>
-                  <p className="text-[11px] mb-2" style={{ color: 'var(--app-text-muted)' }}>
-                    These elements are preserved in the XML source editor but won't render in the visual editor.
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {importVerification.unrecognizedElements.map(tag => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 rounded text-xs font-mono"
-                        style={{
-                          backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                          border: '1px solid rgba(245, 158, 11, 0.3)',
-                          color: '#f59e0b',
-                        }}
-                      >
-                        &lt;{tag}&gt;
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setImportVerification(null)}
-                    className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor: 'var(--app-surface-raised)',
-                      border: '1px solid var(--app-border-subtle)',
-                      color: 'var(--app-text-secondary)',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)')}
-                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)')}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleImportContinue}
-                    className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors"
-                  >
-                    {importVerification.verified ? 'Open Topic' : 'Open Anyway'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <ImportVerificationModal
+          data={importVerification}
+          onClose={() => setImportVerification(null)}
+          onContinue={handleImportContinue}
+        />
       )}
 
       {/* Top Bar */}
@@ -1027,9 +349,19 @@ export default function ProfessionalDitaEditor() {
           <div className="relative" ref={ditaMenuRef}>
             <button
               onClick={() => setIsDitaMenuOpen(prev => !prev)}
-              className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors cursor-pointer"
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+              onKeyDown={e => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  if (!isDitaMenuOpen) setIsDitaMenuOpen(true);
+                  setTimeout(() => {
+                    const first = ditaMenuRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
+                    first?.focus();
+                  }, 0);
+                }
+              }}
+              aria-haspopup="true"
+              aria-expanded={isDitaMenuOpen}
+              className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors cursor-pointer hover-app"
             >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-dita-500 to-dita-600 flex items-center justify-center shadow-lg shadow-dita-500/20">
                 <BookOpen className="text-white w-5 h-5" />
@@ -1052,48 +384,52 @@ export default function ProfessionalDitaEditor() {
             {isDitaMenuOpen && (
               <div
                 className="absolute top-full left-0 mt-1 rounded-lg shadow-xl border py-1 z-50 min-w-[160px]"
+                role="menu"
+                onKeyDown={e => {
+                  const items = Array.from(ditaMenuRef.current?.querySelectorAll('[role="menuitem"]') ?? []) as HTMLElement[];
+                  const idx = items.indexOf(e.target as HTMLElement);
+                  if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length]?.focus(); }
+                  else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length]?.focus(); }
+                  else if (e.key === 'Escape') { e.preventDefault(); setIsDitaMenuOpen(false); }
+                }}
                 style={{
                   backgroundColor: 'var(--app-surface-raised)',
                   borderColor: 'var(--app-border-subtle)',
                 }}
               >
                 <button
+                  role="menuitem"
                   onClick={() => { setIsDitaMenuOpen(false); setIsNewTopicModalOpen(true); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <FilePlus className="w-3.5 h-3.5" />
                   New Topic
                 </button>
                 <button
+                  role="menuitem"
                   onClick={() => { setIsDitaMenuOpen(false); handleUploadClick(); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <FolderOpen className="w-3.5 h-3.5" />
                   Open Topic
                 </button>
                 <button
+                  role="menuitem"
                   onClick={() => { setIsDitaMenuOpen(false); openSaveModal(); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <Save className="w-3.5 h-3.5" />
                   Save Topic
                 </button>
                 <div className="my-1 mx-2" style={{ borderTop: '1px solid var(--app-border-subtle)' }} />
                 <button
+                  role="menuitem"
                   onClick={() => { setIsDitaMenuOpen(false); setIsConvertModalOpen(true); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Convert Topic Type
@@ -1116,14 +452,24 @@ export default function ProfessionalDitaEditor() {
           <div className="relative" ref={fileOptionsRef}>
             <button
               onClick={() => setIsFileOptionsOpen(prev => !prev)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded transition-all text-xs font-medium"
+              onKeyDown={e => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  if (!isFileOptionsOpen) setIsFileOptionsOpen(true);
+                  setTimeout(() => {
+                    const first = fileOptionsRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
+                    first?.focus();
+                  }, 0);
+                }
+              }}
+              aria-haspopup="true"
+              aria-expanded={isFileOptionsOpen}
+              className="flex items-center gap-2 px-3 py-1.5 rounded transition-all text-xs font-medium hover-btn hover-text"
               style={{
                 backgroundColor: 'var(--app-surface-raised)',
                 color: 'var(--app-text-secondary)',
                 border: '1px solid var(--app-border-subtle)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--app-btn-hover)'; e.currentTarget.style.color = 'var(--app-text-primary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--app-surface-raised)'; e.currentTarget.style.color = 'var(--app-text-secondary)'; }}
             >
               <FileText className="w-3.5 h-3.5" />
               File Options
@@ -1133,6 +479,14 @@ export default function ProfessionalDitaEditor() {
             {isFileOptionsOpen && (
               <div
                 className="absolute top-full right-0 mt-1 rounded-lg shadow-xl border py-1 z-20"
+                role="menu"
+                onKeyDown={e => {
+                  const items = Array.from(fileOptionsRef.current?.querySelectorAll('[role="menuitem"]') ?? []) as HTMLElement[];
+                  const idx = items.indexOf(e.target as HTMLElement);
+                  if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length]?.focus(); }
+                  else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length]?.focus(); }
+                  else if (e.key === 'Escape') { e.preventDefault(); setIsFileOptionsOpen(false); }
+                }}
                 style={{
                   backgroundColor: 'var(--app-surface-raised)',
                   borderColor: 'var(--app-border-subtle)',
@@ -1140,42 +494,38 @@ export default function ProfessionalDitaEditor() {
                 }}
               >
                 <button
+                  role="menuitem"
                   onClick={() => { setIsFileOptionsOpen(false); setIsNewTopicModalOpen(true); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <FilePlus className="w-3.5 h-3.5" />
                   New
                 </button>
                 <button
+                  role="menuitem"
                   onClick={() => { setIsFileOptionsOpen(false); handleUploadClick(); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <FolderOpen className="w-3.5 h-3.5" />
                   Open
                 </button>
                 <button
+                  role="menuitem"
                   onClick={() => { setIsFileOptionsOpen(false); openSaveModal(); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <Save className="w-3.5 h-3.5" />
                   Save
                 </button>
                 <div className="my-1 mx-2" style={{ borderTop: '1px solid var(--app-border-subtle)' }} />
                 <button
+                  role="menuitem"
                   onClick={() => { setIsFileOptionsOpen(false); setIsConvertModalOpen(true); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                   style={{ color: 'var(--app-text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Convert
@@ -1188,14 +538,24 @@ export default function ProfessionalDitaEditor() {
           <div className="relative" ref={herettoDropdownRef}>
             <button
               onClick={() => setIsHerettoDropdownOpen(prev => !prev)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded shadow-lg transition-all text-xs font-medium"
+              onKeyDown={e => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  if (!isHerettoDropdownOpen) setIsHerettoDropdownOpen(true);
+                  setTimeout(() => {
+                    const first = herettoDropdownRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
+                    first?.focus();
+                  }, 0);
+                }
+              }}
+              aria-haspopup="true"
+              aria-expanded={isHerettoDropdownOpen}
+              className="flex items-center gap-2 px-3 py-1.5 rounded shadow-lg transition-all text-xs font-medium hover-heretto"
               style={{
                 backgroundColor: '#0d9488',
                 color: '#ffffff',
                 border: '1px solid #14b8a6',
               }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0f766e')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0d9488')}
             >
               <HerettoLogo className="w-4 h-4" />
               Heretto
@@ -1205,6 +565,14 @@ export default function ProfessionalDitaEditor() {
             {isHerettoDropdownOpen && (
               <div
                 className="absolute top-full right-0 mt-1 rounded-lg shadow-xl border py-1 z-20"
+                role="menu"
+                onKeyDown={e => {
+                  const items = Array.from(herettoDropdownRef.current?.querySelectorAll('[role="menuitem"]') ?? []) as HTMLElement[];
+                  const idx = items.indexOf(e.target as HTMLElement);
+                  if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length]?.focus(); }
+                  else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length]?.focus(); }
+                  else if (e.key === 'Escape') { e.preventDefault(); setIsHerettoDropdownOpen(false); }
+                }}
                 style={{
                   backgroundColor: 'var(--app-surface-raised)',
                   borderColor: 'var(--app-border-subtle)',
@@ -1214,21 +582,19 @@ export default function ProfessionalDitaEditor() {
                 {herettoConnected && (
                   <>
                     <button
+                      role="menuitem"
                       onClick={() => { setIsHerettoDropdownOpen(false); openHerettoBrowser('open'); }}
-                      className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                      className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                       style={{ color: 'var(--app-text-secondary)' }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <FolderOpen className="w-3.5 h-3.5" />
                       Open
                     </button>
                     <button
+                      role="menuitem"
                       onClick={() => { setIsHerettoDropdownOpen(false); handleHerettoSave(); }}
-                      className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                      className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                       style={{ color: 'var(--app-text-secondary)' }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <CloudUpload className="w-3.5 h-3.5" />
                       Save
@@ -1237,11 +603,10 @@ export default function ProfessionalDitaEditor() {
                   </>
                 )}
                   <button
+                    role="menuitem"
                     onClick={() => { setIsHerettoDropdownOpen(false); openHerettoStatus(); }}
-                    className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                    className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
                     style={{ color: 'var(--app-text-secondary)' }}
-                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <span
                       className="w-2 h-2 rounded-full shrink-0"
@@ -1296,10 +661,8 @@ export default function ProfessionalDitaEditor() {
                 )}
                 <span className="truncate">{tabName}</span>
                 <button
-                  className="p-0.5 rounded opacity-0 group-hover/tab:opacity-100 transition-opacity ml-auto shrink-0"
+                  className="p-0.5 rounded opacity-0 group-hover/tab:opacity-100 transition-opacity ml-auto shrink-0 hover-text"
                   style={{ color: 'var(--app-text-muted)' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text-primary)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-text-muted)')}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCloseTab(tab.id);
@@ -1313,16 +676,8 @@ export default function ProfessionalDitaEditor() {
           })}
         </div>
         <button
-          className="flex items-center justify-center w-[34px] h-[32px] shrink-0 transition-colors"
+          className="flex items-center justify-center w-[34px] h-[32px] shrink-0 transition-colors hover-app-text"
           style={{ color: 'var(--app-text-muted)' }}
-          onMouseEnter={e => {
-            e.currentTarget.style.color = 'var(--app-text-primary)';
-            e.currentTarget.style.backgroundColor = 'var(--app-hover)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = 'var(--app-text-muted)';
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
           onClick={handleNewTab}
           title="New tab"
         >
@@ -1408,10 +763,8 @@ export default function ProfessionalDitaEditor() {
                       <button
                         onClick={handleHerettoRefresh}
                         disabled={herettoRefreshing}
-                        className="p-1 rounded transition-colors"
+                        className="p-1 rounded transition-colors hover-text"
                         style={{ color: 'var(--app-text-muted)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text-primary)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-text-muted)')}
                         title="Refresh from Heretto"
                       >
                         <RefreshCw className={`w-3.5 h-3.5 ${herettoRefreshing ? 'animate-spin' : ''}`} />
@@ -1421,14 +774,12 @@ export default function ProfessionalDitaEditor() {
                         <button
                           onClick={handleHerettoSave}
                           disabled={herettoSaving}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors hover-heretto"
                           style={{
                             backgroundColor: '#0d9488',
                             color: '#ffffff',
                             border: '1px solid #14b8a6',
                           }}
-                          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0f766e')}
-                          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0d9488')}
                         >
                           {herettoSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CloudUpload className="w-3 h-3" />}
                           Commit
@@ -1437,10 +788,8 @@ export default function ProfessionalDitaEditor() {
 
                       <button
                         onClick={handleHerettoDisconnect}
-                        className="p-1 rounded transition-colors"
+                        className="p-1 rounded transition-colors hover-text"
                         style={{ color: 'var(--app-text-muted)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text-primary)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-text-muted)')}
                         title="Disconnect from Heretto"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -1547,10 +896,20 @@ export default function ProfessionalDitaEditor() {
             <div className="relative" ref={syntaxDropdownRef}>
               <button
                 onClick={() => setIsSyntaxThemeOpen(prev => !prev)}
-                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest rounded px-2 py-1 transition-colors"
+                onKeyDown={e => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (!isSyntaxThemeOpen) setIsSyntaxThemeOpen(true);
+                    setTimeout(() => {
+                      const first = syntaxDropdownRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
+                      first?.focus();
+                    }, 0);
+                  }
+                }}
+                aria-haspopup="true"
+                aria-expanded={isSyntaxThemeOpen}
+                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest rounded px-2 py-1 transition-colors hover-app"
                 style={{ color: 'var(--app-text-muted)' }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <Code className="w-4 h-4" />
                 {SYNTAX_THEME_OPTIONS.find(t => t.value === syntaxTheme)?.label ?? 'XML Source'}
@@ -1560,6 +919,14 @@ export default function ProfessionalDitaEditor() {
               {isSyntaxThemeOpen && (
                 <div
                   className="absolute top-full left-0 mt-1 rounded-lg shadow-xl border py-1 min-w-[140px] z-20"
+                  role="menu"
+                  onKeyDown={e => {
+                    const items = Array.from(syntaxDropdownRef.current?.querySelectorAll('[role="menuitem"]') ?? []) as HTMLElement[];
+                    const idx = items.indexOf(e.target as HTMLElement);
+                    if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length]?.focus(); }
+                    else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length]?.focus(); }
+                    else if (e.key === 'Escape') { e.preventDefault(); setIsSyntaxThemeOpen(false); }
+                  }}
                   style={{
                     backgroundColor: 'var(--app-surface-raised)',
                     borderColor: 'var(--app-border-subtle)',
@@ -1568,18 +935,17 @@ export default function ProfessionalDitaEditor() {
                   {SYNTAX_THEME_OPTIONS.map(opt => (
                     <button
                       key={opt.value}
+                      role="menuitem"
                       onClick={() => {
                         handleSyntaxThemeChange(opt.value);
                         setIsSyntaxThemeOpen(false);
                       }}
-                      className="w-full text-left px-3 py-1.5 text-xs font-medium transition-colors flex items-center justify-between"
+                      className="w-full text-left px-3 py-1.5 text-xs font-medium transition-colors flex items-center justify-between hover-app"
                       style={{
                         color: opt.value === syntaxTheme
                           ? 'var(--editor-accent, #0ea5e9)'
                           : 'var(--app-text-secondary)',
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--app-hover)')}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       {opt.label}
                       {opt.value === syntaxTheme && <span>&#10003;</span>}
@@ -1604,10 +970,8 @@ export default function ProfessionalDitaEditor() {
               )}
               <button
                 onClick={() => setCodeEditorCollapsed(true)}
-                className="p-1 rounded transition-colors"
+                className="p-1 rounded transition-colors hover-app-text"
                 style={{ color: 'var(--app-text-muted)' }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--app-hover)'; e.currentTarget.style.color = 'var(--app-text-primary)'; }}
-                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--app-text-muted)'; }}
                 title="Collapse XML editor"
               >
                 <PanelRightClose className="w-3.5 h-3.5" />
@@ -1682,10 +1046,8 @@ export default function ProfessionalDitaEditor() {
                 {activeTab.xmlErrors.map((err, idx) => (
                   <button
                     key={idx}
-                    className="w-full text-left px-3 py-2 flex items-start gap-2 transition-colors"
+                    className="w-full text-left px-3 py-2 flex items-start gap-2 transition-colors hover-app"
                     style={{ borderBottom: '1px solid var(--app-border-subtle)' }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--app-hover)'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                     onClick={() => {
                       activeTab.monacoApiRef.current?.revealLine(err.line, err.column);
                       setShowErrorPanel(false);
