@@ -403,17 +403,15 @@ export function useHerettoCms({
         toast.warning(`Saved ${herettoFile.name}, but remote content differs — verify manually`);
       }
 
-      // Mutate the ref on the live tab object by using the functional setTabs updater,
-      // which always receives the latest state — avoids stale-closure bugs when tabs
-      // have been added/removed/reordered during the async save.
-      setTabs(prev => {
-        const target = prev.find(t => t.id === tabId);
-        if (target) target.savedXmlRef.current = content;
-        return prev.map(t => {
-          if (t.id !== tabId) return t;
-          return { ...t, herettoLastSaved: new Date(), herettoRemoteChanged: false };
-        });
-      });
+      // Update savedXmlRef outside the state updater to avoid mutating React state.
+      // savedXmlRef is a stable ref-like object (created once per tab in createTab()),
+      // so mutating .current outside the updater is safe and avoids stale-closure issues.
+      tab.savedXmlRef.current = content;
+
+      setTabs(prev => prev.map(t => {
+        if (t.id !== tabId) return t;
+        return { ...t, herettoLastSaved: new Date(), herettoRemoteChanged: false };
+      }));
     } catch (err) {
       if (abort.signal.aborted) return;
       toast.error('Failed to save to Heretto');
@@ -422,7 +420,7 @@ export function useHerettoCms({
     }
   }, [activeTab, openHerettoBrowser, setTabs]);
 
-  const doHerettoRefresh = useCallback(async (tabId: string, file: { uuid: string; name: string }) => {
+  const doHerettoRefresh = useCallback(async (tabId: string, file: { uuid: string; name: string }, savedXmlRef: { current: string }) => {
     // Abort any in-flight refresh to avoid concurrent overwrites
     herettoRefreshAbortRef.current?.abort();
     const abort = new AbortController();
@@ -437,16 +435,13 @@ export function useHerettoCms({
 
       if (abort.signal.aborted) return;
 
-      // Mutate the ref on the live tab object using the functional setTabs updater
-      // so we always operate on the latest tabs array, not the stale closure value.
-      setTabs(prev => {
-        const target = prev.find(t => t.id === tabId);
-        if (target) target.savedXmlRef.current = beautified;
-        return prev.map(t => {
-          if (t.id !== tabId) return t;
-          return { ...t, xmlContent: beautified, lastUpdatedBy: 'code' as const, herettoRemoteChanged: false };
-        });
-      });
+      // Update savedXmlRef outside the state updater to avoid mutating React state.
+      savedXmlRef.current = beautified;
+
+      setTabs(prev => prev.map(t => {
+        if (t.id !== tabId) return t;
+        return { ...t, xmlContent: beautified, lastUpdatedBy: 'code' as const, herettoRemoteChanged: false };
+      }));
       setTimeout(() => {
         setTabs(prev => prev.map(t => t.id === tabId ? { ...t, syncTrigger: t.syncTrigger + 1 } : t));
       }, 0);
@@ -465,11 +460,11 @@ export function useHerettoCms({
     if (tab.herettoDirty) {
       setConfirmModal({
         message: 'You have unsaved changes. Refresh from Heretto anyway?',
-        onConfirm: () => { setConfirmModal(null); doHerettoRefresh(tab.id, tab.herettoFile!); },
+        onConfirm: () => { setConfirmModal(null); doHerettoRefresh(tab.id, tab.herettoFile!, tab.savedXmlRef); },
       });
       return;
     }
-    doHerettoRefresh(tab.id, tab.herettoFile);
+    doHerettoRefresh(tab.id, tab.herettoFile, tab.savedXmlRef);
   }, [activeTab, doHerettoRefresh, setConfirmModal]);
 
   const handleHerettoDisconnect = useCallback(() => {
@@ -510,15 +505,13 @@ export function useHerettoCms({
 
       const pathStr = herettoBreadcrumbs.slice(1).map(b => b.name).join('/') + '/' + finalName;
 
-      // Use the functional updater to avoid stale closure on tabs
-      setTabs(prev => {
-        const target = prev.find(t => t.id === tabId);
-        if (target) target.savedXmlRef.current = content;
-        return prev.map(t => {
-          if (t.id !== tabId) return t;
-          return { ...t, herettoFile: { uuid: newUuid, name: finalName, path: pathStr } };
-        });
-      });
+      // Update savedXmlRef outside the state updater to avoid mutating React state.
+      activeTab.savedXmlRef.current = content;
+
+      setTabs(prev => prev.map(t => {
+        if (t.id !== tabId) return t;
+        return { ...t, herettoFile: { uuid: newUuid, name: finalName, path: pathStr } };
+      }));
       setIsHerettoBrowserOpen(false);
       toast.success(`Created ${finalName} in Heretto`);
     } catch {

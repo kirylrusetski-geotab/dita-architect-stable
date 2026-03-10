@@ -55,14 +55,13 @@ export function useLocalFile({
           toast.error(`Failed to write file: ${writeErr.message || 'Unknown error'}`);
           return;
         }
-        setTabs(prev => {
-          const targetTab = prev.find(t => t.id === tabId);
-          if (targetTab) targetTab.savedXmlRef.current = content;
-          return prev.map(t => {
-            if (t.id !== tabId) return t;
-            return { ...t, localFileName: handle.name };
-          });
-        });
+        // Update savedXmlRef outside the state updater to avoid mutating React state.
+        activeTab.savedXmlRef.current = content;
+
+        setTabs(prev => prev.map(t => {
+          if (t.id !== tabId) return t;
+          return { ...t, localFileName: handle.name };
+        }));
         setIsSaveModalOpen(false);
         toast.success(`Saved as ${handle.name}`);
         return;
@@ -81,14 +80,13 @@ export function useLocalFile({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setTabs(prev => {
-      const targetTab = prev.find(t => t.id === tabId);
-      if (targetTab) targetTab.savedXmlRef.current = content;
-      return prev.map(t => {
-        if (t.id !== tabId) return t;
-        return { ...t, localFileName: finalName };
-      });
-    });
+    // Update savedXmlRef outside the state updater to avoid mutating React state.
+    activeTab.savedXmlRef.current = content;
+
+    setTabs(prev => prev.map(t => {
+      if (t.id !== tabId) return t;
+      return { ...t, localFileName: finalName };
+    }));
     setIsSaveModalOpen(false);
     toast.success(`Saved as ${finalName}`);
   }, [saveFileName, activeTab, setTabs]);
