@@ -271,6 +271,56 @@ body {
   --badge-reference-text: #859900;
 }
 
+[data-theme="geotab"] {
+  --app-bg: #1a1f2e;
+  --app-surface: #25477b;
+  --app-surface-raised: #3c5164;
+  --app-border: #3c5164;
+  --app-border-subtle: #4a5f7a;
+  --app-text-primary: #f0f0f0;
+  --app-text-secondary: #b8c5d1;
+  --app-text-muted: #8a9ba8;
+  --app-hover: #2d5086;
+  --app-btn-bg: #3c5164;
+  --app-btn-hover: #495f77;
+  --app-btn-text: #e0e0e0;
+  --app-btn-border: #4a5f7a;
+
+  --editor-bg: #1e2332;
+  --editor-text: #d0d7de;
+  --editor-h1: #f0f0f0;
+  --editor-quote-border: #0078d3;
+  --editor-quote-bg: rgba(0, 120, 211, 0.1);
+  --editor-quote-text: #4da6ff;
+  --editor-accent: #0078d3;
+  --editor-list-text: #d0d7de;
+  --editor-code-bg: #25477b;
+  --editor-code-text: #9bb3d9;
+  --editor-toolbar-bg: #25477b;
+  --editor-toolbar-border: #3c5164;
+  --editor-toolbar-text: #8a9ba8;
+  --editor-toolbar-text-strong: #e0e0e0;
+  --editor-toolbar-hover: #2d5086;
+  --editor-toolbar-divider: #3c5164;
+  --editor-bottom-bg: #1a1f2e;
+  --editor-bottom-border: #25477b;
+  --editor-bottom-text: #8a9ba8;
+  --editor-bottom-text-strong: #d0d7de;
+  --editor-scrollbar-track: #25477b;
+  --editor-scrollbar-thumb: #3c5164;
+  --editor-scrollbar-thumb-hover: #4a5f7a;
+
+  --badge-task-bg: rgba(0, 120, 211, 0.15);
+  --badge-task-border: rgba(0, 120, 211, 0.35);
+  --badge-task-text: #4da6ff;
+  --badge-concept-bg: rgba(184, 197, 209, 0.12);
+  --badge-concept-border: rgba(184, 197, 209, 0.25);
+  --badge-concept-text: #b8c5d1;
+  --badge-reference-bg: rgba(60, 81, 100, 0.15);
+  --badge-reference-border: rgba(60, 81, 100, 0.30);
+  --badge-reference-text: #8db3cc;
+}
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;

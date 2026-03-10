@@ -22,9 +22,19 @@ export const THEME_OPTIONS = [
   { value: 'claude', label: 'Claude' },
   { value: 'nord', label: 'Nord' },
   { value: 'solarized', label: 'Solarized' },
+  { value: 'geotab', label: 'Geotab' },
 ] as const;
 
 export type ThemeName = typeof THEME_OPTIONS[number]['value'];
+
+export const THEME_DESCRIPTIONS: Record<ThemeName, string> = {
+  dark: 'Standard dark theme',
+  light: 'Standard light theme',
+  claude: 'Claude.ai interface theme',
+  nord: 'Developer-focused colors',
+  solarized: 'Developer color scheme',
+  geotab: 'Geotab corporate theme',
+};
 
 interface ToolbarProps {
   currentTheme: ThemeName;
@@ -84,6 +94,7 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
     >
       <div className="relative" ref={dropdownRef}>
         <button
+          aria-label={`Select theme: ${currentLabel}`}
           onClick={() => setIsThemeOpen(prev => !prev)}
           onKeyDown={e => {
             if (e.key === 'ArrowDown') {
@@ -125,23 +136,24 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
             }}
           >
             {THEME_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                role="menuitem"
-                onClick={() => {
-                  onThemeChange(opt.value);
-                  setIsThemeOpen(false);
-                }}
-                className="w-full text-left px-3 py-1.5 text-xs font-medium transition-colors flex items-center justify-between hover-toolbar"
-                style={{
-                  color: opt.value === currentTheme
-                    ? 'var(--editor-accent, #0ea5e9)'
-                    : 'var(--editor-toolbar-text-strong)',
-                }}
-              >
-                {opt.label}
-                {opt.value === currentTheme && <span>&#10003;</span>}
-              </button>
+              <Tooltip key={opt.value} content={THEME_DESCRIPTIONS[opt.value]}>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    onThemeChange(opt.value);
+                    setIsThemeOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-xs font-medium transition-colors flex items-center justify-between hover-toolbar"
+                  style={{
+                    color: opt.value === currentTheme
+                      ? 'var(--editor-accent, #0ea5e9)'
+                      : 'var(--editor-toolbar-text-strong)',
+                  }}
+                >
+                  {opt.label}
+                  {opt.value === currentTheme && <span>&#10003;</span>}
+                </button>
+              </Tooltip>
             ))}
           </div>
         )}

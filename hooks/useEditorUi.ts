@@ -20,7 +20,7 @@ export function useEditorUi({
 }: UseEditorUiParams) {
   const [theme, setTheme] = useState<ThemeName>(() => {
     const stored = localStorage.getItem('dita-architect-theme');
-    if (stored === 'light' || stored === 'claude' || stored === 'nord' || stored === 'solarized') return stored;
+    if (stored === 'light' || stored === 'claude' || stored === 'nord' || stored === 'solarized' || stored === 'geotab' || stored === 'dark') return stored;
     return 'dark';
   });
 
