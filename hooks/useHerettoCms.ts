@@ -1,0 +1,576 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import type { Tab } from '../types/tab';
+import { createTab } from '../types/tab';
+import type { HerettoItem, HerettoSearchResult, HerettoSearchStatus, ImportVerificationState } from '../types/heretto';
+import { HERETTO_ROOT_UUID, herettoFolderCache } from '../constants/heretto';
+import { parseHerettoFolder, getFolderName } from '../lib/heretto-utils';
+import { escapeXml, getTopicId, findUnrecognizedElements, compareXml } from '../lib/xml-utils';
+import { formatXml } from '../components/MonacoDitaEditor';
+import { toast } from 'sonner';
+
+interface UseHerettoCmsParams {
+  activeTab: Tab;
+  tabs: Tab[];
+  setTabs: React.Dispatch<React.SetStateAction<Tab[]>>;
+  setActiveTabId: React.Dispatch<React.SetStateAction<string>>;
+  setConfirmModal: React.Dispatch<React.SetStateAction<{ message: string; onConfirm: () => void } | null>>;
+}
+
+export function useHerettoCms({
+  activeTab,
+  tabs,
+  setTabs,
+  setActiveTabId,
+  setConfirmModal,
+}: UseHerettoCmsParams) {
+  // --- Heretto Status modal ---
+  const [isHerettoStatusOpen, setIsHerettoStatusOpen] = useState(false);
+  const [herettoCredentials, setHerettoCredentials] = useState({ email: '', token: '' });
+  const [herettoStatusChecking, setHerettoStatusChecking] = useState(false);
+
+  // --- Heretto CMS state (shared across tabs) ---
+  const [isHerettoBrowserOpen, setIsHerettoBrowserOpen] = useState(false);
+  const [herettoBrowserMode, setHerettoBrowserMode] = useState<'open' | 'save'>('open');
+  const [herettoConnected, setHerettoConnected] = useState(false);
+  const [herettoBrowsing, setHerettoBrowsing] = useState(false);
+  const [herettoBreadcrumbs, setHerettoBreadcrumbs] = useState<{ uuid: string; name: string }[]>([]);
+  const [herettoItems, setHerettoItems] = useState<HerettoItem[]>([]);
+  const [herettoSelected, setHerettoSelected] = useState<HerettoItem | HerettoSearchResult | null>(null);
+  const [herettoSaving, setHerettoSaving] = useState(false);
+  const [isHerettoDropdownOpen, setIsHerettoDropdownOpen] = useState(false);
+  const herettoDropdownRef = useRef<HTMLDivElement>(null);
+  const [herettoSaveFileName, setHerettoSaveFileName] = useState('');
+  const [herettoRefreshing, setHerettoRefreshing] = useState(false);
+
+  // --- Abort refs for in-flight save/refresh to prevent race conditions ---
+  const herettoSaveAbortRef = useRef<AbortController | null>(null);
+  const herettoRefreshAbortRef = useRef<AbortController | null>(null);
+
+  // --- Heretto search state ---
+  const [herettoSearchQuery, setHerettoSearchQuery] = useState('');
+  const [herettoSearchResults, setHerettoSearchResults] = useState<HerettoSearchResult[]>([]);
+  const [herettoSearchStatus, setHerettoSearchStatus] = useState<HerettoSearchStatus>({ phase: 'idle' });
+  const herettoSearchAbortRef = useRef<AbortController | null>(null);
+  const herettoSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // --- Import verification modal state ---
+  const [importVerification, setImportVerification] =
+    useState<ImportVerificationState | null>(null);
+  const importAbortRef = useRef<AbortController | null>(null);
+
+  // Check Heretto connectivity on mount — abort on unmount to avoid state updates after cleanup
+  useEffect(() => {
+    const abort = new AbortController();
+    fetch(`/heretto-api/all-files/${HERETTO_ROOT_UUID}`, { signal: abort.signal })
+      .then(res => {
+        if (res.ok) setHerettoConnected(true);
+      })
+      .catch(() => {});
+    return () => { abort.abort(); };
+  }, []);
+
+  const openHerettoStatus = useCallback(async () => {
+    setIsHerettoStatusOpen(true);
+    try {
+      const res = await fetch('/heretto-credentials');
+      if (res.ok) {
+        const data = await res.json();
+        setHerettoCredentials({ email: data.email || '', token: data.token || '' });
+      }
+    } catch { /* silent */ }
+  }, []);
+
+  const testHerettoConnection = useCallback(async () => {
+    setHerettoStatusChecking(true);
+    try {
+      const res = await fetch(`/heretto-api/all-files/${HERETTO_ROOT_UUID}`);
+      setHerettoConnected(res.ok);
+    } catch {
+      setHerettoConnected(false);
+    } finally {
+      setHerettoStatusChecking(false);
+    }
+  }, []);
+
+  const saveHerettoCredentials = useCallback(async () => {
+    setHerettoStatusChecking(true);
+    try {
+      const res = await fetch('/heretto-credentials', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(herettoCredentials),
+      });
+      if (!res.ok) throw new Error();
+      // Test connection with new credentials
+      const testRes = await fetch(`/heretto-api/all-files/${HERETTO_ROOT_UUID}`);
+      setHerettoConnected(testRes.ok);
+      if (testRes.ok) {
+        toast.success('Credentials saved and connection verified');
+      } else {
+        toast.warning('Credentials saved but connection failed — check your email and token');
+      }
+    } catch {
+      toast.error('Failed to save credentials');
+    } finally {
+      setHerettoStatusChecking(false);
+    }
+  }, [herettoCredentials]);
+
+  // Track unsaved Heretto changes (per-tab)
+  useEffect(() => {
+    if (!activeTab) return;
+    if (!activeTab.herettoFile) {
+      if (activeTab.herettoDirty) setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, herettoDirty: false } : t));
+      return;
+    }
+    const dirty = activeTab.xmlContent !== activeTab.savedXmlRef.current;
+    if (dirty !== activeTab.herettoDirty) setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, herettoDirty: dirty } : t));
+  }, [activeTab?.xmlContent, activeTab?.herettoFile, activeTab?.id, setTabs]);
+
+  // Poll for remote changes on Heretto (per-tab)
+  useEffect(() => {
+    if (!activeTab?.herettoFile) return;
+    const tabId = activeTab.id;
+    const file = activeTab.herettoFile;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/heretto-api/all-files/${file.uuid}/content`);
+        if (!res.ok) return;
+        const remote = await res.text();
+        setTabs(prev => prev.map(t => {
+          if (t.id !== tabId) return t;
+          return { ...t, herettoRemoteChanged: remote !== t.savedXmlRef.current };
+        }));
+      } catch { /* silent */ }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [activeTab?.herettoFile?.uuid, activeTab?.id, setTabs]);
+
+  const herettoNavigate = useCallback(async (uuid: string, name: string, resetBreadcrumbs?: boolean) => {
+    setHerettoBrowsing(true);
+    setHerettoSelected(null);
+    try {
+      const res = await fetch(`/heretto-api/all-files/${uuid}`);
+      if (!res.ok) throw new Error('Failed to fetch folder');
+      const xml = await res.text();
+      const items = parseHerettoFolder(xml);
+      setHerettoItems(items);
+
+      if (resetBreadcrumbs) {
+        const folderName = getFolderName(xml) || name;
+        setHerettoBreadcrumbs([{ uuid, name: folderName }]);
+      } else {
+        setHerettoBreadcrumbs(prev => [...prev, { uuid, name }]);
+      }
+    } catch {
+      toast.error('Failed to browse Heretto folder');
+    } finally {
+      setHerettoBrowsing(false);
+    }
+  }, []);
+
+  const herettoSearch = useCallback(async (query: string, rootUuid: string, signal: AbortSignal) => {
+    const lowerQuery = query.toLowerCase();
+    const results: HerettoSearchResult[] = [];
+    const queue: [string, string[]][] = [[rootUuid, []]];
+    let foldersVisited = 0;
+    let foldersTotal = 1;
+
+    setHerettoSearchResults([]);
+    setHerettoSearchStatus({ phase: 'searching', foldersVisited: 0, foldersTotal: 1 });
+
+    while (queue.length > 0) {
+      if (signal.aborted) return;
+
+      const batch = queue.splice(0, Math.min(5, queue.length));
+      const batchPromises = batch.map(async ([uuid, pathSegments]) => {
+        if (signal.aborted) return [];
+
+        let items: HerettoItem[];
+        if (herettoFolderCache.has(uuid)) {
+          items = herettoFolderCache.get(uuid)!;
+        } else {
+          try {
+            const res = await fetch(`/heretto-api/all-files/${uuid}`, { signal });
+            if (!res.ok) return [];
+            const xml = await res.text();
+            items = parseHerettoFolder(xml);
+            herettoFolderCache.set(uuid, items);
+          } catch {
+            return [];
+          }
+        }
+
+        const matched: HerettoSearchResult[] = [];
+        const subfolders: [string, string[]][] = [];
+
+        for (const item of items) {
+          if (item.type === 'folder') {
+            subfolders.push([item.uuid, [...pathSegments, item.name]]);
+          } else if (item.name.toLowerCase().includes(lowerQuery)) {
+            matched.push({
+              ...item,
+              path: [...pathSegments, item.name].join('/'),
+            });
+          }
+        }
+
+        return { matched, subfolders };
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      if (signal.aborted) return;
+
+      for (const result of batchResults) {
+        if (!result || Array.isArray(result)) continue;
+        const { matched, subfolders } = result;
+        if (matched.length > 0) {
+          results.push(...matched);
+          setHerettoSearchResults([...results]);
+        }
+        queue.push(...subfolders);
+        foldersTotal += subfolders.length;
+      }
+
+      foldersVisited += batch.length;
+      setHerettoSearchStatus({ phase: 'searching', foldersVisited, foldersTotal });
+    }
+
+    if (!signal.aborted) {
+      setHerettoSearchStatus({ phase: 'done', foldersVisited });
+    }
+  }, []);
+
+  // Debounced search trigger
+  useEffect(() => {
+    if (!isHerettoBrowserOpen) return;
+
+    if (herettoSearchDebounceRef.current) {
+      clearTimeout(herettoSearchDebounceRef.current);
+    }
+
+    if (!herettoSearchQuery.trim()) {
+      herettoSearchAbortRef.current?.abort();
+      setHerettoSearchResults([]);
+      setHerettoSearchStatus({ phase: 'idle' });
+      return;
+    }
+
+    herettoSearchDebounceRef.current = setTimeout(() => {
+      herettoSearchAbortRef.current?.abort();
+      const abort = new AbortController();
+      herettoSearchAbortRef.current = abort;
+
+      const searchRoot = herettoBreadcrumbs.length > 0
+        ? herettoBreadcrumbs[herettoBreadcrumbs.length - 1].uuid
+        : HERETTO_ROOT_UUID;
+
+      herettoSearch(herettoSearchQuery.trim(), searchRoot, abort.signal);
+    }, 350);
+
+    return () => {
+      if (herettoSearchDebounceRef.current) {
+        clearTimeout(herettoSearchDebounceRef.current);
+      }
+    };
+  }, [herettoSearchQuery, isHerettoBrowserOpen, herettoBreadcrumbs, herettoSearch]);
+
+  // Cleanup: abort search when modal closes
+  useEffect(() => {
+    if (!isHerettoBrowserOpen) {
+      herettoSearchAbortRef.current?.abort();
+    }
+  }, [isHerettoBrowserOpen]);
+
+  const openHerettoBrowser = useCallback(async (mode: 'open' | 'save') => {
+    setHerettoBrowserMode(mode);
+    setIsHerettoBrowserOpen(true);
+    setHerettoSelected(null);
+    setHerettoItems([]);
+    setHerettoBreadcrumbs([]);
+    setHerettoSearchQuery('');
+    setHerettoSearchResults([]);
+    setHerettoSearchStatus({ phase: 'idle' });
+    if (mode === 'save') {
+      const topicId = getTopicId(activeTab.xmlContent);
+      setHerettoSaveFileName(topicId ? `${topicId}.dita` : 'topic.dita');
+    }
+    await herettoNavigate(HERETTO_ROOT_UUID, 'Content Root', true);
+  }, [herettoNavigate, activeTab?.xmlContent]);
+
+  const handleHerettoOpen = useCallback(async (item: HerettoItem | HerettoSearchResult) => {
+    importAbortRef.current?.abort();
+    const abort = new AbortController();
+    importAbortRef.current = abort;
+
+    const pathStr = 'path' in item && item.path
+      ? item.path
+      : herettoBreadcrumbs.slice(1).map(b => b.name).join('/') + '/' + item.name;
+
+    setIsHerettoBrowserOpen(false);
+    setImportVerification({
+      phase: 'downloading',
+      item,
+      pathStr,
+      firstContent: '',
+    });
+
+    try {
+      const res = await fetch(`/heretto-api/all-files/${item.uuid}/content`, { signal: abort.signal });
+      if (!res.ok) throw new Error('Failed to fetch content');
+      const firstContent = await res.text();
+
+      if (abort.signal.aborted) return;
+
+      setImportVerification(prev => prev ? { ...prev, phase: 'verifying', firstContent } : null);
+
+      const verifyRes = await fetch(`/heretto-api/all-files/${item.uuid}/content`, { signal: abort.signal });
+      if (!verifyRes.ok) throw new Error('Failed to verify content');
+      const secondContent = await verifyRes.text();
+
+      if (abort.signal.aborted) return;
+
+      const verified = firstContent === secondContent;
+      const unrecognizedElements = findUnrecognizedElements(firstContent);
+
+      setImportVerification(prev => prev ? {
+        ...prev,
+        phase: 'results',
+        verified,
+        unrecognizedElements,
+      } : null);
+    } catch (err) {
+      if (abort.signal.aborted) return;
+      setImportVerification(null);
+      toast.error('Failed to open file from Heretto');
+    }
+  }, [herettoBreadcrumbs]);
+
+  const handleImportContinue = useCallback(() => {
+    if (!importVerification) return;
+    const { firstContent, item, pathStr } = importVerification;
+
+    const beautified = formatXml(firstContent);
+    const newTab = createTab(beautified);
+    newTab.herettoFile = { uuid: item.uuid, name: item.name, path: pathStr };
+    newTab.herettoLastSaved = new Date();
+    setTabs(prev => [...prev, newTab]);
+    setActiveTabId(newTab.id);
+    setImportVerification(null);
+    setTimeout(() => {
+      setTabs(prev => prev.map(t => t.id === newTab.id ? { ...t, syncTrigger: t.syncTrigger + 1 } : t));
+    }, 0);
+    toast.success(`Opened ${item.name} from Heretto`);
+  }, [importVerification, setTabs, setActiveTabId]);
+
+  const handleHerettoSave = useCallback(async () => {
+    const tab = activeTab;
+    if (!tab.herettoFile) {
+      openHerettoBrowser('save');
+      return;
+    }
+    const tabId = tab.id;
+    const herettoFile = tab.herettoFile;
+    const content = tab.xmlContent;
+
+    // Abort any in-flight save to avoid concurrent overwrites
+    herettoSaveAbortRef.current?.abort();
+    const abort = new AbortController();
+    herettoSaveAbortRef.current = abort;
+
+    setHerettoSaving(true);
+    try {
+      const res = await fetch(`/heretto-api/all-files/${herettoFile.uuid}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/xml' },
+        body: content,
+        signal: abort.signal,
+      });
+      if (!res.ok) throw new Error('Failed to save');
+
+      const verifyRes = await fetch(`/heretto-api/all-files/${herettoFile.uuid}/content`, { signal: abort.signal });
+      if (!verifyRes.ok) throw new Error('Failed to verify');
+      const remote = await verifyRes.text();
+
+      if (abort.signal.aborted) return;
+
+      const comparison = compareXml(content, remote);
+      if (comparison === 'identical') {
+        toast.success(`Saved and verified ${herettoFile.name}`);
+      } else if (comparison === 'formatting') {
+        toast.success(`Saved ${herettoFile.name} (Heretto reformatted whitespace)`);
+      } else {
+        toast.warning(`Saved ${herettoFile.name}, but remote content differs — verify manually`);
+      }
+
+      // Mutate the ref on the live tab object by using the functional setTabs updater,
+      // which always receives the latest state — avoids stale-closure bugs when tabs
+      // have been added/removed/reordered during the async save.
+      setTabs(prev => {
+        const target = prev.find(t => t.id === tabId);
+        if (target) target.savedXmlRef.current = content;
+        return prev.map(t => {
+          if (t.id !== tabId) return t;
+          return { ...t, herettoLastSaved: new Date(), herettoRemoteChanged: false };
+        });
+      });
+    } catch (err) {
+      if (abort.signal.aborted) return;
+      toast.error('Failed to save to Heretto');
+    } finally {
+      if (!abort.signal.aborted) setHerettoSaving(false);
+    }
+  }, [activeTab, openHerettoBrowser, setTabs]);
+
+  const doHerettoRefresh = useCallback(async (tabId: string, file: { uuid: string; name: string }) => {
+    // Abort any in-flight refresh to avoid concurrent overwrites
+    herettoRefreshAbortRef.current?.abort();
+    const abort = new AbortController();
+    herettoRefreshAbortRef.current = abort;
+
+    setHerettoRefreshing(true);
+    try {
+      const res = await fetch(`/heretto-api/all-files/${file.uuid}/content`, { signal: abort.signal });
+      if (!res.ok) throw new Error();
+      const content = await res.text();
+      const beautified = formatXml(content);
+
+      if (abort.signal.aborted) return;
+
+      // Mutate the ref on the live tab object using the functional setTabs updater
+      // so we always operate on the latest tabs array, not the stale closure value.
+      setTabs(prev => {
+        const target = prev.find(t => t.id === tabId);
+        if (target) target.savedXmlRef.current = beautified;
+        return prev.map(t => {
+          if (t.id !== tabId) return t;
+          return { ...t, xmlContent: beautified, lastUpdatedBy: 'code' as const, herettoRemoteChanged: false };
+        });
+      });
+      setTimeout(() => {
+        setTabs(prev => prev.map(t => t.id === tabId ? { ...t, syncTrigger: t.syncTrigger + 1 } : t));
+      }, 0);
+      toast.success(`Refreshed ${file.name} from Heretto`);
+    } catch (err) {
+      if (abort.signal.aborted) return;
+      toast.error('Failed to refresh from Heretto');
+    } finally {
+      if (!abort.signal.aborted) setHerettoRefreshing(false);
+    }
+  }, [setTabs]);
+
+  const handleHerettoRefresh = useCallback(() => {
+    const tab = activeTab;
+    if (!tab.herettoFile) return;
+    if (tab.herettoDirty) {
+      setConfirmModal({
+        message: 'You have unsaved changes. Refresh from Heretto anyway?',
+        onConfirm: () => { setConfirmModal(null); doHerettoRefresh(tab.id, tab.herettoFile!); },
+      });
+      return;
+    }
+    doHerettoRefresh(tab.id, tab.herettoFile);
+  }, [activeTab, doHerettoRefresh, setConfirmModal]);
+
+  const handleHerettoDisconnect = useCallback(() => {
+    setTabs(prev => prev.map(t => {
+      if (t.id !== activeTab.id) return t;
+      return { ...t, herettoFile: null, herettoLastSaved: null, herettoRemoteChanged: false, herettoDirty: false };
+    }));
+    toast('Disconnected from Heretto');
+  }, [activeTab?.id, setTabs]);
+
+  const handleHerettoSaveNew = useCallback(async (folderUuid: string) => {
+    const fileName = herettoSaveFileName.trim() || 'topic.dita';
+    const finalName = fileName.endsWith('.dita') || fileName.endsWith('.xml') ? fileName : `${fileName}.dita`;
+    const tabId = activeTab.id;
+    const content = activeTab.xmlContent;
+
+    setHerettoSaving(true);
+    try {
+      const createRes = await fetch(`/heretto-api/all-files/${folderUuid}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/xml' },
+        body: `<resource><name>${escapeXml(finalName)}</name><type>topic</type></resource>`,
+      });
+      if (!createRes.ok) throw new Error('Failed to create file');
+      const createXml = await createRes.text();
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(createXml, 'text/xml');
+      const newUuid = doc.documentElement.getAttribute('id');
+      if (!newUuid) throw new Error('No UUID returned');
+
+      const putRes = await fetch(`/heretto-api/all-files/${newUuid}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/xml' },
+        body: content,
+      });
+      if (!putRes.ok) throw new Error('Failed to write content');
+
+      const pathStr = herettoBreadcrumbs.slice(1).map(b => b.name).join('/') + '/' + finalName;
+
+      // Use the functional updater to avoid stale closure on tabs
+      setTabs(prev => {
+        const target = prev.find(t => t.id === tabId);
+        if (target) target.savedXmlRef.current = content;
+        return prev.map(t => {
+          if (t.id !== tabId) return t;
+          return { ...t, herettoFile: { uuid: newUuid, name: finalName, path: pathStr } };
+        });
+      });
+      setIsHerettoBrowserOpen(false);
+      toast.success(`Created ${finalName} in Heretto`);
+    } catch {
+      toast.error('Failed to create file in Heretto');
+    } finally {
+      setHerettoSaving(false);
+    }
+  }, [herettoSaveFileName, activeTab, herettoBreadcrumbs, setTabs]);
+
+  return {
+    isHerettoStatusOpen,
+    setIsHerettoStatusOpen,
+    herettoCredentials,
+    setHerettoCredentials,
+    herettoStatusChecking,
+    isHerettoBrowserOpen,
+    setIsHerettoBrowserOpen,
+    herettoBrowserMode,
+    herettoConnected,
+    herettoBrowsing,
+    herettoBreadcrumbs,
+    setHerettoBreadcrumbs,
+    herettoItems,
+    herettoSelected,
+    setHerettoSelected,
+    herettoSaving,
+    isHerettoDropdownOpen,
+    setIsHerettoDropdownOpen,
+    herettoDropdownRef,
+    herettoSaveFileName,
+    setHerettoSaveFileName,
+    herettoRefreshing,
+    herettoSearchQuery,
+    setHerettoSearchQuery,
+    herettoSearchResults,
+    herettoSearchStatus,
+    setHerettoSearchStatus,
+    herettoSearchAbortRef,
+    importVerification,
+    setImportVerification,
+    openHerettoStatus,
+    testHerettoConnection,
+    saveHerettoCredentials,
+    herettoNavigate,
+    herettoSearch,
+    openHerettoBrowser,
+    handleHerettoOpen,
+    handleImportContinue,
+    handleHerettoSave,
+    doHerettoRefresh,
+    handleHerettoRefresh,
+    handleHerettoDisconnect,
+    handleHerettoSaveNew,
+  };
+}

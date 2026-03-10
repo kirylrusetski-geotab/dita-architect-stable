@@ -1,0 +1,48 @@
+export const DITA_TOPIC_TYPE = ['task', 'concept', 'reference'] as const;
+export type DitaTopicType = typeof DITA_TOPIC_TYPE[number];
+
+export const DITA_TEMPLATES: Record<DitaTopicType, string> = {
+  task: `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="new_task">
+  <title>Task title</title>
+  <shortdesc>Short description of the task.</shortdesc>
+  <taskbody>
+    <steps>
+      <step><cmd>First step.</cmd></step>
+    </steps>
+  </taskbody>
+</task>`,
+  concept: `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="new_concept">
+  <title>Concept title</title>
+  <shortdesc>Short description of the concept.</shortdesc>
+  <conbody>
+    <p>Concept content goes here.</p>
+  </conbody>
+</concept>`,
+  reference: `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="new_reference">
+  <title>Reference title</title>
+  <shortdesc>Short description of the reference.</shortdesc>
+  <refbody>
+    <p>Reference content goes here.</p>
+  </refbody>
+</reference>`,
+};
+
+export const INITIAL_DITA: string = DITA_TEMPLATES.task
+  .replace('new_task', 'setup_widget')
+  .replace('Task title', 'Setting up the widget')
+  .replace('Short description of the task.', 'To set up the widget, you need Node.js 18.')
+  .replace(
+    '<steps>\n    <step><cmd>First step.</cmd></step>\n  </steps>',
+    `<prereq>First, download the widget package from the repo.</prereq>
+  <steps>
+    <step><cmd>Extract it to your folder.</cmd></step>
+    <step><cmd>Run npm install widget-component and finally configure it in your settings.</cmd></step>
+    <step><cmd>Check the browser console to make sure it works.</cmd></step>
+  </steps>`,
+  );

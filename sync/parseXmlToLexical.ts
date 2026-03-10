@@ -1,0 +1,353 @@
+import {
+  $getRoot,
+  $createParagraphNode,
+  $createTextNode,
+} from 'lexical';
+import { $createHeadingNode, $createQuoteNode } from '@lexical/rich-text';
+import { $createListNode, $createListItemNode } from '@lexical/list';
+import { $createLinkNode } from '@lexical/link';
+import {
+  $createTableNode,
+  $createTableRowNode,
+  $createTableCellNode,
+  TableCellHeaderStates,
+} from '@lexical/table';
+import type { NodeOriginMapType } from './nodeOriginMap';
+import { $createDitaOpaqueNode } from '../components/DitaOpaqueNode';
+import { $createDitaCodeBlockNode } from '../components/DitaCodeBlockNode';
+import { $createDitaImageNode } from '../components/DitaImageNode';
+import { $createDitaPhRefNode } from '../components/DitaPhRefNode';
+
+export const parseXmlToLexical = (xmlString: string, editor: any, originMap: NodeOriginMapType, skipSelection?: boolean): boolean => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlString, 'text/xml');
+
+  if (doc.querySelector('parsererror')) {
+    console.warn('Invalid XML, skipping sync to Lexical');
+    return false;
+  }
+
+  const updateFn = () => {
+    const root = $getRoot();
+    root.clear();
+    originMap.clear();
+
+    const traverse = (xmlNode: Element, bodyIndex?: number): any | any[] | null => {
+      const tagName = xmlNode.tagName.toLowerCase();
+
+      const parseTextNodes = (node: Element) => {
+        const nodes: any[] = [];
+        const childNodes = Array.from(node.childNodes);
+        childNodes.forEach((child, index) => {
+          if (child.nodeType === Node.PROCESSING_INSTRUCTION_NODE) {
+            return; // Skip processing instructions (e.g. Heretto review markers)
+          }
+          if (child.nodeType === Node.TEXT_NODE) {
+            let text = child.textContent;
+            if (!text) return;
+            // Skip whitespace-only text nodes adjacent to processing instructions
+            if (/^\s+$/.test(text)) {
+              const prev = index > 0 ? childNodes[index - 1] : null;
+              const next = index < childNodes.length - 1 ? childNodes[index + 1] : null;
+              if (
+                (prev && prev.nodeType === Node.PROCESSING_INSTRUCTION_NODE) ||
+                (next && next.nodeType === Node.PROCESSING_INSTRUCTION_NODE)
+              ) {
+                return;
+              }
+            }
+            // Normalize formatting whitespace: collapse runs containing newlines
+            // to a single space so XML beautification doesn't affect Lexical rendering
+            text = text.replace(/[ \t]*\n[ \t\n]*/g, ' ');
+            if (text) nodes.push($createTextNode(text));
+          } else if (child.nodeType === Node.ELEMENT_NODE) {
+            const el = child as Element;
+
+            const elTag = el.tagName.toLowerCase();
+
+            if (elTag === 'xref') {
+              const href = el.getAttribute('href') || '';
+              const linkNode = $createLinkNode(href);
+              const linkChildren = parseTextNodes(el);
+              linkChildren.forEach(n => linkNode.append(n));
+              nodes.push(linkNode);
+            } else if (elTag === 'ph' || elTag === 'term') {
+              const ref = el.getAttribute('conkeyref') || el.getAttribute('keyref') || el.getAttribute('conref');
+              if (ref) {
+                const refType = el.hasAttribute('conkeyref') ? 'conkeyref' : el.hasAttribute('keyref') ? 'keyref' : 'conref';
+                nodes.push($createDitaPhRefNode(refType, ref, el.textContent || ''));
+              } else {
+                // No ref — transparent pass-through
+                parseTextNodes(el).forEach(n => nodes.push(n));
+              }
+            } else if (elTag === 'image') {
+              const href = el.getAttribute('href') || '';
+              const alt = el.querySelector('alt')?.textContent || el.getAttribute('alt') || '';
+              nodes.push($createDitaPhRefNode('image', href, alt));
+            } else if (elTag === 'codeph') {
+              const textNode = $createTextNode(el.textContent || '');
+              textNode.toggleFormat('code');
+              nodes.push(textNode);
+            } else if (elTag === 'uicontrol') {
+              const textNode = $createTextNode(el.textContent || '');
+              textNode.toggleFormat('bold');
+              nodes.push(textNode);
+            } else if (elTag === 'wintitle') {
+              const textNode = $createTextNode(el.textContent || '');
+              textNode.toggleFormat('italic');
+              nodes.push(textNode);
+            } else {
+              const textNode = $createTextNode(el.textContent || '');
+              if (elTag === 'b' || elTag === 'strong') {
+                textNode.toggleFormat('bold');
+              } else if (elTag === 'i' || elTag === 'em') {
+                textNode.toggleFormat('italic');
+              }
+              nodes.push(textNode);
+            }
+          }
+        });
+        // Trim leading formatting whitespace from first text node
+        if (nodes.length > 0 && nodes[0].getType?.() === 'text') {
+          const t = nodes[0].getTextContent();
+          const trimmed = t.replace(/^\s+/, '');
+          if (!trimmed) nodes.shift();
+          else if (trimmed !== t) nodes[0] = $createTextNode(trimmed);
+        }
+        // Trim trailing formatting whitespace from last text node
+        if (nodes.length > 0 && nodes[nodes.length - 1].getType?.() === 'text') {
+          const t = nodes[nodes.length - 1].getTextContent();
+          const trimmed = t.replace(/\s+$/, '');
+          if (!trimmed) nodes.pop();
+          else if (trimmed !== t) nodes[nodes.length - 1] = $createTextNode(trimmed);
+        }
+        return nodes;
+      };
+
+      switch (tagName) {
+        case 'title': {
+          const level = xmlNode.parentElement?.tagName.toLowerCase() === 'section' ? 'h2' : 'h1';
+          const heading = $createHeadingNode(level);
+          parseTextNodes(xmlNode).forEach(n => heading.append(n));
+          return heading;
+        }
+
+        case 'shortdesc':
+        case 'prereq':
+        case 'context':
+        case 'result':
+        case 'postreq':
+        case 'p':
+        case 'cmd':
+        case 'note':
+          if (tagName === 'note') {
+            const quote = $createQuoteNode();
+            parseTextNodes(xmlNode).forEach(n => quote.append(n));
+            return quote;
+          }
+          const p = $createParagraphNode();
+          parseTextNodes(xmlNode).forEach(n => p.append(n));
+          if (tagName === 'shortdesc') {
+            originMap.set(p.getKey(), { tag: 'shortdesc', bodyIndex: -2 });
+          } else if (tagName === 'prereq' || tagName === 'context' || tagName === 'result' || tagName === 'postreq') {
+            originMap.set(p.getKey(), { tag: tagName, bodyIndex: bodyIndex ?? -1 });
+          } else if (tagName === 'p' && bodyIndex !== undefined) {
+            originMap.set(p.getKey(), { tag: 'p', bodyIndex });
+          }
+          return p;
+
+        case 'steps':
+        case 'ol': {
+          const ol = $createListNode('number');
+          Array.from(xmlNode.children).forEach(child => {
+            if (child.tagName === 'step' || child.tagName === 'li') {
+              const li = $createListItemNode();
+              const contentNode = child.querySelector('cmd') || child;
+              parseTextNodes(contentNode).forEach(n => li.append(n));
+              ol.append(li);
+            }
+          });
+          return ol;
+        }
+
+        case 'ul': {
+          const ul = $createListNode('bullet');
+          Array.from(xmlNode.children).forEach(child => {
+            const li = $createListItemNode();
+            parseTextNodes(child).forEach(n => li.append(n));
+            ul.append(li);
+          });
+          return ul;
+        }
+
+        case 'table': {
+          const tableNode = $createTableNode();
+          const tgroup = xmlNode.querySelector('tgroup');
+          if (!tgroup) return null;
+
+          const parseCellContent = (entryEl: Element) => {
+            const pChildren = Array.from(entryEl.children).filter(
+              c => c.tagName.toLowerCase() === 'p'
+            );
+            if (pChildren.length > 0) {
+              return pChildren.map(pEl => {
+                const p = $createParagraphNode();
+                parseTextNodes(pEl).forEach(n => p.append(n));
+                return p;
+              });
+            }
+            const p = $createParagraphNode();
+            parseTextNodes(entryEl).forEach(n => p.append(n));
+            return [p];
+          };
+
+          const parseRows = (container: Element, isHeader: boolean) => {
+            Array.from(container.children).forEach(child => {
+              if (child.tagName.toLowerCase() !== 'row') return;
+              const rowNode = $createTableRowNode();
+              Array.from(child.children).forEach(entry => {
+                if (entry.tagName.toLowerCase() !== 'entry') return;
+                const headerState = isHeader
+                  ? TableCellHeaderStates.ROW
+                  : TableCellHeaderStates.NO_STATUS;
+                const cellNode = $createTableCellNode(headerState);
+                const morerows = entry.getAttribute('morerows');
+                if (morerows) {
+                  const span = parseInt(morerows, 10);
+                  if (span > 0) cellNode.setRowSpan(span + 1);
+                }
+                parseCellContent(entry).forEach(n => cellNode.append(n));
+                rowNode.append(cellNode);
+              });
+              tableNode.append(rowNode);
+            });
+          };
+
+          const thead = tgroup.querySelector('thead');
+          if (thead) parseRows(thead, true);
+          const tbody = tgroup.querySelector('tbody');
+          if (tbody) parseRows(tbody, false);
+
+          return tableNode;
+        }
+
+        case 'simpletable': {
+          const tableNode = $createTableNode();
+
+          const parseCellContent = (entryEl: Element) => {
+            const pChildren = Array.from(entryEl.children).filter(
+              c => c.tagName.toLowerCase() === 'p'
+            );
+            if (pChildren.length > 0) {
+              return pChildren.map(pEl => {
+                const p = $createParagraphNode();
+                parseTextNodes(pEl).forEach(n => p.append(n));
+                return p;
+              });
+            }
+            const p = $createParagraphNode();
+            parseTextNodes(entryEl).forEach(n => p.append(n));
+            return [p];
+          };
+
+          Array.from(xmlNode.children).forEach(child => {
+            const tag = child.tagName.toLowerCase();
+            if (tag !== 'sthead' && tag !== 'strow') return;
+            const isHeader = tag === 'sthead';
+            const rowNode = $createTableRowNode();
+            Array.from(child.children).forEach(entry => {
+              if (entry.tagName.toLowerCase() !== 'stentry') return;
+              const headerState = isHeader
+                ? TableCellHeaderStates.ROW
+                : TableCellHeaderStates.NO_STATUS;
+              const cellNode = $createTableCellNode(headerState);
+              parseCellContent(entry).forEach(n => cellNode.append(n));
+              rowNode.append(cellNode);
+            });
+            tableNode.append(rowNode);
+          });
+
+          return tableNode;
+        }
+
+        case 'section': {
+          const sectionNodes: any[] = [];
+          Array.from(xmlNode.children).forEach(child => {
+            const result = traverse(child);
+            if (result) {
+              if (Array.isArray(result)) {
+                sectionNodes.push(...result);
+              } else {
+                sectionNodes.push(result);
+              }
+            }
+          });
+          return sectionNodes;
+        }
+
+        case 'codeblock': {
+          const code = xmlNode.textContent || '';
+          const language = xmlNode.getAttribute('outputclass') || '';
+          return $createDitaCodeBlockNode(code, language);
+        }
+
+        case 'fig': {
+          const imageEl = xmlNode.querySelector('image');
+          if (!imageEl) {
+            const serializer = new XMLSerializer();
+            const xml = serializer.serializeToString(xmlNode);
+            return $createDitaOpaqueNode(tagName, xml);
+          }
+          const figTitle = xmlNode.querySelector(':scope > title')?.textContent || '';
+          const href = imageEl.getAttribute('href') || '';
+          const alt = imageEl.querySelector('alt')?.textContent || imageEl.getAttribute('alt') || '';
+          return $createDitaImageNode(href, alt, figTitle, true);
+        }
+
+        case 'image': {
+          const href = xmlNode.getAttribute('href') || '';
+          const alt = xmlNode.querySelector('alt')?.textContent || xmlNode.getAttribute('alt') || '';
+          return $createDitaImageNode(href, alt, '', false);
+        }
+
+        default: {
+          const serializer = new XMLSerializer();
+          const xml = serializer.serializeToString(xmlNode);
+          if (!xml || !xmlNode.textContent?.trim()) return null;
+          return $createDitaOpaqueNode(tagName, xml);
+        }
+      }
+    };
+
+    const appendResult = (result: any) => {
+      if (Array.isArray(result)) {
+        result.forEach(n => root.append(n));
+      } else if (result) {
+        root.append(result);
+      }
+    };
+
+    const title = doc.querySelector('title');
+    if (title && title.parentElement?.tagName.toLowerCase() !== 'section') {
+      appendResult(traverse(title));
+    }
+
+    const shortdesc = doc.querySelector('shortdesc');
+    if (shortdesc) appendResult(traverse(shortdesc));
+
+    const body = doc.querySelector('taskbody, conbody, refbody, body');
+    if (body) {
+      Array.from(body.children).forEach(child => {
+        appendResult(traverse(child));
+      });
+    }
+  };
+
+  if (skipSelection) {
+    editor.update(updateFn, { tag: 'skip-selection', discrete: true });
+  } else {
+    editor.update(updateFn);
+  }
+
+  return true;
+};

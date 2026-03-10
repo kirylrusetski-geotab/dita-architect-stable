@@ -1,0 +1,456 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-dita-50: #f0f9ff;
+  --color-dita-100: #e0f2fe;
+  --color-dita-500: #0ea5e9;
+  --color-dita-600: #0284c7;
+  --color-dita-900: #0c4a6e;
+}
+
+body {
+  background-color: #111111;
+  color: #d4d4d4;
+}
+
+/* --- Theme CSS Custom Properties --- */
+
+:root {
+  /* App chrome */
+  --app-bg: #111111;
+  --app-surface: #161616;
+  --app-surface-raised: #1e1e1e;
+  --app-border: #2a2a2a;
+  --app-border-subtle: #333333;
+  --app-text-primary: #e8e8e8;
+  --app-text-secondary: #d4d4d4;
+  --app-text-muted: #6b6b6b;
+  --app-hover: #2e2e2e;
+  --app-btn-bg: #1e1e1e;
+  --app-btn-hover: #2e2e2e;
+  --app-btn-text: #d4d4d4;
+  --app-btn-border: #333333;
+
+  /* Editor pane */
+  --editor-bg: #141414;
+  --editor-text: #c8c8c8;
+  --editor-h1: #ffffff;
+  --editor-quote-border: #f59e0b;
+  --editor-quote-bg: rgba(69, 26, 3, 0.2);
+  --editor-quote-text: #fbbf24;
+  --editor-accent: #0ea5e9;
+  --editor-list-text: #d4d4d4;
+  --editor-code-bg: #1e1e1e;
+  --editor-code-text: #86efac;
+  --editor-toolbar-bg: #1e1e1e;
+  --editor-toolbar-border: #333333;
+  --editor-toolbar-text: #858585;
+  --editor-toolbar-text-strong: #c8c8c8;
+  --editor-toolbar-hover: #2e2e2e;
+  --editor-toolbar-divider: #333333;
+  --editor-bottom-bg: #161616;
+  --editor-bottom-border: #2a2a2a;
+  --editor-bottom-text: #6b6b6b;
+  --editor-bottom-text-strong: #999999;
+  --editor-scrollbar-track: #1e1e1e;
+  --editor-scrollbar-thumb: #3d3d3d;
+  --editor-scrollbar-thumb-hover: #555555;
+
+  /* Topic badges */
+  --badge-task-bg: rgba(56, 189, 248, 0.10);
+  --badge-task-border: rgba(56, 189, 248, 0.25);
+  --badge-task-text: #7dd3fc;
+  --badge-concept-bg: rgba(168, 162, 158, 0.10);
+  --badge-concept-border: rgba(168, 162, 158, 0.25);
+  --badge-concept-text: #a8a29e;
+  --badge-reference-bg: rgba(134, 239, 172, 0.10);
+  --badge-reference-border: rgba(134, 239, 172, 0.25);
+  --badge-reference-text: #86efac;
+}
+
+[data-theme="light"] {
+  --app-bg: #f1f5f9;
+  --app-surface: #ffffff;
+  --app-surface-raised: #f1f5f9;
+  --app-border: #e2e8f0;
+  --app-border-subtle: #cbd5e1;
+  --app-text-primary: #0f172a;
+  --app-text-secondary: #1e293b;
+  --app-text-muted: #94a3b8;
+  --app-hover: #e2e8f0;
+  --app-btn-bg: #f1f5f9;
+  --app-btn-hover: #e2e8f0;
+  --app-btn-text: #1e293b;
+  --app-btn-border: #cbd5e1;
+
+  --editor-bg: #ffffff;
+  --editor-text: #1e293b;
+  --editor-h1: #0f172a;
+  --editor-quote-border: #d97706;
+  --editor-quote-bg: rgba(254, 243, 199, 0.5);
+  --editor-quote-text: #92400e;
+  --editor-accent: #0369a1;
+  --editor-list-text: #1e293b;
+  --editor-code-bg: #f1f5f9;
+  --editor-code-text: #16a34a;
+  --editor-toolbar-bg: #f8fafc;
+  --editor-toolbar-border: #e2e8f0;
+  --editor-toolbar-text: #64748b;
+  --editor-toolbar-text-strong: #334155;
+  --editor-toolbar-hover: #e2e8f0;
+  --editor-toolbar-divider: #e2e8f0;
+  --editor-bottom-bg: #f8fafc;
+  --editor-bottom-border: #e2e8f0;
+  --editor-bottom-text: #94a3b8;
+  --editor-bottom-text-strong: #475569;
+  --editor-scrollbar-track: #f1f5f9;
+  --editor-scrollbar-thumb: #cbd5e1;
+  --editor-scrollbar-thumb-hover: #94a3b8;
+
+  --badge-task-bg: rgba(3, 105, 161, 0.08);
+  --badge-task-border: rgba(3, 105, 161, 0.25);
+  --badge-task-text: #0369a1;
+  --badge-concept-bg: rgba(100, 116, 139, 0.08);
+  --badge-concept-border: rgba(100, 116, 139, 0.25);
+  --badge-concept-text: #64748b;
+  --badge-reference-bg: rgba(22, 163, 74, 0.08);
+  --badge-reference-border: rgba(22, 163, 74, 0.25);
+  --badge-reference-text: #16a34a;
+}
+
+[data-theme="claude"] {
+  --app-bg: #1f150f;
+  --app-surface: #241a13;
+  --app-surface-raised: #3d2e24;
+  --app-border: #3d2e24;
+  --app-border-subtle: #5c4033;
+  --app-text-primary: #f5f0eb;
+  --app-text-secondary: #e8ddd3;
+  --app-text-muted: #8a7568;
+  --app-hover: #5c4033;
+  --app-btn-bg: #3d2e24;
+  --app-btn-hover: #5c4033;
+  --app-btn-text: #e8ddd3;
+  --app-btn-border: #5c4033;
+
+  --editor-bg: #2d2019;
+  --editor-text: #e8ddd3;
+  --editor-h1: #f5f0eb;
+  --editor-quote-border: #da7756;
+  --editor-quote-bg: rgba(218, 119, 86, 0.15);
+  --editor-quote-text: #e8a88c;
+  --editor-accent: #da7756;
+  --editor-list-text: #e8ddd3;
+  --editor-code-bg: #3d2e24;
+  --editor-code-text: #e8a88c;
+  --editor-toolbar-bg: #3d2e24;
+  --editor-toolbar-border: #5c4033;
+  --editor-toolbar-text: #a89080;
+  --editor-toolbar-text-strong: #e8ddd3;
+  --editor-toolbar-hover: #5c4033;
+  --editor-toolbar-divider: #5c4033;
+  --editor-bottom-bg: #241a13;
+  --editor-bottom-border: #3d2e24;
+  --editor-bottom-text: #8a7568;
+  --editor-bottom-text-strong: #c4b5a8;
+  --editor-scrollbar-track: #3d2e24;
+  --editor-scrollbar-thumb: #5c4033;
+  --editor-scrollbar-thumb-hover: #7a5c48;
+
+  --badge-task-bg: rgba(218, 119, 86, 0.12);
+  --badge-task-border: rgba(218, 119, 86, 0.30);
+  --badge-task-text: #e8a88c;
+  --badge-concept-bg: rgba(138, 117, 104, 0.15);
+  --badge-concept-border: rgba(138, 117, 104, 0.30);
+  --badge-concept-text: #a89080;
+  --badge-reference-bg: rgba(196, 181, 168, 0.12);
+  --badge-reference-border: rgba(196, 181, 168, 0.25);
+  --badge-reference-text: #c4b5a8;
+}
+
+[data-theme="nord"] {
+  --app-bg: #242933;
+  --app-surface: #272c36;
+  --app-surface-raised: #3b4252;
+  --app-border: #3b4252;
+  --app-border-subtle: #434c5e;
+  --app-text-primary: #eceff4;
+  --app-text-secondary: #d8dee9;
+  --app-text-muted: #616e88;
+  --app-hover: #434c5e;
+  --app-btn-bg: #3b4252;
+  --app-btn-hover: #434c5e;
+  --app-btn-text: #d8dee9;
+  --app-btn-border: #434c5e;
+
+  --editor-bg: #2e3440;
+  --editor-text: #d8dee9;
+  --editor-h1: #eceff4;
+  --editor-quote-border: #ebcb8b;
+  --editor-quote-bg: rgba(235, 203, 139, 0.1);
+  --editor-quote-text: #ebcb8b;
+  --editor-accent: #88c0d0;
+  --editor-list-text: #d8dee9;
+  --editor-code-bg: #3b4252;
+  --editor-code-text: #a3be8c;
+  --editor-toolbar-bg: #3b4252;
+  --editor-toolbar-border: #434c5e;
+  --editor-toolbar-text: #7b88a1;
+  --editor-toolbar-text-strong: #d8dee9;
+  --editor-toolbar-hover: #434c5e;
+  --editor-toolbar-divider: #434c5e;
+  --editor-bottom-bg: #272c36;
+  --editor-bottom-border: #3b4252;
+  --editor-bottom-text: #616e88;
+  --editor-bottom-text-strong: #a0aec0;
+  --editor-scrollbar-track: #3b4252;
+  --editor-scrollbar-thumb: #4c566a;
+  --editor-scrollbar-thumb-hover: #5e6a82;
+
+  --badge-task-bg: rgba(136, 192, 208, 0.10);
+  --badge-task-border: rgba(136, 192, 208, 0.25);
+  --badge-task-text: #88c0d0;
+  --badge-concept-bg: rgba(123, 136, 161, 0.12);
+  --badge-concept-border: rgba(123, 136, 161, 0.25);
+  --badge-concept-text: #7b88a1;
+  --badge-reference-bg: rgba(163, 190, 140, 0.10);
+  --badge-reference-border: rgba(163, 190, 140, 0.25);
+  --badge-reference-text: #a3be8c;
+}
+
+[data-theme="solarized"] {
+  --app-bg: #001e28;
+  --app-surface: #00212b;
+  --app-surface-raised: #073642;
+  --app-border: #073642;
+  --app-border-subtle: #0a4a5c;
+  --app-text-primary: #fdf6e3;
+  --app-text-secondary: #93a1a1;
+  --app-text-muted: #586e75;
+  --app-hover: #0a4a5c;
+  --app-btn-bg: #073642;
+  --app-btn-hover: #0a4a5c;
+  --app-btn-text: #93a1a1;
+  --app-btn-border: #0a4a5c;
+
+  --editor-bg: #002b36;
+  --editor-text: #839496;
+  --editor-h1: #fdf6e3;
+  --editor-quote-border: #b58900;
+  --editor-quote-bg: rgba(181, 137, 0, 0.1);
+  --editor-quote-text: #b58900;
+  --editor-accent: #268bd2;
+  --editor-list-text: #839496;
+  --editor-code-bg: #073642;
+  --editor-code-text: #859900;
+  --editor-toolbar-bg: #073642;
+  --editor-toolbar-border: #0a4a5c;
+  --editor-toolbar-text: #657b83;
+  --editor-toolbar-text-strong: #93a1a1;
+  --editor-toolbar-hover: #0a4a5c;
+  --editor-toolbar-divider: #0a4a5c;
+  --editor-bottom-bg: #00212b;
+  --editor-bottom-border: #073642;
+  --editor-bottom-text: #586e75;
+  --editor-bottom-text-strong: #839496;
+  --editor-scrollbar-track: #073642;
+  --editor-scrollbar-thumb: #0a4a5c;
+  --editor-scrollbar-thumb-hover: #2aa198;
+
+  --badge-task-bg: rgba(38, 139, 210, 0.10);
+  --badge-task-border: rgba(38, 139, 210, 0.25);
+  --badge-task-text: #268bd2;
+  --badge-concept-bg: rgba(88, 110, 117, 0.15);
+  --badge-concept-border: rgba(88, 110, 117, 0.30);
+  --badge-concept-text: #657b83;
+  --badge-reference-bg: rgba(133, 153, 0, 0.10);
+  --badge-reference-border: rgba(133, 153, 0, 0.25);
+  --badge-reference-text: #859900;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--editor-scrollbar-track);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--editor-scrollbar-thumb);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--editor-scrollbar-thumb-hover);
+}
+
+.tab-bar-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Lexical Editor Styles */
+.ContentEditable__root {
+  outline: none;
+  min-height: 100%;
+  padding: 0 1rem;
+}
+.dita-editor-h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--editor-h1);
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+.dita-editor-paragraph {
+  margin-bottom: 1rem;
+  line-height: 1.625;
+  color: var(--editor-text);
+}
+.dita-editor-quote {
+  border-left: 4px solid var(--editor-quote-border);
+  background-color: var(--editor-quote-bg);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+  color: var(--editor-quote-text);
+  font-style: italic;
+}
+.dita-editor-list-ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--editor-list-text);
+}
+.dita-editor-list-ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--editor-list-text);
+}
+.dita-editor-listitem {
+  margin-bottom: 0.25rem;
+  padding-left: 0.25rem;
+}
+.dita-editor-shortdesc {
+  margin-bottom: 1rem;
+  line-height: 1.625;
+  color: var(--editor-text);
+  font-style: italic;
+  opacity: 0.75;
+}
+.dita-editor-shortdesc {
+  position: relative;
+}
+.dita-editor-shortdesc::after {
+  content: 'Short Description';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.5rem;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+}
+.dita-editor-code {
+  background-color: var(--editor-code-bg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  color: var(--editor-code-text);
+}
+
+/* Table styles */
+.dita-editor-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+.dita-editor-table-row {
+}
+.dita-editor-table-cell {
+  border: 1px solid var(--app-border);
+  padding: 0.5rem 0.75rem;
+  color: var(--editor-text);
+  vertical-align: top;
+}
+.dita-editor-table-cell-header {
+  border: 1px solid var(--app-border);
+  padding: 0.5rem 0.75rem;
+  color: var(--editor-text);
+  background-color: var(--app-surface-raised);
+  font-weight: 600;
+}
+
+/* Edit Mode */
+.dita-editor-edit-mode-container {
+  outline: 2px solid #f59e0b;
+  outline-offset: -2px;
+}
+
+.dita-editor-edit-mode-badge {
+  position: absolute;
+  top: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background-color: #f59e0b;
+  color: #000000;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 10px;
+  border-radius: 0 0 6px 6px;
+}
+
+/* Edit mode tracked changes */
+.tracked-addition {
+  background-color: rgba(34, 197, 94, 0.12);
+  border-left: 3px solid #22c55e;
+  padding-left: calc(1rem - 3px);
+}
+
+.tracked-deletion {
+  background-color: rgba(239, 68, 68, 0.10);
+  border-left: 3px solid #ef4444;
+  padding-left: calc(1rem - 3px);
+  text-decoration: line-through;
+  text-decoration-color: #ef4444;
+  color: #fca5a5;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.7;
+  margin-bottom: 0;
+  line-height: 1.625;
+}
+
+/* Inline tracked changes */
+::highlight(tracked-insert) {
+  text-decoration: underline;
+  text-decoration-color: #22c55e;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  background-color: rgba(34, 197, 94, 0.10);
+}
+
+.tracked-deletion-inline {
+  text-decoration: line-through;
+  text-decoration-color: #ef4444;
+  text-decoration-thickness: 2px;
+  color: #fca5a5;
+  opacity: 0.7;
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+}
+
+/* Heretto Browser Modal */
+.heretto-item:last-child {
+  border-bottom: none !important;
+}
