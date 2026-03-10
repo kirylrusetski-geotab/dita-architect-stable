@@ -33,12 +33,14 @@ export const EditModePlugin = ({
   const { nodeOriginMap, xmlMetaCache } = useSyncContext();
 
   // Enter Edit Mode: capture snapshot
+  // Only enterTrigger should gate this — callbacks are inline arrows and must not be deps.
   useEffect(() => {
     if (enterTrigger === 0) return;
     snapshotRef.current = editor.getEditorState();
     onEnterEditMode(tabId);
     toast('Entered Edit Mode — changes are isolated');
-  }, [enterTrigger, editor, snapshotRef, tabId, onEnterEditMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enterTrigger]);
 
   // Accept: serialize current state and push to parent
   useEffect(() => {
@@ -49,7 +51,8 @@ export const EditModePlugin = ({
     });
     snapshotRef.current = null;
     toast.success('Edits accepted and synced');
-  }, [acceptTrigger, editor, masterXml, snapshotRef, tabId, onAcceptEdits]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [acceptTrigger]);
 
   // Reject: restore snapshot and clear undo history
   useEffect(() => {
@@ -62,7 +65,8 @@ export const EditModePlugin = ({
     snapshotRef.current = null;
     onRejectEdits(tabId);
     toast('Edits rejected — reverted to previous state');
-  }, [rejectTrigger, editor, snapshotRef, tabId, onRejectEdits]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rejectTrigger]);
 
   return null;
 };
