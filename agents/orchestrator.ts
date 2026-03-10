@@ -1,7 +1,11 @@
 import path from 'node:path';
 import { query, type SDKResultSuccess, type SDKResultError } from '@anthropic-ai/claude-agent-sdk';
 import type { AgentDefinition, PipelineContext, PipelineResult } from './shared/types.ts';
-import { writeReport, readReport, cleanReports, REPORT_FILES } from './shared/file-comm.ts';
+import {
+  writeReport, readReport, cleanReports, REPORT_FILES,
+  saveCheckpoint, loadCheckpoint, clearCheckpoint,
+  type PipelineCheckpoint,
+} from './shared/file-comm.ts';
 import { generateCodebaseContext } from './shared/codebase-context.ts';
 import { techLeadKickoff, techLeadWrapup } from './agents/tech-lead.ts';
 import { architect } from './agents/architect.ts';
@@ -105,8 +109,47 @@ function hasTestFailures(testContent: string): boolean {
   return false;
 }
 
+function checkpoint(step: number, userRequest: string, retries: PipelineResult['retries']): void {
+  saveCheckpoint({
+    userRequest,
+    completedStep: step,
+    retries,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+type ReportKey = keyof PipelineContext['reports'];
+type StringResultKey = 'kickoff' | 'plan' | 'implementation' | 'review' | 'uxReview' | 'devops' | 'testResults';
+
+function reloadReports(ctx: PipelineContext, result: PipelineResult, upToStep: number): void {
+  const reportMap: { step: number; key: ReportKey; resultKey: StringResultKey }[] = [
+    { step: 1, key: 'kickoff', resultKey: 'kickoff' },
+    { step: 2, key: 'plan', resultKey: 'plan' },
+    { step: 3, key: 'implementation', resultKey: 'implementation' },
+    { step: 4, key: 'review', resultKey: 'review' },
+    { step: 5, key: 'uxReview', resultKey: 'uxReview' },
+    { step: 6, key: 'devops', resultKey: 'devops' },
+    { step: 7, key: 'testResults', resultKey: 'testResults' },
+  ];
+  for (const { step, key, resultKey } of reportMap) {
+    if (step <= upToStep) {
+      const content = readReport(REPORT_FILES[key]);
+      ctx.reports[key] = content;
+      result[resultKey] = content;
+    }
+  }
+}
+
 export async function orchestrate(userRequest: string): Promise<PipelineResult> {
-  cleanReports();
+  const existing = loadCheckpoint(userRequest);
+  const resumeFrom = existing ? existing.completedStep + 1 : 1;
+
+  if (existing) {
+    log(`Resuming pipeline from step ${resumeFrom} (checkpoint: ${existing.timestamp})`);
+  } else {
+    cleanReports();
+  }
+
   log('Generating codebase context...');
   const codebaseContext = generateCodebaseContext(PROJECT_ROOT);
 
@@ -127,75 +170,101 @@ export async function orchestrate(userRequest: string): Promise<PipelineResult> 
     devops: '',
     testResults: '',
     wrapup: '',
-    retries: { reviewRetry: false, devopsRetry: false, testRetry: false },
+    retries: existing?.retries ?? { reviewRetry: false, devopsRetry: false, testRetry: false },
   };
 
+  // Reload all reports from disk for completed steps
+  if (resumeFrom > 1) {
+    reloadReports(ctx, result, existing!.completedStep);
+  }
+
   // Step 1: Rafael — Kickoff
-  log('--- Step 1: Rafael Santos (Kickoff) ---');
-  result.kickoff = await runAgent(techLeadKickoff, ctx);
-  ctx.reports.kickoff = readReport(REPORT_FILES.kickoff);
+  if (resumeFrom <= 1) {
+    log('--- Step 1: Rafael Santos (Kickoff) ---');
+    result.kickoff = await runAgent(techLeadKickoff, ctx);
+    ctx.reports.kickoff = readReport(REPORT_FILES.kickoff);
+    checkpoint(1, userRequest, result.retries);
+  }
 
   // Step 2: Anna — Architecture Plan
-  log('--- Step 2: Anna Sidorova (Architecture Plan) ---');
-  result.plan = await runAgent(architect, ctx);
-  ctx.reports.plan = readReport(REPORT_FILES.plan);
+  if (resumeFrom <= 2) {
+    log('--- Step 2: Anna Sidorova (Architecture Plan) ---');
+    result.plan = await runAgent(architect, ctx);
+    ctx.reports.plan = readReport(REPORT_FILES.plan);
+    checkpoint(2, userRequest, result.retries);
+  }
 
   // Step 3: Jamie — Implementation
-  log('--- Step 3: Jamie Okafor (Implementation) ---');
-  result.implementation = await runAgent(developer, ctx);
-  ctx.reports.implementation = readReport(REPORT_FILES.implementation);
-
-  // Step 4: Elena — Code Review
-  log('--- Step 4: Elena Vasquez (Code Review) ---');
-  result.review = await runAgent(codeReviewer, ctx);
-  ctx.reports.review = readReport(REPORT_FILES.review);
-
-  // Step 4b: If blocking issues, Jamie re-implements + Elena re-reviews
-  if (hasBlockingIssues(ctx.reports.review)) {
-    log('Elena found blocking issues. Jamie re-implementing...');
-    result.retries.reviewRetry = true;
+  if (resumeFrom <= 3) {
+    log('--- Step 3: Jamie Okafor (Implementation) ---');
     result.implementation = await runAgent(developer, ctx);
     ctx.reports.implementation = readReport(REPORT_FILES.implementation);
+    checkpoint(3, userRequest, result.retries);
+  }
 
+  // Step 4: Elena — Code Review
+  if (resumeFrom <= 4) {
+    log('--- Step 4: Elena Vasquez (Code Review) ---');
     result.review = await runAgent(codeReviewer, ctx);
     ctx.reports.review = readReport(REPORT_FILES.review);
+
+    // Step 4b: If blocking issues, Jamie re-implements + Elena re-reviews
+    if (hasBlockingIssues(ctx.reports.review)) {
+      log('Elena found blocking issues. Jamie re-implementing...');
+      result.retries.reviewRetry = true;
+      result.implementation = await runAgent(developer, ctx);
+      ctx.reports.implementation = readReport(REPORT_FILES.implementation);
+
+      result.review = await runAgent(codeReviewer, ctx);
+      ctx.reports.review = readReport(REPORT_FILES.review);
+    }
+    checkpoint(4, userRequest, result.retries);
   }
 
   // Step 5: Maya — UX Review (advisory, does not block)
-  log('--- Step 5: Maya Chen (UX Review) ---');
-  result.uxReview = await runAgent(uxAdvisor, ctx);
-  ctx.reports.uxReview = readReport(REPORT_FILES.uxReview);
+  if (resumeFrom <= 5) {
+    log('--- Step 5: Maya Chen (UX Review) ---');
+    result.uxReview = await runAgent(uxAdvisor, ctx);
+    ctx.reports.uxReview = readReport(REPORT_FILES.uxReview);
+    checkpoint(5, userRequest, result.retries);
+  }
 
   // Step 6: Marcus — Build Verification (hard gate)
-  log('--- Step 6: Marcus Wren (Build Verification) ---');
-  result.devops = await runAgent(devopsEngineer, ctx);
-  ctx.reports.devops = readReport(REPORT_FILES.devops);
-
-  // Step 6b: If build fails, Jamie re-implements + Marcus re-verifies
-  if (hasBuildFailure(ctx.reports.devops)) {
-    log('Marcus reports BUILD FAIL. Jamie re-implementing...');
-    result.retries.devopsRetry = true;
-    result.implementation = await runAgent(developer, ctx);
-    ctx.reports.implementation = readReport(REPORT_FILES.implementation);
-
+  if (resumeFrom <= 6) {
+    log('--- Step 6: Marcus Wren (Build Verification) ---');
     result.devops = await runAgent(devopsEngineer, ctx);
     ctx.reports.devops = readReport(REPORT_FILES.devops);
+
+    // Step 6b: If build fails, Jamie re-implements + Marcus re-verifies
+    if (hasBuildFailure(ctx.reports.devops)) {
+      log('Marcus reports BUILD FAIL. Jamie re-implementing...');
+      result.retries.devopsRetry = true;
+      result.implementation = await runAgent(developer, ctx);
+      ctx.reports.implementation = readReport(REPORT_FILES.implementation);
+
+      result.devops = await runAgent(devopsEngineer, ctx);
+      ctx.reports.devops = readReport(REPORT_FILES.devops);
+    }
+    checkpoint(6, userRequest, result.retries);
   }
 
   // Step 7: Taylor — Testing
-  log('--- Step 7: Taylor Brooks (Testing) ---');
-  result.testResults = await runAgent(qaEngineer, ctx);
-  ctx.reports.testResults = readReport(REPORT_FILES.testResults);
-
-  // Step 7b: If test failures, Jamie re-implements + Taylor re-tests
-  if (hasTestFailures(ctx.reports.testResults)) {
-    log('Taylor reports test failures. Jamie re-implementing...');
-    result.retries.testRetry = true;
-    result.implementation = await runAgent(developer, ctx);
-    ctx.reports.implementation = readReport(REPORT_FILES.implementation);
-
+  if (resumeFrom <= 7) {
+    log('--- Step 7: Taylor Brooks (Testing) ---');
     result.testResults = await runAgent(qaEngineer, ctx);
     ctx.reports.testResults = readReport(REPORT_FILES.testResults);
+
+    // Step 7b: If test failures, Jamie re-implements + Taylor re-tests
+    if (hasTestFailures(ctx.reports.testResults)) {
+      log('Taylor reports test failures. Jamie re-implementing...');
+      result.retries.testRetry = true;
+      result.implementation = await runAgent(developer, ctx);
+      ctx.reports.implementation = readReport(REPORT_FILES.implementation);
+
+      result.testResults = await runAgent(qaEngineer, ctx);
+      ctx.reports.testResults = readReport(REPORT_FILES.testResults);
+    }
+    checkpoint(7, userRequest, result.retries);
   }
 
   // Step 8: Rafael — Wrapup
@@ -203,9 +272,12 @@ export async function orchestrate(userRequest: string): Promise<PipelineResult> 
   result.wrapup = await runAgent(techLeadWrapup, ctx);
   ctx.reports.wrapup = readReport(REPORT_FILES.wrapup);
 
-  result.success = !hasBlockingIssues(ctx.reports.review)
-    && !hasBuildFailure(ctx.reports.devops)
-    && !hasTestFailures(ctx.reports.testResults);
+  result.success = !hasBlockingIssues(ctx.reports.review ?? '')
+    && !hasBuildFailure(ctx.reports.devops ?? '')
+    && !hasTestFailures(ctx.reports.testResults ?? '');
+
+  // Pipeline complete — clear checkpoint
+  clearCheckpoint();
 
   return result;
 }
