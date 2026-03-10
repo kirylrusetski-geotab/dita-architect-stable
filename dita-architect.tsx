@@ -33,6 +33,7 @@ import { SaveTopicModal } from './components/SaveTopicModal';
 import { HerettoStatusModal } from './components/HerettoStatusModal';
 import { HerettoBrowserModal } from './components/HerettoBrowserModal';
 import { ReleaseNotesModal } from './components/ReleaseNotesModal';
+import { APP_VERSION } from './constants/version';
 import { ImportVerificationModal } from './components/ImportVerificationModal';
 import { SYNTAX_THEME_OPTIONS } from './components/MonacoDitaEditor';
 import type { XmlError } from './components/MonacoDitaEditor';
@@ -369,7 +370,7 @@ export default function ProfessionalDitaEditor() {
                   }}
                   aria-label="View release notes"
                 >
-                  v0.5
+                  v{APP_VERSION}
                 </button>
               </div>
               <div className="flex items-center gap-2 text-xs mt-0.5" style={{ color: 'var(--app-text-muted)' }}>

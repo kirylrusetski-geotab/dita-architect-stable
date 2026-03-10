@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
+import { APP_VERSION, RELEASE_NOTES } from '../constants/version';
 
 interface ReleaseNotesModalProps {
   onClose: () => void;
@@ -23,78 +24,49 @@ export const ReleaseNotesModal = ({ onClose }: ReleaseNotesModalProps) => (
         </div>
         <div>
           <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
-            DITA <span className="text-dita-500">Architect</span> v0.5
+            DITA <span className="text-dita-500">Architect</span> v{APP_VERSION}
           </h3>
           <p className="text-xs" style={{ color: 'var(--app-text-muted)' }}>Release Notes</p>
         </div>
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-sm" style={{ color: 'var(--app-text-secondary)' }}>
-        <p style={{ color: 'var(--app-text-primary)' }}>
-          v0.5 is a stability and usability release focused on making the editing experience feel
-          reliable and polished. Here&rsquo;s what changed.
-        </p>
+      <div className="flex-1 overflow-y-auto pr-1 space-y-6 text-sm" style={{ color: 'var(--app-text-secondary)' }}>
+        {RELEASE_NOTES.map((release) => (
+          <div key={release.version}>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-sm font-bold" style={{ color: 'var(--app-text-primary)' }}>
+                v{release.version}
+              </span>
+              <span className="text-[10px]" style={{ color: 'var(--app-text-muted)' }}>
+                {release.date}
+              </span>
+            </div>
+            <p className="text-xs mb-3" style={{ color: 'var(--app-text-primary)' }}>
+              {release.title}
+            </p>
 
-        <section>
-          <h4 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--app-text-muted)' }}>
-            Sync &amp; Data Integrity
-          </h4>
-          <ul className="space-y-1 text-xs list-disc list-inside">
-            <li>Fixed XML round-trip fidelity &mdash; edits in the visual editor no longer silently drop attributes, processing instructions, or comments</li>
-            <li>Resolved the <code className="text-[11px] px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--app-surface-raised)' }}>savedXmlRef</code> mutation bug that caused false &ldquo;unsaved changes&rdquo; warnings</li>
-            <li>Heretto CMS sync now preserves remote formatting on save instead of re-serializing from scratch</li>
-            <li>Added integrity verification on import &mdash; topics are fetched twice and compared before opening</li>
-          </ul>
-        </section>
+            <div className="space-y-3">
+              {release.sections.map((section) => (
+                <section key={section.heading}>
+                  <h4 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--app-text-muted)' }}>
+                    {section.heading}
+                  </h4>
+                  <ul className="space-y-1 text-xs list-disc list-inside">
+                    {section.items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
 
-        <section>
-          <h4 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--app-text-muted)' }}>
-            Edit Mode &amp; Tracked Changes
-          </h4>
-          <ul className="space-y-1 text-xs list-disc list-inside">
-            <li>New <strong>Edit Mode</strong> &mdash; click the pencil icon to isolate changes before committing them to the document</li>
-            <li>Word-level tracked insertions highlighted via the CSS Custom Highlight API</li>
-            <li>Tracked deletions rendered inline with strikethrough styling</li>
-            <li>Accept merges changes into the XML source; Reject restores the pre-edit snapshot</li>
-          </ul>
-        </section>
-
-        <section>
-          <h4 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--app-text-muted)' }}>
-            Editor Polish
-          </h4>
-          <ul className="space-y-1 text-xs list-disc list-inside">
-            <li>Full keyboard navigation across all dropdown menus &mdash; Arrow keys, Escape, and focus management</li>
-            <li>All modals now trap focus, respond to Escape, and carry proper <code className="text-[11px] px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--app-surface-raised)' }}>aria-modal</code> attributes</li>
-            <li>Multi-tab support &mdash; open several topics side by side, each with independent undo history and sync state</li>
-            <li>Status bar shows word count, character count, readability score, encoding, and DITA version</li>
-          </ul>
-        </section>
-
-        <section>
-          <h4 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--app-text-muted)' }}>
-            Heretto CMS Integration
-          </h4>
-          <ul className="space-y-1 text-xs list-disc list-inside">
-            <li>File browser with breadcrumb navigation, folder-scoped search, and progress indicators</li>
-            <li>Save new topics to any Heretto folder or overwrite existing files</li>
-            <li>Background polling detects remote changes and surfaces conflict indicators</li>
-            <li>Credentials stored locally in <code className="text-[11px] px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--app-surface-raised)' }}>~/heretto.json</code> &mdash; never sent to the browser</li>
-          </ul>
-        </section>
-
-        <section>
-          <h4 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--app-text-muted)' }}>
-            Under the Hood
-          </h4>
-          <ul className="space-y-1 text-xs list-disc list-inside">
-            <li>239 tests covering XML parsing, sync round-trips, tab management, and Heretto utilities</li>
-            <li>Modals decomposed into standalone components &mdash; main file reduced by 38%</li>
-            <li>7-agent development pipeline with checkpoint-based resume for long-running tasks</li>
-            <li>Five application themes: Dark, Light, Claude, Nord, and Solarized</li>
-          </ul>
-        </section>
+            {/* Divider between releases */}
+            {RELEASE_NOTES.indexOf(release) < RELEASE_NOTES.length - 1 && (
+              <div className="mt-4" style={{ borderTop: '1px solid var(--app-border-subtle)' }} />
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Footer */}
