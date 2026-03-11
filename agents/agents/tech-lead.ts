@@ -1,4 +1,5 @@
 import type { AgentDefinition, PipelineContext } from '../shared/types.ts';
+import { STAKEHOLDER_MESSAGE, COMPANY_CULTURE } from '../shared/types.ts';
 
 const CHARACTER = `You are Rafael Santos, Engineering Manager at Cybergymnastics Inc., working on the DITA Architect project.
 
@@ -26,14 +27,22 @@ export const techLeadKickoff: AgentDefinition = {
 ## Your Role Right Now
 You're kicking off a development task. Read the request, scan the relevant code, and write a mission brief for your team. Anna (Staff Engineer) will use this to build the architecture plan. Jamie (Senior Frontend Engineer) will implement it. Elena (Principal Engineer) will review. Maya (UX Engineer) will check UX. Marcus (Senior DevOps) will verify the build. Taylor (QA Lead) will test.
 
+${STAKEHOLDER_MESSAGE ? `## Message from Kiryl\n${STAKEHOLDER_MESSAGE}` : ''}
+
+${COMPANY_CULTURE}
+
 ## User Request
 ${ctx.userRequest}
+
+## Project Log (Previous Runs)
+${ctx.projectLog || 'No previous runs recorded.'}
 
 ## Codebase Context
 ${ctx.codebaseContext}
 
 ## Instructions
 1. Read the relevant source files to understand the current state.
+1a. Check the project log above for any decisions, known issues, or context from previous pipeline runs that may be relevant.
 2. Identify what the user actually needs (vs. what they literally said — they're sometimes different).
 3. Flag any risks or ambiguities upfront.
 4. Write a clear mission brief.
@@ -75,6 +84,10 @@ export const techLeadWrapup: AgentDefinition = {
 
 ## Your Role Right Now
 The pipeline is complete. Read every team member's report and write an executive summary. This is the final output the user sees.
+
+${STAKEHOLDER_MESSAGE ? `## Message from Kiryl\n${STAKEHOLDER_MESSAGE}` : ''}
+
+${COMPANY_CULTURE}
 
 ## User Request
 ${ctx.userRequest}
@@ -134,6 +147,11 @@ ${ctx.reports.testResults ?? 'Not available.'}
 - (Anything that needs attention post-ship. Empty if clean.)
 
 ## Final Assessment
-(Your honest 1-2 sentence take on how this went.)`;
+(Your honest 1-2 sentence take on how this went.)
+
+---
+
+## Project Log Entry
+(Write a concise log entry for future pipeline runs. Include: what was built, key decisions made, any known issues or tech debt introduced, and anything the next run should know. Keep it factual — 5-10 bullet points max. This will be appended to PROJECT_LOG.md for team continuity.)`;
   },
 };

@@ -3,6 +3,8 @@ import path from 'node:path';
 
 const REPORTS_DIR = path.resolve(import.meta.dirname, '..', '.reports');
 const CHECKPOINT_FILE = path.join(REPORTS_DIR, 'pipeline-state.json');
+const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..');
+const PROJECT_LOG_FILE = path.join(PROJECT_ROOT, 'PROJECT_LOG.md');
 
 export const REPORT_FILES = {
   kickoff: 'kickoff.md',
@@ -68,4 +70,15 @@ export function cleanReports(): void {
     fs.rmSync(REPORTS_DIR, { recursive: true, force: true });
   }
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
+}
+
+export function readProjectLog(): string {
+  if (!fs.existsSync(PROJECT_LOG_FILE)) return '';
+  return fs.readFileSync(PROJECT_LOG_FILE, 'utf-8');
+}
+
+export function appendProjectLog(entry: string): void {
+  const timestamp = new Date().toISOString();
+  const header = `\n---\n\n### ${timestamp}\n\n`;
+  fs.appendFileSync(PROJECT_LOG_FILE, header + entry + '\n', 'utf-8');
 }

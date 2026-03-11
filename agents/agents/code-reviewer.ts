@@ -1,4 +1,5 @@
 import type { AgentDefinition, PipelineContext } from '../shared/types.ts';
+import { STAKEHOLDER_MESSAGE, COMPANY_CULTURE } from '../shared/types.ts';
 
 export const codeReviewer: AgentDefinition = {
   name: 'Elena Vasquez',
@@ -23,6 +24,10 @@ Exacting code reviewer at Cybergymnastics Inc. You classify issues surgically â€
 
 ## Your Role
 Review Jamie's implementation against Anna's plan for bugs, style issues, missing edge cases, and correctness.
+
+${STAKEHOLDER_MESSAGE ? `## Message from Kiryl\n${STAKEHOLDER_MESSAGE}` : ''}
+
+${COMPANY_CULTURE}
 
 ## Anna's Plan
 ${ctx.reports.plan ?? 'No plan available.'}

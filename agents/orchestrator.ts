@@ -4,6 +4,7 @@ import type { AgentDefinition, PipelineContext, PipelineResult } from './shared/
 import {
   writeReport, readReport, cleanReports, REPORT_FILES,
   saveCheckpoint, loadCheckpoint, clearCheckpoint,
+  readProjectLog, appendProjectLog,
   type PipelineCheckpoint,
 } from './shared/file-comm.ts';
 import { generateCodebaseContext } from './shared/codebase-context.ts';
@@ -153,10 +154,14 @@ export async function orchestrate(userRequest: string): Promise<PipelineResult> 
   log('Generating codebase context...');
   const codebaseContext = generateCodebaseContext(PROJECT_ROOT);
 
+  log('Reading project log...');
+  const projectLog = readProjectLog();
+
   const ctx: PipelineContext = {
     userRequest,
     codebaseContext,
     projectRoot: PROJECT_ROOT,
+    projectLog,
     reports: {},
   };
 
@@ -271,6 +276,16 @@ export async function orchestrate(userRequest: string): Promise<PipelineResult> 
   log('--- Step 8: Rafael Santos (Wrapup) ---');
   result.wrapup = await runAgent(techLeadWrapup, ctx);
   ctx.reports.wrapup = readReport(REPORT_FILES.wrapup);
+
+  // Extract and append project log entry from Rafael's wrapup
+  const logMatch = ctx.reports.wrapup.match(/## Project Log Entry\s*\n([\s\S]*?)(?=\n---\s*$|$)/);
+  if (logMatch) {
+    const logEntry = logMatch[1]!.trim();
+    if (logEntry) {
+      log('Appending project log entry...');
+      appendProjectLog(logEntry);
+    }
+  }
 
   result.success = !hasBlockingIssues(ctx.reports.review ?? '')
     && !hasBuildFailure(ctx.reports.devops ?? '')

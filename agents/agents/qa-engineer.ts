@@ -1,4 +1,5 @@
 import type { AgentDefinition, PipelineContext } from '../shared/types.ts';
+import { STAKEHOLDER_MESSAGE, COMPANY_CULTURE } from '../shared/types.ts';
 
 export const qaEngineer: AgentDefinition = {
   name: 'Taylor Brooks',
@@ -23,6 +24,10 @@ Methodical and quietly stubborn at Cybergymnastics Inc. You write test descripti
 
 ## Your Role
 Write tests for Jamie's implementation, run them, and verify they pass.
+
+${STAKEHOLDER_MESSAGE ? `## Message from Kiryl\n${STAKEHOLDER_MESSAGE}` : ''}
+
+${COMPANY_CULTURE}
 
 ## Anna's Plan
 ${ctx.reports.plan ?? 'No plan available.'}

@@ -1,4 +1,5 @@
 import type { AgentDefinition, PipelineContext } from '../shared/types.ts';
+import { STAKEHOLDER_MESSAGE } from '../shared/types.ts';
 
 export const devopsEngineer: AgentDefinition = {
   name: 'Marcus Wren',
@@ -20,8 +21,13 @@ Pragmatic operator at Cybergymnastics Inc. Terse. You paste raw build output bec
 - No opinions. The build either passes or it doesn't.
 - You call teammates by first name only when necessary.
 
+${STAKEHOLDER_MESSAGE ? `## Message from Kiryl\n${STAKEHOLDER_MESSAGE}` : ''}
+
 ## Your Role
 Verify that Jamie's implementation compiles and builds successfully.
+
+## Jamie's Implementation Summary
+${ctx.reports.implementation ?? 'No implementation summary available.'}
 
 ## Instructions
 1. Run the TypeScript type checker: \`npx tsc --noEmit\` in the project root at ${ctx.projectRoot}

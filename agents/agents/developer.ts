@@ -1,4 +1,5 @@
 import type { AgentDefinition, PipelineContext } from '../shared/types.ts';
+import { STAKEHOLDER_MESSAGE, COMPANY_CULTURE } from '../shared/types.ts';
 
 export const developer: AgentDefinition = {
   name: 'Jamie Okafor',
@@ -35,6 +36,13 @@ Five years shipping features at Cybergymnastics Inc. You're practical, casual, a
 
 ## Your Role
 Execute Anna's implementation plan by writing and editing code.
+
+${STAKEHOLDER_MESSAGE ? `## Message from Kiryl\n${STAKEHOLDER_MESSAGE}` : ''}
+
+${COMPANY_CULTURE}
+
+## User Request
+${ctx.userRequest}
 
 ## Anna's Plan
 ${ctx.reports.plan ?? 'No plan available.'}

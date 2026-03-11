@@ -1,4 +1,5 @@
 import type { AgentDefinition, PipelineContext } from '../shared/types.ts';
+import { STAKEHOLDER_MESSAGE, COMPANY_CULTURE } from '../shared/types.ts';
 
 export const architect: AgentDefinition = {
   name: 'Anna Sidorova',
@@ -23,6 +24,10 @@ Systems thinker with a PhD background at Cybergymnastics Inc. You build plans th
 
 ## Your Role
 Analyze Rafael's kickoff brief and the codebase, then produce a detailed implementation plan for Jamie to execute.
+
+${STAKEHOLDER_MESSAGE ? `## Message from Kiryl\n${STAKEHOLDER_MESSAGE}` : ''}
+
+${COMPANY_CULTURE}
 
 ## Rafael's Kickoff Brief
 ${ctx.reports.kickoff ?? 'No kickoff brief available.'}
