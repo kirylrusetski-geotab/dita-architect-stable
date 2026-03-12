@@ -55,12 +55,13 @@ Launched via `dita-architect-dev` skill. 7-agent pipeline.
 
 ### DITA Architect Rendering Bugs (from content review)
 
-- [ ] **BUG: Empty table rows rendered between data rows** — Empty `<row>` elements in DITA XML are rendered as full-height blank rows in the Lexical table. These appear between `dateRange`/`isDirectional`, `isDirectional`/`roadTypes`, and `roadTypes`/`zones` in the Parameters table. The XML source has these empty rows but they should either be collapsed or hidden in the WYSIWYG view.
-- [ ] **BUG: Parameter column too narrow — table column auto-sizing not proportional** — The first column (`Parameter`) truncates entries mid-word (e.g., "queryTy pe", "dateRa nge", "isDirecti onal") even at wide viewport widths. The `Description` column absorbs most of the horizontal space. Column width distribution should account for content length across all columns.
-- [ ] **BUG: `conkeyref` renders as empty whitespace** — `<note conkeyref="varsAltitudeNotes/noteSpecialCaseAPIs"/>` renders as a blank gap in Lexical. When a conkeyref cannot be resolved locally, the editor should show a visible placeholder (e.g., `[conkeyref: varsAltitudeNotes/noteSpecialCaseAPIs]`) rather than silent whitespace.
-- [ ] **BUG: Nested list inside table cell renders as raw indented text** — The `zones` parameter's Defined Value Set column contains `<ul><li>` elements inside a `<entry>`. In Lexical, these render as indented text blocks with excessive vertical spacing instead of a compact bulleted list.
-- [ ] **BUG: `<codeblock>` renders as "CODEBLOCK" label with no content** — The "Sample parameters" section at the bottom of the document contains a `<codeblock>` with a JSON example. In the Lexical pane it renders as just the word "CODEBLOCK" with "0 words / 0 characters" — the actual code content is not displayed. The Monaco pane shows the JSON correctly (lines 873-882).
-- [ ] **BUG: `dateRange` sub-parameters not visible in Lexical** — The `dateRange` row description says "Each object contains:" but the nested `<ul>` with `DateFrom` and `DateTo` sub-parameters is not rendered in the Lexical pane. The Monaco XML (lines 52-63) shows these exist as `<li>` items with `<codeph>` elements.
+Promoted to standalone bug reports in `bugreports/`. See:
+- `BUG-empty-table-rows.md`
+- `BUG-table-column-autosizing.md`
+- `BUG-conkeyref-empty-whitespace.md`
+- `BUG-nested-list-in-table-cell.md`
+- `BUG-codeblock-no-content.md`
+- `BUG-nested-list-not-rendered.md`
 
 ---
 
