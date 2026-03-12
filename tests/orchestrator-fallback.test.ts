@@ -131,17 +131,17 @@ describe('orchestrator fallback handling for Anna Sidorova agent failures', () =
     });
 
     it('only provides fallback for Anna Sidorova agent failures, not other agents', () => {
-      const agentNames = ['Anna Sidorova', 'Jamie Okafor', 'Elena Rodriguez', 'Taylor Brooks'];
+      const agentNames = ['Anna Sidorova', 'Jamie Okafor', 'Elena Rodriguez', 'Taylor Brooks'] as const;
 
       // Only Anna Sidorova should get fallback plan generation
-      const fallbackEligibility = {
+      const fallbackEligibility: Record<typeof agentNames[number], boolean> = {
         'Anna Sidorova': true,   // Should get fallback
         'Jamie Okafor': false,   // Should not get fallback
         'Elena Rodriguez': false, // Should not get fallback
         'Taylor Brooks': false   // Should not get fallback
       };
 
-      agentNames.forEach(agentName => {
+      agentNames.forEach((agentName: typeof agentNames[number]) => {
         if (agentName === 'Anna Sidorova') {
           expect(fallbackEligibility[agentName]).toBe(true);
         } else {

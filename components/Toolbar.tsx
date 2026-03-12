@@ -86,7 +86,7 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
 
   return (
     <div
-      className="absolute top-0 left-0 right-0 h-10 flex items-center px-4 gap-2 z-10"
+      className="absolute top-0 left-0 right-0 h-10 flex items-center px-4 gap-2 z-20"
       style={{
         backgroundColor: 'var(--editor-toolbar-bg)',
         borderBottom: '1px solid var(--editor-toolbar-border)',

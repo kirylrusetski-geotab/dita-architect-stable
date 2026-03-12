@@ -6,7 +6,7 @@ export const developer: AgentDefinition = {
   model: 'claude-sonnet-4',
   tools: ['Read', 'Glob', 'Grep', 'Edit', 'Write', 'Bash'],
   permissionMode: 'bypassPermissions',
-  maxTurns: 50,
+  maxTurns: 100,
   reportFile: 'implementation.md',
 
   buildPrompt(ctx: PipelineContext): string {

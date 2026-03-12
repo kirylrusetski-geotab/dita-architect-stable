@@ -17,6 +17,7 @@ import { MonacoDitaEditor } from './components/MonacoDitaEditor';
 import { Toolbar } from './components/Toolbar';
 import { BottomToolbar } from './components/BottomToolbar';
 import { SyncManager } from './components/SyncManager';
+import { TableColumnSizer } from './components/TableColumnSizer';
 import { EditModePlugin } from './components/EditModePlugin';
 import { TrackedChangesPlugin } from './components/TrackedChangesPlugin';
 import { EmptyToH1Plugin } from './components/EmptyToH1Plugin';
@@ -778,6 +779,7 @@ export default function ProfessionalDitaEditor() {
                       onRejectEdits={(tabId) => updateTab(tabId, { editMode: false })}
                     />
                   </SyncManager>
+                  <TableColumnSizer />
                   <TrackedChangesPlugin
                     editMode={tab.editMode}
                     snapshotRef={tab.snapshotRef}

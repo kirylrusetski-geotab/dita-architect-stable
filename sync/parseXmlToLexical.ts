@@ -141,10 +141,75 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
         case 'cmd':
         case 'note': {
           if (tagName === 'note') {
+            // Check for conkeyref/keyref/conref attributes first
+            const conkeyref = xmlNode.getAttribute('conkeyref');
+            const keyref = xmlNode.getAttribute('keyref');
+            const conref = xmlNode.getAttribute('conref');
+
+            if (conkeyref || keyref || conref) {
+              const refType = conkeyref ? 'conkeyref' : keyref ? 'keyref' : 'conref';
+              const refValue = conkeyref || keyref || conref;
+              return $createDitaPhRefNode(refType, refValue!, `[${refType}: ${refValue}]`);
+            }
+
             const quote = $createQuoteNode();
             parseTextNodes(xmlNode).forEach(n => quote.append(n));
             return quote;
           }
+
+          // Check if this element contains block-level children that need recursive traversal
+          const blockTags = new Set(['codeblock', 'note', 'ul', 'ol', 'table', 'simpletable', 'fig', 'image', 'p', 'section']);
+          const hasBlockChildren = Array.from(xmlNode.children).some(
+            child => blockTags.has(child.tagName.toLowerCase())
+          );
+
+          if (hasBlockChildren) {
+            // Split into inline runs and block children
+            const results: any[] = [];
+            let inlineNodes: any[] = [];
+
+            const flushInline = () => {
+              if (inlineNodes.length > 0) {
+                const p = $createParagraphNode();
+                inlineNodes.forEach(n => p.append(n));
+                if (tagName === 'shortdesc') {
+                  originMap.set(p.getKey(), { tag: 'shortdesc', bodyIndex: -2 });
+                } else if (tagName === 'prereq' || tagName === 'context' || tagName === 'result' || tagName === 'postreq') {
+                  originMap.set(p.getKey(), { tag: tagName, bodyIndex: bodyIndex ?? -1 });
+                } else if (tagName === 'p' && bodyIndex !== undefined) {
+                  originMap.set(p.getKey(), { tag: 'p', bodyIndex });
+                }
+                results.push(p);
+                inlineNodes = [];
+              }
+            };
+
+            Array.from(xmlNode.childNodes).forEach(child => {
+              if (child.nodeType === Node.TEXT_NODE) {
+                let text = child.textContent;
+                if (!text) return;
+                text = text.replace(/[ \t]*\n[ \t\n]*/g, ' ');
+                if (text.trim()) inlineNodes.push($createTextNode(text));
+              } else if (child.nodeType === Node.ELEMENT_NODE) {
+                const el = child as Element;
+                const elTag = el.tagName.toLowerCase();
+                if (blockTags.has(elTag)) {
+                  flushInline();
+                  const blockResult = traverse(el);
+                  if (blockResult) {
+                    if (Array.isArray(blockResult)) results.push(...blockResult);
+                    else results.push(blockResult);
+                  }
+                } else {
+                  // Inline element — parse as text nodes
+                  parseTextNodes(el).forEach(n => inlineNodes.push(n));
+                }
+              }
+            });
+            flushInline();
+            return results.length === 1 ? results[0] : results;
+          }
+
           const p = $createParagraphNode();
           parseTextNodes(xmlNode).forEach(n => p.append(n));
           if (tagName === 'shortdesc') {
@@ -187,37 +252,50 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
           if (!tgroup) return null;
 
           const parseCellContent = (entryEl: Element) => {
-            const children = Array.from(entryEl.children);
+            const nodes: any[] = [];
+            let inlineNodes: any[] = [];
 
-            // Check for structural elements that should be parsed as blocks
-            const blockElements = children.filter(child => {
-              const tag = child.tagName.toLowerCase();
-              return ['p', 'ul', 'ol', 'li', 'table', 'section', 'div'].includes(tag);
+            const blockTags = new Set(['p', 'ul', 'ol', 'li', 'table', 'section', 'div']);
+
+            const flushInline = () => {
+              if (inlineNodes.length > 0) {
+                const p = $createParagraphNode();
+                inlineNodes.forEach(n => p.append(n));
+                nodes.push(p);
+                inlineNodes = [];
+              }
+            };
+
+            // Process all child nodes sequentially (both text and element nodes)
+            Array.from(entryEl.childNodes).forEach(child => {
+              if (child.nodeType === Node.TEXT_NODE) {
+                let text = child.textContent;
+                if (!text) return;
+                text = text.replace(/[ \t]*\n[ \t\n]*/g, ' ');
+                if (text.trim()) inlineNodes.push($createTextNode(text));
+              } else if (child.nodeType === Node.ELEMENT_NODE) {
+                const el = child as Element;
+                const elTag = el.tagName.toLowerCase();
+
+                if (blockTags.has(elTag)) {
+                  // Block element: flush inline content, then add block
+                  flushInline();
+                  const blockResult = traverse(el);
+                  if (blockResult) {
+                    if (Array.isArray(blockResult)) nodes.push(...blockResult);
+                    else nodes.push(blockResult);
+                  }
+                } else {
+                  // Inline element: parse as text nodes
+                  parseTextNodes(el).forEach(n => inlineNodes.push(n));
+                }
+              }
             });
 
-            // If there are block-level child elements, parse them properly
-            if (blockElements.length > 0) {
-              const nodes: any[] = [];
-              blockElements.forEach(child => {
-                const result = traverse(child);
-                if (result) {
-                  if (Array.isArray(result)) {
-                    nodes.push(...result);
-                  } else {
-                    nodes.push(result);
-                  }
-                }
-              });
-              // If we parsed child elements successfully, return them
-              if (nodes.length > 0) {
-                return nodes;
-              }
-            }
+            flushInline();
 
-            // Fallback: create paragraph with text content (handles inline elements like <b>, <i>, etc.)
-            const p = $createParagraphNode();
-            parseTextNodes(entryEl).forEach(n => p.append(n));
-            return [p];
+            // If no content was processed, create an empty paragraph
+            return nodes.length > 0 ? nodes : [$createParagraphNode()];
           };
 
           const parseRows = (container: Element, isHeader: boolean) => {
@@ -259,37 +337,50 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
           const tableNode = $createTableNode();
 
           const parseCellContent = (entryEl: Element) => {
-            const children = Array.from(entryEl.children);
+            const nodes: any[] = [];
+            let inlineNodes: any[] = [];
 
-            // Check for structural elements that should be parsed as blocks
-            const blockElements = children.filter(child => {
-              const tag = child.tagName.toLowerCase();
-              return ['p', 'ul', 'ol', 'li', 'table', 'section', 'div'].includes(tag);
+            const blockTags = new Set(['p', 'ul', 'ol', 'li', 'table', 'section', 'div']);
+
+            const flushInline = () => {
+              if (inlineNodes.length > 0) {
+                const p = $createParagraphNode();
+                inlineNodes.forEach(n => p.append(n));
+                nodes.push(p);
+                inlineNodes = [];
+              }
+            };
+
+            // Process all child nodes sequentially (both text and element nodes)
+            Array.from(entryEl.childNodes).forEach(child => {
+              if (child.nodeType === Node.TEXT_NODE) {
+                let text = child.textContent;
+                if (!text) return;
+                text = text.replace(/[ \t]*\n[ \t\n]*/g, ' ');
+                if (text.trim()) inlineNodes.push($createTextNode(text));
+              } else if (child.nodeType === Node.ELEMENT_NODE) {
+                const el = child as Element;
+                const elTag = el.tagName.toLowerCase();
+
+                if (blockTags.has(elTag)) {
+                  // Block element: flush inline content, then add block
+                  flushInline();
+                  const blockResult = traverse(el);
+                  if (blockResult) {
+                    if (Array.isArray(blockResult)) nodes.push(...blockResult);
+                    else nodes.push(blockResult);
+                  }
+                } else {
+                  // Inline element: parse as text nodes
+                  parseTextNodes(el).forEach(n => inlineNodes.push(n));
+                }
+              }
             });
 
-            // If there are block-level child elements, parse them properly
-            if (blockElements.length > 0) {
-              const nodes: any[] = [];
-              blockElements.forEach(child => {
-                const result = traverse(child);
-                if (result) {
-                  if (Array.isArray(result)) {
-                    nodes.push(...result);
-                  } else {
-                    nodes.push(result);
-                  }
-                }
-              });
-              // If we parsed child elements successfully, return them
-              if (nodes.length > 0) {
-                return nodes;
-              }
-            }
+            flushInline();
 
-            // Fallback: create paragraph with text content (handles inline elements like <b>, <i>, etc.)
-            const p = $createParagraphNode();
-            parseTextNodes(entryEl).forEach(n => p.append(n));
-            return [p];
+            // If no content was processed, create an empty paragraph
+            return nodes.length > 0 ? nodes : [$createParagraphNode()];
           };
 
           Array.from(xmlNode.children).forEach(child => {
