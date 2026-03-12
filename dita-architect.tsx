@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -112,6 +112,15 @@ export default function ProfessionalDitaEditor() {
   const [isNewTopicModalOpen, setIsNewTopicModalOpen] = useState(false);
   const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+  // Show "What's New" on first launch after a version update
+  useEffect(() => {
+    const lastSeenVersion = localStorage.getItem('dita-architect-last-seen-version');
+    if (lastSeenVersion !== APP_VERSION) {
+      setIsReleaseNotesOpen(true);
+      localStorage.setItem('dita-architect-last-seen-version', APP_VERSION);
+    }
+  }, []);
 
   const {
     tabs,

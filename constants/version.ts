@@ -21,6 +21,39 @@ export interface ReleaseNote {
  */
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.5.1',
+    date: '2026-03-12',
+    title: 'Rendering fixes and editor improvements — codeblocks, tables, and references now display faithfully in the visual editor.',
+    sections: [
+      {
+        heading: 'Bug Fixes',
+        items: [
+          'Codeblock content now renders in the visual editor \u2014 <codeblock> elements nested inside <p>, <context>, <prereq>, <result>, or <postreq> no longer silently disappear',
+          'H2 section headings visible on all themes \u2014 text classes now use CSS variables instead of hardcoded colors',
+          'Lists inside table cells render correctly \u2014 mixed inline-and-block content in table entries is parsed in reading order',
+          'Empty table rows filtered out \u2014 rows with no entries no longer create blank visual gaps',
+          'Theme dropdown no longer hidden behind the Heretto context toolbar',
+        ],
+      },
+      {
+        heading: 'New Features',
+        items: [
+          'Conkeyref / keyref / conref placeholder chips \u2014 unresolved references display as visible chips (e.g. [conkeyref: glossary/term]) instead of blank space',
+          'Table column auto-sizing \u2014 columns proportionally distribute width based on content length, with a 10% minimum to prevent word-breaking',
+          'Geotab theme refinements \u2014 improved contrast and visual hierarchy with three distinct tiers for text, headings, and muted elements',
+        ],
+      },
+      {
+        heading: 'Under the Hood',
+        items: [
+          'Pipeline health reporting \u2014 real-time dashboard, error categorization, and fallback plan generation when agents fail',
+          'Agent turn limits increased to 50\u2013100 to prevent mid-task timeouts on complex work',
+          '437 tests across 19 test suites, with new coverage for conkeyref placeholders, mixed-content table cells, and CSS variable consistency',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.5.0',
     date: '2026-03-10',
     title: 'Stability and usability release focused on making the editing experience feel reliable and polished.',
