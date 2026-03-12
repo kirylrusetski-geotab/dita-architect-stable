@@ -48,3 +48,54 @@ The What's New modal currently displays only the latest release notes entry (`RE
 ### Value Proposition (Maya Chen, UX Advisor)
 
 Right now with two versions this isn't urgent, but every release adds another entry that becomes invisible. A version browser turns the modal from a one-time notification into a lightweight changelog — useful for users returning after multiple updates, onboarding new team members, or simply answering "when did we add conkeyref chips?" without leaving the app.
+
+---
+
+## FR-003: Empty states for Heretto file browser
+
+**Requested:** 2026-03-12
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** Medium
+
+### Description
+
+When a Heretto CMS folder contains no topics, the file browser shows nothing — no message, no affordance, just blank space. Add an empty state with a message like `No topics in this folder` and a `Create new topic` action button.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+An empty folder with no feedback is a dead end. The author doesn't know if the folder is genuinely empty, still loading, or broken. A clear empty state with a `No topics in this folder` message answers the question instantly, and a `Create new topic` call-to-action turns a dead end into a starting point. This is low-effort, high-trust UX — it tells the user "we anticipated this state and we've got you covered."
+
+---
+
+## FR-004: Inline validation hints in the visual editor
+
+**Requested:** 2026-03-12
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** High
+
+### Description
+
+Add inline visual indicators in the Lexical WYSIWYG editor for content issues that are currently invisible until publish time. Examples include red underlines for broken `xref` targets, yellow highlights for unresolved keyrefs/conkeyrefs, and subtle markers for missing required elements.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Right now, an author can write an entire topic with broken cross-references and not know until the output is built. That's a long feedback loop. Inline hints — a red underline on a dead `xref`, a yellow squiggle on an unresolved keyref — bring validation into the authoring moment. Authors catch problems while they still remember the context, not three steps later in a build log. This borrows a pattern every developer already knows from their code editor, applied to the content side of the split pane.
+
+---
+
+## FR-005: Keyboard shortcut cheat sheet
+
+**Requested:** 2026-03-12
+**Status:** Proposed
+**Priority:** Low
+**Impact:** Medium
+
+### Description
+
+Add a discoverable keyboard shortcut overlay that displays all available shortcuts. Trigger via `?` or `Cmd+/` (when not focused in an editor). Show grouped shortcuts for formatting, navigation, file operations, and edit mode actions.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+We've built good keyboard shortcuts — bold, italic, save, edit mode toggle — but there's no way to discover them without reading source code. A shortcut overlay (like GitHub's `?` or Figma's `Ctrl+Shift+?`) gives power users a reference and new users a learning path. Discoverability is the difference between "this app has shortcuts" and "this app taught me its shortcuts." It's a small surface that signals the app respects keyboard-driven workflows.
