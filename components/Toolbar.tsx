@@ -132,7 +132,7 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
             style={{
               backgroundColor: 'var(--editor-toolbar-bg)',
               borderColor: 'var(--editor-toolbar-border)',
-              zIndex: 50,
+              zIndex: 9999,
             }}
           >
             {THEME_OPTIONS.map(opt => (

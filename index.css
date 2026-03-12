@@ -38,6 +38,7 @@ body {
   --editor-bg: #141414;
   --editor-text: #c8c8c8;
   --editor-h1: #ffffff;
+  --editor-h2: #ffffff;
   --editor-quote-border: #f59e0b;
   --editor-quote-bg: rgba(69, 26, 3, 0.2);
   --editor-quote-text: #fbbf24;
@@ -89,6 +90,7 @@ body {
   --editor-bg: #ffffff;
   --editor-text: #1e293b;
   --editor-h1: #0f172a;
+  --editor-h2: #0f172a;
   --editor-quote-border: #d97706;
   --editor-quote-bg: rgba(254, 243, 199, 0.5);
   --editor-quote-text: #92400e;
@@ -139,6 +141,7 @@ body {
   --editor-bg: #2d2019;
   --editor-text: #e8ddd3;
   --editor-h1: #f5f0eb;
+  --editor-h2: #f5f0eb;
   --editor-quote-border: #da7756;
   --editor-quote-bg: rgba(218, 119, 86, 0.15);
   --editor-quote-text: #e8a88c;
@@ -189,6 +192,7 @@ body {
   --editor-bg: #2e3440;
   --editor-text: #d8dee9;
   --editor-h1: #eceff4;
+  --editor-h2: #eceff4;
   --editor-quote-border: #ebcb8b;
   --editor-quote-bg: rgba(235, 203, 139, 0.1);
   --editor-quote-text: #ebcb8b;
@@ -239,6 +243,7 @@ body {
   --editor-bg: #002b36;
   --editor-text: #839496;
   --editor-h1: #fdf6e3;
+  --editor-h2: #fdf6e3;
   --editor-quote-border: #b58900;
   --editor-quote-bg: rgba(181, 137, 0, 0.1);
   --editor-quote-text: #b58900;
@@ -289,6 +294,7 @@ body {
   --editor-bg: #1e2332;
   --editor-text: #d0d7de;
   --editor-h1: #f0f0f0;
+  --editor-h2: #f0f0f0;
   --editor-quote-border: #0078d3;
   --editor-quote-bg: rgba(0, 120, 211, 0.1);
   --editor-quote-text: #4da6ff;
@@ -353,6 +359,43 @@ body {
   color: var(--editor-h1);
   margin-bottom: 0.5rem;
   line-height: 1.2;
+}
+.dita-editor-h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--editor-h2);
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.dita-editor-text-bold {
+  font-weight: 700;
+  color: var(--editor-text);
+}
+
+.dita-editor-text-italic {
+  font-style: italic;
+  color: var(--editor-text);
+}
+
+.dita-editor-text-link {
+  color: var(--editor-accent);
+  cursor: pointer;
+}
+
+.dita-editor-text-link:hover {
+  text-decoration: underline;
+}
+
+.dita-editor-text-strikethrough {
+  text-decoration: line-through;
+  color: var(--editor-text);
+  opacity: 0.7;
+}
+
+.dita-editor-text-underline {
+  text-decoration: underline;
+  color: var(--editor-text);
 }
 .dita-editor-paragraph {
   margin-bottom: 1rem;
@@ -481,7 +524,7 @@ body {
 }
 
 /* Inline tracked changes */
-::highlight(tracked-insert) {
+:highlight(tracked-insert) {
   text-decoration: underline;
   text-decoration-color: #22c55e;
   text-decoration-thickness: 2px;

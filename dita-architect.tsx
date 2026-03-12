@@ -48,7 +48,7 @@ import { useHerettoCms } from './hooks/useHerettoCms';
 const theme = {
   heading: {
     h1: 'dita-editor-h1',
-    h2: 'text-2xl font-bold text-white mb-3',
+    h2: 'dita-editor-h2',
   },
   paragraph: 'dita-editor-paragraph',
   quote: 'dita-editor-quote',
@@ -58,13 +58,13 @@ const theme = {
     listitem: 'dita-editor-listitem',
   },
   text: {
-    bold: 'font-bold text-dita-400',
-    italic: 'italic text-slate-400',
-    underline: 'underline decoration-dita-500',
+    bold: 'dita-editor-text-bold',
+    italic: 'dita-editor-text-italic',
+    underline: 'dita-editor-text-underline',
     code: 'dita-editor-code',
-    strikethrough: 'line-through text-red-400',
+    strikethrough: 'dita-editor-text-strikethrough',
   },
-  link: 'text-blue-400 hover:underline cursor-pointer',
+  link: 'dita-editor-text-link',
   table: 'dita-editor-table',
   tableRow: 'dita-editor-table-row',
   tableCell: 'dita-editor-table-cell',

@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { PipelineHealthReport } from './types.ts';
 
 const REPORTS_DIR = path.resolve(import.meta.dirname, '..', '.reports');
 const CHECKPOINT_FILE = path.join(REPORTS_DIR, 'pipeline-state.json');
+const PIPELINE_HEALTH_FILE = path.join(REPORTS_DIR, 'pipeline-health.json');
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..');
 const PROJECT_LOG_FILE = path.join(PROJECT_ROOT, 'PROJECT_LOG.md');
 
@@ -81,4 +83,18 @@ export function appendProjectLog(entry: string): void {
   const timestamp = new Date().toISOString();
   const header = `\n---\n\n### ${timestamp}\n\n`;
   fs.appendFileSync(PROJECT_LOG_FILE, header + entry + '\n', 'utf-8');
+}
+
+export function writePipelineHealth(health: PipelineHealthReport): void {
+  ensureReportsDir();
+  fs.writeFileSync(PIPELINE_HEALTH_FILE, JSON.stringify(health, null, 2), 'utf-8');
+}
+
+export function readPipelineHealth(): PipelineHealthReport | null {
+  if (!fs.existsSync(PIPELINE_HEALTH_FILE)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(PIPELINE_HEALTH_FILE, 'utf-8')) as PipelineHealthReport;
+  } catch {
+    return null;
+  }
 }

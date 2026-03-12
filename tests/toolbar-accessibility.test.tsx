@@ -127,8 +127,7 @@ describe('Toolbar Theme Selector Accessibility', () => {
     it('all descriptions are under 30 characters as specified in Anna\'s plan', () => {
       Object.values(THEME_DESCRIPTIONS).forEach((description, index) => {
         const themeName = Object.keys(THEME_DESCRIPTIONS)[index];
-        expect(description.length).toBeLessThanOrEqual(30,
-          `${themeName} description "${description}" exceeds 30 character limit`);
+        expect(description.length).toBeLessThanOrEqual(30);
       });
     });
   });

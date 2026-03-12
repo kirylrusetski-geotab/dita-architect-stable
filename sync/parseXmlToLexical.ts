@@ -187,16 +187,34 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
           if (!tgroup) return null;
 
           const parseCellContent = (entryEl: Element) => {
-            const pChildren = Array.from(entryEl.children).filter(
-              c => c.tagName.toLowerCase() === 'p'
-            );
-            if (pChildren.length > 0) {
-              return pChildren.map(pEl => {
-                const p = $createParagraphNode();
-                parseTextNodes(pEl).forEach(n => p.append(n));
-                return p;
+            const children = Array.from(entryEl.children);
+
+            // Check for structural elements that should be parsed as blocks
+            const blockElements = children.filter(child => {
+              const tag = child.tagName.toLowerCase();
+              return ['p', 'ul', 'ol', 'li', 'table', 'section', 'div'].includes(tag);
+            });
+
+            // If there are block-level child elements, parse them properly
+            if (blockElements.length > 0) {
+              const nodes: any[] = [];
+              blockElements.forEach(child => {
+                const result = traverse(child);
+                if (result) {
+                  if (Array.isArray(result)) {
+                    nodes.push(...result);
+                  } else {
+                    nodes.push(result);
+                  }
+                }
               });
+              // If we parsed child elements successfully, return them
+              if (nodes.length > 0) {
+                return nodes;
+              }
             }
+
+            // Fallback: create paragraph with text content (handles inline elements like <b>, <i>, etc.)
             const p = $createParagraphNode();
             parseTextNodes(entryEl).forEach(n => p.append(n));
             return [p];
@@ -206,8 +224,10 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
             Array.from(container.children).forEach(child => {
               if (child.tagName.toLowerCase() !== 'row') return;
               const rowNode = $createTableRowNode();
+              let hasEntries = false;
               Array.from(child.children).forEach(entry => {
                 if (entry.tagName.toLowerCase() !== 'entry') return;
+                hasEntries = true;
                 const headerState = isHeader
                   ? TableCellHeaderStates.ROW
                   : TableCellHeaderStates.NO_STATUS;
@@ -220,7 +240,10 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
                 parseCellContent(entry).forEach(n => cellNode.append(n));
                 rowNode.append(cellNode);
               });
-              tableNode.append(rowNode);
+              // Only append the row if it has entries
+              if (hasEntries) {
+                tableNode.append(rowNode);
+              }
             });
           };
 
@@ -236,16 +259,34 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
           const tableNode = $createTableNode();
 
           const parseCellContent = (entryEl: Element) => {
-            const pChildren = Array.from(entryEl.children).filter(
-              c => c.tagName.toLowerCase() === 'p'
-            );
-            if (pChildren.length > 0) {
-              return pChildren.map(pEl => {
-                const p = $createParagraphNode();
-                parseTextNodes(pEl).forEach(n => p.append(n));
-                return p;
+            const children = Array.from(entryEl.children);
+
+            // Check for structural elements that should be parsed as blocks
+            const blockElements = children.filter(child => {
+              const tag = child.tagName.toLowerCase();
+              return ['p', 'ul', 'ol', 'li', 'table', 'section', 'div'].includes(tag);
+            });
+
+            // If there are block-level child elements, parse them properly
+            if (blockElements.length > 0) {
+              const nodes: any[] = [];
+              blockElements.forEach(child => {
+                const result = traverse(child);
+                if (result) {
+                  if (Array.isArray(result)) {
+                    nodes.push(...result);
+                  } else {
+                    nodes.push(result);
+                  }
+                }
               });
+              // If we parsed child elements successfully, return them
+              if (nodes.length > 0) {
+                return nodes;
+              }
             }
+
+            // Fallback: create paragraph with text content (handles inline elements like <b>, <i>, etc.)
             const p = $createParagraphNode();
             parseTextNodes(entryEl).forEach(n => p.append(n));
             return [p];
@@ -256,8 +297,10 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
             if (tag !== 'sthead' && tag !== 'strow') return;
             const isHeader = tag === 'sthead';
             const rowNode = $createTableRowNode();
+            let hasEntries = false;
             Array.from(child.children).forEach(entry => {
               if (entry.tagName.toLowerCase() !== 'stentry') return;
+              hasEntries = true;
               const headerState = isHeader
                 ? TableCellHeaderStates.ROW
                 : TableCellHeaderStates.NO_STATUS;
@@ -265,7 +308,10 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
               parseCellContent(entry).forEach(n => cellNode.append(n));
               rowNode.append(cellNode);
             });
-            tableNode.append(rowNode);
+            // Only append the row if it has entries
+            if (hasEntries) {
+              tableNode.append(rowNode);
+            }
           });
 
           return tableNode;
@@ -287,7 +333,19 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
         }
 
         case 'codeblock': {
-          const code = xmlNode.textContent || '';
+          // Extract text content while preserving whitespace and ignoring processing instructions
+          let code = '';
+          const extractCodeText = (node: Node): void => {
+            for (const child of Array.from(node.childNodes)) {
+              if (child.nodeType === Node.TEXT_NODE) {
+                code += child.textContent || '';
+              } else if (child.nodeType === Node.ELEMENT_NODE) {
+                extractCodeText(child);
+              }
+              // Skip processing instructions
+            }
+          };
+          extractCodeText(xmlNode);
           const language = xmlNode.getAttribute('outputclass') || '';
           return $createDitaCodeBlockNode(code, language);
         }

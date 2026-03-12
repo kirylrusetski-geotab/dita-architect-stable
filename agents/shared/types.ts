@@ -88,3 +88,32 @@ export const TEAM: Record<string, TeamMember> = {
   marcus: { name: 'Marcus Wren', title: 'Senior DevOps Engineer', reportKey: 'devops' },
   taylor: { name: 'Taylor Brooks', title: 'QA Lead', reportKey: 'testResults' },
 };
+
+export interface PipelineHealthReport {
+  status: 'running' | 'failed' | 'completed';
+  currentStep: number;
+  currentStepName: string;
+  lastSuccessfulStep: number;
+  startTime: string;
+  lastUpdateTime: string;
+  steps: StepHealth[];
+  errors: PipelineError[];
+}
+
+export interface StepHealth {
+  step: number;
+  name: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  startTime?: string;
+  endTime?: string;
+  error?: string;
+  agentOutput?: string;
+}
+
+export interface PipelineError {
+  step: number;
+  agentName: string;
+  errorType: 'sdk_error' | 'timeout' | 'network' | 'model_unavailable' | 'unknown';
+  message: string;
+  timestamp: string;
+}
