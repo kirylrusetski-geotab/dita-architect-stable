@@ -18,7 +18,7 @@ export const techLeadKickoff: AgentDefinition = {
   model: 'claude-opus-4',
   tools: ['Read', 'Glob', 'Grep'],
   permissionMode: 'default',
-  maxTurns: 15,
+  maxTurns: 50,
   reportFile: 'kickoff.md',
 
   buildPrompt(ctx: PipelineContext): string {
@@ -76,7 +76,7 @@ export const techLeadWrapup: AgentDefinition = {
   model: 'claude-opus-4',
   tools: ['Read', 'Glob', 'Grep'],
   permissionMode: 'default',
-  maxTurns: 15,
+  maxTurns: 50,
   reportFile: 'wrapup.md',
 
   buildPrompt(ctx: PipelineContext): string {

@@ -429,7 +429,25 @@ export function useHerettoCms({
         body: content,
         signal: abort.signal,
       });
-      if (!res.ok) throw new Error('Failed to save');
+      if (!res.ok) {
+        let errorMessage = `Failed to save (HTTP ${res.status})`;
+        try {
+          const errorResponse = await res.text();
+          if (errorResponse.trim()) {
+            // Try to extract meaningful error details from Heretto response
+            if (errorResponse.includes('DTD') || errorResponse.includes('validation')) {
+              errorMessage += ` - DTD validation error: ${errorResponse.substring(0, 200)}`;
+            } else if (errorResponse.includes('error') || errorResponse.includes('Error')) {
+              errorMessage += ` - ${errorResponse.substring(0, 200)}`;
+            } else {
+              errorMessage += ` - ${errorResponse.substring(0, 100)}`;
+            }
+          }
+        } catch {
+          // Fall back to generic error if response parsing fails
+        }
+        throw new Error(errorMessage);
+      }
 
       const verifyRes = await fetch(`/heretto-api/all-files/${herettoFile.uuid}/content`, { signal: abort.signal });
       if (!verifyRes.ok) throw new Error('Failed to verify');

@@ -395,7 +395,32 @@ export function convertDitaTopic(
   // If the source had no body element, append an empty one so the converted
   // document remains structurally valid.
   if (!bodyFound) {
-    newRoot.appendChild(doc.createElement(newBodyTag));
+    const newBody = doc.createElement(newBodyTag);
+    // If converting to task, ensure required <steps> element exists
+    if (targetType === 'task') {
+      const steps = doc.createElement('steps');
+      const step = doc.createElement('step');
+      const cmd = doc.createElement('cmd');
+      cmd.textContent = 'Add your task step here';
+      step.appendChild(cmd);
+      steps.appendChild(step);
+      newBody.appendChild(steps);
+    }
+    newRoot.appendChild(newBody);
+  }
+
+  // If converting to task and body exists but no steps element, add one
+  if (targetType === 'task' && bodyFound) {
+    const taskBody = newRoot.querySelector(newBodyTag);
+    if (taskBody && !taskBody.querySelector('steps, steps-unordered, steps-informal')) {
+      const steps = doc.createElement('steps');
+      const step = doc.createElement('step');
+      const cmd = doc.createElement('cmd');
+      cmd.textContent = 'Add your task step here';
+      step.appendChild(cmd);
+      steps.appendChild(step);
+      taskBody.appendChild(steps);
+    }
   }
 
   const serializer = new XMLSerializer();
