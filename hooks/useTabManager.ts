@@ -97,9 +97,12 @@ export function useTabManager({
     }
 
     updateTab(activeTab.id, { xmlContent: result.xml, lastUpdatedBy: 'code' });
+    setTimeout(() => {
+      setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, syncTrigger: t.syncTrigger + 1 } : t));
+    }, 0);
     setIsConvertModalOpen(false);
     toast.success(`Converted to ${targetType}`);
-  }, [activeTab, updateTab, setIsConvertModalOpen]);
+  }, [activeTab, updateTab, setIsConvertModalOpen, setTabs]);
 
   return {
     tabs,
