@@ -13,6 +13,12 @@ export const ImportVerificationModal = ({ data, onClose, onContinue }: ImportVer
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby={
+        data.phase === 'downloading' ? 'import-downloading-heading' :
+        data.phase === 'verifying' ? 'import-verifying-heading' :
+        (data.phase === 'results' && data.verified && data.unrecognizedElements.length === 0) ? 'import-ready-heading' :
+        'import-review-heading'
+      }
       className="rounded-xl p-6 w-[440px] shadow-2xl"
       style={{
         backgroundColor: 'var(--app-surface)',
@@ -23,7 +29,7 @@ export const ImportVerificationModal = ({ data, onClose, onContinue }: ImportVer
         <>
           <div className="flex items-center gap-3 mb-4">
             <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--editor-accent)' }} />
-            <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
+            <h3 id="import-downloading-heading" className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
               Downloading topic...
             </h3>
           </div>
@@ -43,7 +49,7 @@ export const ImportVerificationModal = ({ data, onClose, onContinue }: ImportVer
         <>
           <div className="flex items-center gap-3 mb-4">
             <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--editor-accent)' }} />
-            <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
+            <h3 id="import-verifying-heading" className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
               Verifying integrity...
             </h3>
           </div>
@@ -64,14 +70,14 @@ export const ImportVerificationModal = ({ data, onClose, onContinue }: ImportVer
           {data.verified && data.unrecognizedElements.length === 0 ? (
             <div className="flex items-center gap-3 mb-4">
               <CheckCircle className="w-5 h-5 text-emerald-500" />
-              <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
+              <h3 id="import-ready-heading" className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
                 Ready to open
               </h3>
             </div>
           ) : (
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
-              <h3 className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
+              <h3 id="import-review-heading" className="text-lg font-bold" style={{ color: 'var(--app-text-primary)' }}>
                 Review before opening
               </h3>
             </div>
@@ -136,6 +142,7 @@ export const ImportVerificationModal = ({ data, onClose, onContinue }: ImportVer
               Cancel
             </button>
             <button
+              autoFocus
               onClick={onContinue}
               className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors"
             >

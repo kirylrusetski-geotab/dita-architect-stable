@@ -27,7 +27,7 @@ import { DitaCodeBlockNode } from './components/DitaCodeBlockNode';
 import { DitaImageNode } from './components/DitaImageNode';
 import { DitaPhRefNode } from './components/DitaPhRefNode';
 import { TrackedDeletionNode } from './components/TrackedDeletionNode';
-import { Code, CheckCircle, AlertTriangle, BookOpen, Save, FolderOpen, RefreshCw, FilePlus, ChevronDown, CloudUpload, FileText, Loader2, X, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Code, CheckCircle, AlertTriangle, BookOpen, Save, FolderOpen, RefreshCw, FilePlus, ChevronDown, CloudUpload, FileText, Loader2, X, PanelRightClose, PanelRightOpen, Upload } from 'lucide-react';
 import { ConfirmModal } from './components/ConfirmModal';
 import { TopicTypeModal } from './components/TopicTypeModal';
 import { SaveTopicModal } from './components/SaveTopicModal';
@@ -36,6 +36,8 @@ import { HerettoBrowserModal } from './components/HerettoBrowserModal';
 import { ReleaseNotesModal } from './components/ReleaseNotesModal';
 import { APP_VERSION } from './constants/version';
 import { ImportVerificationModal } from './components/ImportVerificationModal';
+import { HerettoReplaceModal } from './components/HerettoReplaceModal';
+import { HerettoReplaceBar } from './components/HerettoReplaceBar';
 import { SYNTAX_THEME_OPTIONS } from './components/MonacoDitaEditor';
 import type { XmlError } from './components/MonacoDitaEditor';
 import { formatRelativeTime } from './lib/xml-utils';
@@ -114,6 +116,7 @@ export default function ProfessionalDitaEditor() {
   const [isNewTopicModalOpen, setIsNewTopicModalOpen] = useState(false);
   const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+  const [isHerettoReplaceModalOpen, setIsHerettoReplaceModalOpen] = useState(false);
 
   // Show "What's New" on first launch after a version update
   useEffect(() => {
@@ -185,6 +188,7 @@ export default function ProfessionalDitaEditor() {
     handleHerettoRefresh,
     handleHerettoDisconnect,
     handleHerettoSaveNew,
+    handleHerettoReplace,
   } = useHerettoCms({
     activeTab,
     tabs,
@@ -341,7 +345,24 @@ export default function ProfessionalDitaEditor() {
           browsing={herettoBrowsing}
           items={herettoItems}
           navigate={herettoNavigate}
-          onOpen={handleHerettoOpen}
+          onOpen={(item) => {
+            if (herettoBrowserMode === 'replace') {
+              // Set replace target for current tab
+              const pathStr = 'path' in item && item.path
+                ? item.path
+                : herettoBreadcrumbs.slice(1).map(b => b.name).join('/') + '/' + item.name;
+
+              setTabs(prev => prev.map(t =>
+                t.id === activeTab?.id
+                  ? { ...t, herettoReplaceTarget: { uuid: item.uuid, name: item.name, path: pathStr } }
+                  : t
+              ));
+              setIsHerettoBrowserOpen(false);
+            } else {
+              // Normal open behavior
+              handleHerettoOpen(item);
+            }
+          }}
           saveFileName={herettoSaveFileName}
           setSaveFileName={setHerettoSaveFileName}
           saving={herettoSaving}
@@ -357,6 +378,21 @@ export default function ProfessionalDitaEditor() {
           data={importVerification}
           onClose={() => setImportVerification(null)}
           onContinue={handleImportContinue}
+        />
+      )}
+
+      {/* Heretto Replace Modal */}
+      {isHerettoReplaceModalOpen && activeTab && activeTab.herettoReplaceTarget && (
+        <HerettoReplaceModal
+          isOpen={isHerettoReplaceModalOpen}
+          target={{
+            uuid: activeTab.herettoReplaceTarget.uuid,
+            name: activeTab.herettoReplaceTarget.name || `Unknown File`,
+            path: activeTab.herettoReplaceTarget.path || `Unknown Path`,
+          }}
+          editorContent={activeTab.xmlContent}
+          onReplace={handleHerettoReplace}
+          onClose={() => setIsHerettoReplaceModalOpen(false)}
         />
       )}
 
@@ -562,6 +598,15 @@ export default function ProfessionalDitaEditor() {
                       <CloudUpload className="w-3.5 h-3.5" />
                       Save
                     </button>
+                    <button
+                      role="menuitem"
+                      onClick={() => { setIsHerettoDropdownOpen(false); openHerettoBrowser('replace'); }}
+                      className="w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 whitespace-nowrap hover-app"
+                      style={{ color: 'var(--app-text-secondary)' }}
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      Replace existing...
+                    </button>
                     <div className="my-1 mx-2" style={{ borderTop: '1px solid var(--app-border-subtle)' }} />
                   </>
                 )}
@@ -676,6 +721,19 @@ export default function ProfessionalDitaEditor() {
                 {tab.editMode && (
                   <div className="dita-editor-edit-mode-badge">Edit Mode</div>
                 )}
+                {/* Heretto Replace Bar */}
+                {tab.herettoReplaceTarget && (
+                  <HerettoReplaceBar
+                    targetName={tab.herettoReplaceTarget.name || `File ${tab.herettoReplaceTarget.uuid.slice(0, 8)}...`}
+                    onPreviewDiff={() => setIsHerettoReplaceModalOpen(true)}
+                    onReplace={() => setIsHerettoReplaceModalOpen(true)}
+                    onDismiss={() => {
+                      setTabs(prev => prev.map(t =>
+                        t.id === tab.id ? { ...t, herettoReplaceTarget: null } : t
+                      ));
+                    }}
+                  />
+                )}
                 {/* Heretto Context Toolbar */}
                 {tab.herettoFile && (
                   <div
@@ -729,6 +787,7 @@ export default function ProfessionalDitaEditor() {
                         className="p-1 rounded transition-colors hover-text"
                         style={{ color: 'var(--app-text-muted)' }}
                         title="Refresh from Heretto"
+                        aria-label="Refresh from Heretto"
                       >
                         <RefreshCw className={`w-3.5 h-3.5 ${herettoRefreshing ? 'animate-spin' : ''}`} />
                       </button>
@@ -754,6 +813,7 @@ export default function ProfessionalDitaEditor() {
                         className="p-1 rounded transition-colors hover-text"
                         style={{ color: 'var(--app-text-muted)' }}
                         title="Disconnect from Heretto"
+                        aria-label="Disconnect from Heretto"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>

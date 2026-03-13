@@ -30,7 +30,7 @@ export function useHerettoCms({
 
   // --- Heretto CMS state (shared across tabs) ---
   const [isHerettoBrowserOpen, setIsHerettoBrowserOpen] = useState(false);
-  const [herettoBrowserMode, setHerettoBrowserMode] = useState<'open' | 'save'>('open');
+  const [herettoBrowserMode, setHerettoBrowserMode] = useState<'open' | 'save' | 'replace'>('open');
   const [herettoConnected, setHerettoConnected] = useState(false);
   const [herettoBrowsing, setHerettoBrowsing] = useState(false);
   const [herettoBreadcrumbs, setHerettoBreadcrumbs] = useState<{ uuid: string; name: string }[]>([]);
@@ -325,7 +325,7 @@ export function useHerettoCms({
     }
   }, [isHerettoBrowserOpen]);
 
-  const openHerettoBrowser = useCallback(async (mode: 'open' | 'save') => {
+  const openHerettoBrowser = useCallback(async (mode: 'open' | 'save' | 'replace') => {
     setHerettoBrowserMode(mode);
     setIsHerettoBrowserOpen(true);
     setHerettoSelected(null);
@@ -584,6 +584,76 @@ export function useHerettoCms({
     }
   }, [herettoSaveFileName, activeTab, herettoBreadcrumbs, setTabs]);
 
+  const handleHerettoReplace = useCallback(async (target: { uuid: string; name: string; path: string }) => {
+    const tabId = activeTab.id;
+    const content = activeTab.xmlContent;
+
+    try {
+      // Step 1: PUT content to replace existing file
+      const putRes = await fetch(`/heretto-api/all-files/${target.uuid}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/xml' },
+        body: content,
+      });
+
+      if (!putRes.ok) {
+        let errorMessage = `Failed to replace file (HTTP ${putRes.status})`;
+        try {
+          const errorResponse = await putRes.text();
+          if (errorResponse.trim()) {
+            if (errorResponse.includes('DTD') || errorResponse.includes('validation')) {
+              errorMessage += ` - DTD validation error: ${errorResponse.substring(0, 200)}`;
+            } else if (errorResponse.includes('error') || errorResponse.includes('Error')) {
+              errorMessage += ` - ${errorResponse.substring(0, 200)}`;
+            } else {
+              errorMessage += ` - ${errorResponse.substring(0, 100)}`;
+            }
+          }
+        } catch {
+          // Fall back to generic error if response parsing fails
+        }
+        return { success: false, error: errorMessage };
+      }
+
+      // Step 2: GET content back to verify
+      const verifyRes = await fetch(`/heretto-api/all-files/${target.uuid}/content`);
+      if (!verifyRes.ok) {
+        return { success: false, error: 'Failed to verify replacement' };
+      }
+      const remote = await verifyRes.text();
+
+      // Step 3: Compare with compareXml to confirm integrity
+      const comparison = compareXml(content, remote);
+      if (comparison === 'different') {
+        return { success: false, error: 'Verification failed - remote content differs from uploaded content' };
+      }
+
+      // Step 4: Success! Update tab state
+      // Update savedXmlRef outside the state updater to avoid mutating React state.
+      activeTab.savedXmlRef.current = content;
+
+      setTabs(prev => prev.map(t => {
+        if (t.id !== tabId) return t;
+        return {
+          ...t,
+          herettoReplaceTarget: null, // Clear replace target
+          herettoFile: { uuid: target.uuid, name: target.name, path: target.path }, // Set as live Heretto file
+          herettoLastSaved: new Date(),
+          herettoRemoteChanged: false,
+          herettoDirty: false,
+        };
+      }));
+
+      // Show success toast
+      toast.success(`Replaced ${target.name} in Heretto`);
+
+      return { success: true };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { success: false, error: message };
+    }
+  }, [activeTab, setTabs]);
+
   return {
     isHerettoStatusOpen,
     setIsHerettoStatusOpen,
@@ -628,5 +698,6 @@ export function useHerettoCms({
     handleHerettoRefresh,
     handleHerettoDisconnect,
     handleHerettoSaveNew,
+    handleHerettoReplace,
   };
 }

@@ -38,9 +38,9 @@ No open P0 items.
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
 | ~~P2-1~~ | ~~API endpoint for external content loading~~ | ~~Feature~~ | Shipped in v0.7.0 (see Completed section) |
-| P2-2 | [Replace in Heretto workflow](altitude-release-notes-integration.md#feature-2-replace-in-heretto) | Feature | Enables draft-to-publish within the editor. Depends on P2-1 (the API delivers content with a replace target UUID). |
+| ~~P2-2~~ | ~~Replace in Heretto workflow~~ | ~~Feature~~ | Shipped in v0.7.1 (see Completed section) |
 | ~~P2-3~~ | ~~Beautify button~~ | ~~Feature~~ | Shipped in v0.6.1 (see Completed section) |
-| P2-4 | [Accessibility fixes on Heretto modals](altitude-release-notes-integration.md#accessibility-improvements-discovered-during-review) | Fix | Label associations, aria-labels, aria-live, focus management. Bundle with P2-1/P2-2 since we'll be touching related components. |
+| ~~P2-4~~ | ~~Accessibility fixes on Heretto modals~~ | ~~Fix~~ | Shipped in v0.7.1 (see Completed section) |
 | ~~P2-5~~ | ~~Empty states for Heretto file browser~~ | ~~Feature~~ | Shipped in v0.6.2 (see Completed section) |
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation. |
 | ~~P2-7~~ | ~~Hover element labels in visual editor~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
@@ -50,9 +50,12 @@ No open P0 items.
 | ~~P2-11~~ | ~~Improve theme descriptions to be more contextual~~ | ~~Polish~~ | Shipped in v0.6.1 (see Completed section) |
 | ~~P2-12~~ | ~~Add aria-label to Format XML button~~ | ~~Fix~~ | Shipped in v0.6.2 (see Completed section) |
 | ~~P2-13~~ | ~~Improve Format XML error toast specificity~~ | ~~Polish~~ | Shipped in v0.6.2 (see Completed section) |
-| P2-14 | Refine external load toast copy | Polish | UX review (Maya Chen): success toast "Loaded {fileName} from external tool" is developer-centric. Suggest "Imported {fileName}" instead. One-line change in `useExternalLoad.ts`. |
+| ~~P2-14~~ | ~~Refine external load toast copy~~ | ~~Polish~~ | Shipped in v0.7.1 (see Completed section) |
+| P2-15 | Improve HerettoReplaceModal recovery text | Polish | UX review (Maya Chen): make Heretto version history recovery path more specific — suggest "To recover, use Heretto's version history (topic -> History tab)." |
+| P2-16 | Improve DiffViewer empty state copy | Polish | UX review (Maya Chen): when no changes detected, use "No changes detected — your content matches the version in Heretto" instead of generic "No changes detected". |
+| P2-17 | Use contextual placeholder in HerettoStatusModal | Polish | UX review (Maya Chen): change email placeholder from "user@example.com" to "your.name@company.com" to clarify it's a work email. |
 
-**Dependency chain:** P2-2 depends on P2-1 (shipped). P2-4 and P2-6 are independent. P2-6 is the most substantial item in this tier. P2-14 is a trivial one-line change.
+**Dependency chain:** P2-6 is the only substantial remaining item. P2-15, P2-16, P2-17 are trivial one-line copy changes.
 
 ---
 
@@ -76,7 +79,7 @@ No open P0 items.
 
 ## Recommended Execution Order
 
-**Session N (next):** P2-2 (Replace in Heretto workflow) + P2-4 (accessibility fixes) + P2-14 (toast copy fix). P2-1 (API endpoint) is shipped, so P2-2 is unblocked. Bundle P2-4 since we'll be touching Heretto modals. P2-14 is a one-liner.
+**Session N (next):** P2-15 + P2-16 + P2-17 (UX copy fixes). Three trivial one-line changes, ship as a quick batch.
 
 **Session N+1:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
@@ -85,6 +88,18 @@ No open P0 items.
 ---
 
 ## Completed
+
+### Shipped in v0.7.1 (2026-03-13)
+
+Replace in Heretto workflow + accessibility + toast copy.
+
+| Former ID | Item | Type | Resolution |
+|-----------|------|------|------------|
+| P2-2 | Replace in Heretto workflow | Feature | Three-step replace wizard (HerettoReplaceModal), Monaco diff viewer (DiffViewer), persistent context bar (HerettoReplaceBar), handleHerettoReplace in useHerettoCms. Full draft-to-publish workflow with post-replace tab state transition. |
+| P2-4 | Accessibility fixes on Heretto modals | Fix | htmlFor/id pairing on HerettoStatusModal, aria-live on search progress, aria-labels on toolbar buttons, autoFocus on all modals, aria-labelledby on ImportVerificationModal, aria-labels on HerettoReplaceBar buttons. |
+| P2-14 | Refine external load toast copy | Polish | Changed "Loaded {fileName} from external tool" to "Imported {fileName}" in useExternalLoad.ts. |
+
+---
 
 ### Shipped in v0.7.0 (2026-03-13)
 

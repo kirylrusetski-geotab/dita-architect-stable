@@ -69,7 +69,7 @@ export function useExternalLoad({
             setTabs(prev => [...prev, newTab]);
             setActiveTabId(newTab.id);
 
-            toast.success(`Loaded ${fileName} from external tool`);
+            toast.success(`Imported ${fileName}`);
           } catch (err) {
             const errorMessage = err instanceof Error ? err.message : String(err);
             toast.error(`Failed to format ${fileName}: ${errorMessage}`);

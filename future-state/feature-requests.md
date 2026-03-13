@@ -252,7 +252,7 @@ A generic "format failed" message leaves the author guessing. Adding "Check for 
 ## FR-011: Refine external load toast copy
 
 **Requested:** 2026-03-13
-**Status:** Proposed
+**Status:** Shipped (v0.7.1, 2026-03-13)
 **Priority:** P2-14
 **Impact:** Low
 
@@ -265,3 +265,69 @@ One-line change in `hooks/useExternalLoad.ts`.
 ### Value Proposition (Maya Chen, UX Advisor)
 
 "From external tool" describes the mechanism, not the outcome. Writers don't think in terms of "external tools" — they think "I asked the system to load my draft and it did." A simpler `"Imported {fileName}"` communicates the result without exposing the plumbing. Error messages should be specific (and they are); success messages should be brief.
+
+---
+
+## FR-012: Improve HerettoReplaceModal recovery text
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** P2-15
+**Impact:** Low
+
+### Description
+
+The HerettoReplaceModal confirmation step mentions that the action "cannot be undone from DITA Architect" and references Heretto's version history, but the recovery path could be more specific and actionable.
+
+- **Current:** `You can restore previous versions from Heretto's version history if needed.`
+- **Suggested:** `To recover, use Heretto's version history (topic → History tab).`
+
+One-line change in `components/HerettoReplaceModal.tsx`.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+The current copy tells authors recovery is possible but not how. Adding the specific navigation path ("topic → History tab") reduces anxiety and eliminates the need to search Heretto's docs. When warning about a destructive action, the recovery path should be as concrete as the warning itself.
+
+---
+
+## FR-013: Improve DiffViewer empty state copy
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** P2-16
+**Impact:** Low
+
+### Description
+
+When the DiffViewer detects no changes between the editor content and Heretto content, it currently shows `No changes detected`. This is accurate but not informative.
+
+- **Current:** `No changes detected`
+- **Suggested:** `No changes detected — your content matches the version in Heretto`
+
+One-line change in `components/DiffViewer.tsx`.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+"No changes detected" answers "what happened?" but not "what does this mean?" Adding "your content matches the version in Heretto" confirms the comparison was successful and the content is identical. It reassures the author that the diff worked correctly rather than leaving ambiguity about whether something went wrong.
+
+---
+
+## FR-014: Use contextual placeholder in HerettoStatusModal
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** P2-17
+**Impact:** Low
+
+### Description
+
+The email input field in HerettoStatusModal uses the generic placeholder `user@example.com`. A more contextual placeholder would better communicate that this is a work email for Heretto CMS authentication.
+
+- **Current:** `user@example.com`
+- **Suggested:** `your.name@company.com`
+
+One-line change in `components/HerettoStatusModal.tsx`.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Placeholder text is a micro-affordance — it answers "what goes here?" at a glance. `user@example.com` is a developer convention that signals nothing about the context. `your.name@company.com` subtly communicates "use your work email" without needing a label change. Small touch, professional signal.

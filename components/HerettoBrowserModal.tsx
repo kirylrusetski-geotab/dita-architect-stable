@@ -11,7 +11,7 @@ const HerettoLogo = ({ className, style }: { className?: string; style?: React.C
 );
 
 interface HerettoBrowserModalProps {
-  mode: 'open' | 'save';
+  mode: 'open' | 'save' | 'replace';
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   breadcrumbs: { uuid: string; name: string }[];
@@ -72,15 +72,16 @@ export const HerettoBrowserModal = ({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--app-text-primary)' }}>
           <HerettoLogo className="w-5 h-5" style={{ color: '#14b8a6' }} />
-          {mode === 'open' ? 'Open from Heretto' : 'Save to Heretto'}
+          {mode === 'open' ? 'Open from Heretto' : mode === 'save' ? 'Save to Heretto' : 'Replace in Heretto'}
         </h3>
       </div>
 
       {/* Search input */}
-      {mode === 'open' && (
+      {(mode === 'open' || mode === 'replace') && (
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--app-text-muted)' }} />
           <input
+            autoFocus
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -89,6 +90,7 @@ export const HerettoBrowserModal = ({
                 ? `Search in ${breadcrumbs[breadcrumbs.length - 1].name}…`
                 : 'Search all files…'
             }
+            aria-label={mode === 'replace' ? 'Search files to replace' : 'Search files to open'}
             className="w-full pl-9 pr-9 py-2 rounded-lg text-sm outline-none"
             style={{
               backgroundColor: 'var(--app-surface-raised)',
@@ -133,7 +135,7 @@ export const HerettoBrowserModal = ({
 
       {/* Search progress bar */}
       {searchStatus.phase === 'searching' && (
-        <div className="mb-3">
+        <div className="mb-3" aria-live="polite">
           <div className="w-full h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--app-surface-raised)' }}>
             <div
               className="h-full rounded-full transition-all duration-300"
@@ -369,6 +371,14 @@ export const HerettoBrowserModal = ({
             className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Open
+          </button>
+        ) : mode === 'replace' ? (
+          <button
+            onClick={() => { if (selected && selected.type === 'file') onOpen(selected as HerettoItem | HerettoSearchResult); }}
+            disabled={!selected || selected.type === 'folder'}
+            className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Select Target
           </button>
         ) : (
           <button

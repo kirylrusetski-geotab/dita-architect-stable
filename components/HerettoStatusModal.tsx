@@ -76,10 +76,12 @@ export const HerettoStatusModal = ({
       </div>
 
       {/* Email */}
-      <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
+      <label htmlFor="heretto-email-input" className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
         Email
       </label>
       <input
+        id="heretto-email-input"
+        autoFocus
         type="text"
         value={herettoCredentials.email}
         onChange={e => setHerettoCredentials(prev => ({ ...prev, email: e.target.value }))}
@@ -95,10 +97,11 @@ export const HerettoStatusModal = ({
       />
 
       {/* Token */}
-      <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
+      <label htmlFor="heretto-token-input" className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
         API Token
       </label>
       <input
+        id="heretto-token-input"
         type="password"
         value={herettoCredentials.token}
         onChange={e => setHerettoCredentials(prev => ({ ...prev, token: e.target.value }))}
