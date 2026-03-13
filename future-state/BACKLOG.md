@@ -41,8 +41,11 @@ No open P1 items.
 | P2-4 | [Accessibility fixes on Heretto modals](altitude-release-notes-integration.md#accessibility-improvements-discovered-during-review) | Fix | Label associations, aria-labels, aria-live, focus management. Bundle with P2-1/P2-2 since we'll be touching related components. |
 | P2-5 | [Empty states for Heretto file browser](feature-requests.md#fr-003-empty-states-for-heretto-file-browser) | Feature | Empty folders show nothing — no message, no affordance. Authors can't tell if a folder is empty, loading, or broken. Add `No topics in this folder` message with a `Create new topic` CTA. Low effort, high trust signal. |
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation. |
+| P2-7 | [Hover element labels in visual editor](feature-requests.md#fr-006-hover-element-labels-in-visual-editor) | Feature | DITA body elements (`context`, `result`, `prereq`, `postreq`) render as identical paragraphs — authors can't tell which structural element they're editing without checking the XML source. Hover-triggered labels surface DITA semantics in the visual pane. Low effort — the CSS pattern exists on shortdesc, parser already tracks origin tags. |
+| P2-8 | [Structural color bars for DITA body elements](feature-requests.md#fr-007-structural-color-bars-for-dita-body-elements) | Feature | Left-edge color bars on `context`, `result`, `prereq`, `postreq` blocks — persistent but lightweight structural markers. Lighter alternative to Heretto-style full border boxes. Extends the existing `<note>` border-left pattern. Bundle with P2-7 since they share the same CSS classes. |
+| P2-9 | [Light theme warmth refinement](feature-requests.md#fr-008-light-theme-warmth-refinement) | Feature | Shift Light theme from cool Slate palette to warmer Stone tones. Same luminance, warmer undertone. CSS variable tuning pass — same pattern as the Geotab theme fix (P1-7, shipped v0.5.1). No structural changes. |
 
-**Dependency chain:** P2-1 → P2-2 (Replace in Heretto needs the API endpoint to deliver the replace target UUID). P2-3, P2-4, P2-5, and P2-6 are independent. P2-5 is low effort. P2-6 is the most substantial item in this tier.
+**Dependency chain:** P2-1 → P2-2 (Replace in Heretto needs the API endpoint to deliver the replace target UUID). P2-7 → P2-8 (color bars reuse the CSS classes introduced by hover labels). P2-3, P2-4, P2-5, P2-6, and P2-9 are independent. P2-5 is low effort. P2-6 is the most substantial item in this tier. P2-7 and P2-8 together are a medium lift — CSS + a few lines in the parser.
 
 ---
 
@@ -66,11 +69,13 @@ No open P1 items.
 
 **Session N (next):** P2-3 (Beautify button). Quick win — the function exists, just add the button and shortcut. Good momentum before the larger integration work.
 
-**Session N+1:** P2-5 (Empty states for Heretto file browser). Another quick win from Maya's requests — low effort, clear UX improvement.
+**Session N+1:** P2-7 + P2-8 + P2-9 (Hover labels, color bars, light theme warmth). All three are CSS-and-parser work with no new components or architecture. P2-7 introduces the CSS classes that P2-8 builds on, so do them in sequence within the same session. P2-9 is independent CSS variable tuning — same session, same context. Ship as a "visual polish" batch.
 
-**Session N+2 and N+3:** P2-1 then P2-2. The API endpoint and Replace in Heretto workflow. These are the most substantial features and should be done sequentially. Bundle P2-4 (accessibility fixes) into whichever session touches the Heretto modals.
+**Session N+2:** P2-5 (Empty states for Heretto file browser). Quick win, low effort, clear UX improvement.
 
-**Session N+4:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+3 and N+4:** P2-1 then P2-2. The API endpoint and Replace in Heretto workflow. These are the most substantial features and should be done sequentially. Bundle P2-4 (accessibility fixes) into whichever session touches the Heretto modals.
+
+**Session N+5:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing. Benefits from P2-7's CSS classes being in place.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract ChatSidebar when AI features are on the roadmap, extract DownloadWarningModal when building export, version browser when a third release ships).
 
