@@ -21,6 +21,7 @@ export interface Tab {
   editModeAcceptTrigger: number;
   editModeRejectTrigger: number;
   snapshotRef: { current: EditorState | null };
+  herettoReplaceTarget?: { uuid: string; name?: string; path?: string } | null;
 }
 
 let tabIdCounter = 0;
@@ -47,4 +48,5 @@ export const createTab = (xml: string): Tab => ({
   editModeAcceptTrigger: 0,
   editModeRejectTrigger: 0,
   snapshotRef: { current: null },
+  herettoReplaceTarget: null,
 });

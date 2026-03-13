@@ -246,3 +246,22 @@ When the Format XML button encounters malformed XML, the error toast shows a gen
 ### Value Proposition (Maya Chen, UX Advisor)
 
 A generic "format failed" message leaves the author guessing. Adding "Check for syntax errors" points them toward the XML source pane where Monaco's built-in validation will highlight the problem. It closes the feedback loop — the toast tells them *what* went wrong, and the source pane shows them *where*.
+
+---
+
+## FR-011: Refine external load toast copy
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** P2-14
+**Impact:** Low
+
+### Description
+
+The success toast when content is loaded via the external API (`POST /api/load-content`) currently reads `"Loaded {fileName} from external tool"`. The phrase "external tool" is developer-centric jargon that may not resonate with technical writers. Change to `"Imported {fileName}"` or `"Opened {fileName}"`.
+
+One-line change in `hooks/useExternalLoad.ts`.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+"From external tool" describes the mechanism, not the outcome. Writers don't think in terms of "external tools" — they think "I asked the system to load my draft and it did." A simpler `"Imported {fileName}"` communicates the result without exposing the plumbing. Error messages should be specific (and they are); success messages should be brief.

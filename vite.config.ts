@@ -21,6 +21,14 @@ try {
 
 const herettoConfigPath = path.join(os.homedir(), 'heretto.json');
 
+// Module-level queue for pending external content loads
+interface PendingLoad {
+  xml: string;
+  fileName: string;
+  herettoTargetUuid?: string;
+}
+const pendingLoads: PendingLoad[] = [];
+
 const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 
 export default defineConfig({
@@ -82,6 +90,48 @@ export default defineConfig({
                   res.end(JSON.stringify({ error: 'Invalid JSON' }));
                 }
               });
+            } else {
+              res.writeHead(405);
+              res.end();
+            }
+          });
+        },
+      },
+      {
+        name: 'load-content-api',
+        configureServer(server) {
+          server.middlewares.use('/api/load-content', (req, res) => {
+            if (req.method === 'POST') {
+              let body = '';
+              req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+              req.on('end', () => {
+                try {
+                  const { xml, fileName, herettoTargetUuid } = JSON.parse(body);
+                  if (!xml || !fileName) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'xml and fileName are required' }));
+                    return;
+                  }
+                  pendingLoads.push({ xml, fileName, herettoTargetUuid });
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ status: 'loaded' }));
+                } catch {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                }
+              });
+            } else {
+              res.writeHead(405);
+              res.end();
+            }
+          });
+
+          server.middlewares.use('/api/pending-loads', (req, res) => {
+            if (req.method === 'GET') {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              const loads = [...pendingLoads];
+              pendingLoads.length = 0; // Clear the queue
+              res.end(JSON.stringify(loads));
             } else {
               res.writeHead(405);
               res.end();

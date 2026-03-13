@@ -41,8 +41,10 @@ import type { XmlError } from './components/MonacoDitaEditor';
 import { formatRelativeTime } from './lib/xml-utils';
 import { useEditorUi } from './hooks/useEditorUi';
 import { useTabManager } from './hooks/useTabManager';
+import { createTab } from './types/tab';
 import { useLocalFile } from './hooks/useLocalFile';
 import { useHerettoCms } from './hooks/useHerettoCms';
+import { useExternalLoad } from './hooks/useExternalLoad';
 
 // --- LEXICAL CONFIGURATION ---
 
@@ -189,6 +191,13 @@ export default function ProfessionalDitaEditor() {
     setTabs,
     setActiveTabId,
     setConfirmModal,
+  });
+
+  // External content loading hook
+  useExternalLoad({
+    createTab,
+    setTabs,
+    setActiveTabId,
   });
 
   const {

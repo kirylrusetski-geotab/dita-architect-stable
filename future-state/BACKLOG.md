@@ -37,7 +37,7 @@ No open P0 items.
 
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
-| P2-1 | [API endpoint for external content loading](altitude-release-notes-integration.md#feature-1-local-api-endpoint-for-external-content-loading) | Feature | Replaces the fragile cli-chrome injection with a stable HTTP API. Unblocks clean integration with the release notes skill and any future external tooling. |
+| ~~P2-1~~ | ~~API endpoint for external content loading~~ | ~~Feature~~ | Shipped in v0.7.0 (see Completed section) |
 | P2-2 | [Replace in Heretto workflow](altitude-release-notes-integration.md#feature-2-replace-in-heretto) | Feature | Enables draft-to-publish within the editor. Depends on P2-1 (the API delivers content with a replace target UUID). |
 | ~~P2-3~~ | ~~Beautify button~~ | ~~Feature~~ | Shipped in v0.6.1 (see Completed section) |
 | P2-4 | [Accessibility fixes on Heretto modals](altitude-release-notes-integration.md#accessibility-improvements-discovered-during-review) | Fix | Label associations, aria-labels, aria-live, focus management. Bundle with P2-1/P2-2 since we'll be touching related components. |
@@ -50,8 +50,9 @@ No open P0 items.
 | ~~P2-11~~ | ~~Improve theme descriptions to be more contextual~~ | ~~Polish~~ | Shipped in v0.6.1 (see Completed section) |
 | ~~P2-12~~ | ~~Add aria-label to Format XML button~~ | ~~Fix~~ | Shipped in v0.6.2 (see Completed section) |
 | ~~P2-13~~ | ~~Improve Format XML error toast specificity~~ | ~~Polish~~ | Shipped in v0.6.2 (see Completed section) |
+| P2-14 | Refine external load toast copy | Polish | UX review (Maya Chen): success toast "Loaded {fileName} from external tool" is developer-centric. Suggest "Imported {fileName}" instead. One-line change in `useExternalLoad.ts`. |
 
-**Dependency chain:** P2-1 → P2-2 (Replace in Heretto needs the API endpoint to deliver the replace target UUID). P2-4 and P2-6 are independent. P2-6 is the most substantial item in this tier.
+**Dependency chain:** P2-2 depends on P2-1 (shipped). P2-4 and P2-6 are independent. P2-6 is the most substantial item in this tier. P2-14 is a trivial one-line change.
 
 ---
 
@@ -73,15 +74,25 @@ No open P0 items.
 
 ## Recommended Execution Order
 
-**Session N (next) and N+1:** P2-1 then P2-2. The API endpoint and Replace in Heretto workflow. These are the most substantial remaining features and should be done sequentially. Bundle P2-4 (accessibility fixes) into whichever session touches the Heretto modals.
+**Session N (next):** P2-2 (Replace in Heretto workflow) + P2-4 (accessibility fixes) + P2-14 (toast copy fix). P2-1 (API endpoint) is shipped, so P2-2 is unblocked. Bundle P2-4 since we'll be touching Heretto modals. P2-14 is a one-liner.
 
-**Session N+2:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+1:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract ChatSidebar when AI features are on the roadmap, extract DownloadWarningModal when building export, version browser when a third release ships).
 
 ---
 
 ## Completed
+
+### Shipped in v0.7.0 (2026-03-13)
+
+External content loading API — replaces cli-chrome Monaco injection.
+
+| Former ID | Item | Type | Resolution |
+|-----------|------|------|------------|
+| P2-1 | API endpoint for external content loading | Feature | Vite plugin with `POST /api/load-content` and `GET /api/pending-loads`. New `useExternalLoad` hook polls, validates, beautifies, and creates tabs. `herettoReplaceTarget` field added to Tab type for P2-2. |
+
+---
 
 ### Shipped in v0.6.2 (2026-03-13)
 
