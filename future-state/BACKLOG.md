@@ -29,9 +29,7 @@ No open P0 items.
 
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
-| P1-8 | Theme dropdown tooltip blocks next option | Bug | The `Tooltip` component (`Tooltip.tsx`) positions descriptions below the hovered item (`top-full`). Inside the theme dropdown, this covers the next option — hovering "Claude" hides "Solarized." Fix: position tooltip to the right (`left-full`) when used inside a vertical list. One-line CSS change in the Tooltip component, or add a `placement` prop. |
-
-**Fix note:** Surgical. The `Tooltip` component is 12 lines. Either change the default positioning for dropdown contexts, or add a `placement` prop and pass `"right"` from the theme dropdown in `Toolbar.tsx:139`. Bundle with P2-7/P2-8/P2-9 (visual polish session) or fix independently — it's a 5-minute change.
+~~P1-8~~ — Shipped in v0.6.0 (see Completed section)
 
 ---
 
@@ -41,15 +39,19 @@ No open P0 items.
 |----|------|------|-----------|
 | P2-1 | [API endpoint for external content loading](altitude-release-notes-integration.md#feature-1-local-api-endpoint-for-external-content-loading) | Feature | Replaces the fragile cli-chrome injection with a stable HTTP API. Unblocks clean integration with the release notes skill and any future external tooling. |
 | P2-2 | [Replace in Heretto workflow](altitude-release-notes-integration.md#feature-2-replace-in-heretto) | Feature | Enables draft-to-publish within the editor. Depends on P2-1 (the API delivers content with a replace target UUID). |
-| P2-3 | [Beautify button](feature-requests.md#fr-001-add-beautify-button-to-xml-toolbar) | Feature | Surfaces existing `formatXml()` as a user action. Low effort — the function exists, this is a toolbar button + keyboard shortcut. |
+| ~~P2-3~~ | ~~Beautify button~~ | ~~Feature~~ | Shipped in v0.6.1 (see Completed section) |
 | P2-4 | [Accessibility fixes on Heretto modals](altitude-release-notes-integration.md#accessibility-improvements-discovered-during-review) | Fix | Label associations, aria-labels, aria-live, focus management. Bundle with P2-1/P2-2 since we'll be touching related components. |
 | P2-5 | [Empty states for Heretto file browser](feature-requests.md#fr-003-empty-states-for-heretto-file-browser) | Feature | Empty folders show nothing — no message, no affordance. Authors can't tell if a folder is empty, loading, or broken. Add `No topics in this folder` message with a `Create new topic` CTA. Low effort, high trust signal. |
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation. |
-| P2-7 | [Hover element labels in visual editor](feature-requests.md#fr-006-hover-element-labels-in-visual-editor) | Feature | DITA body elements (`context`, `result`, `prereq`, `postreq`) render as identical paragraphs — authors can't tell which structural element they're editing without checking the XML source. Hover-triggered labels surface DITA semantics in the visual pane. Low effort — the CSS pattern exists on shortdesc, parser already tracks origin tags. |
-| P2-8 | [Structural color bars for DITA body elements](feature-requests.md#fr-007-structural-color-bars-for-dita-body-elements) | Feature | Left-edge color bars on `context`, `result`, `prereq`, `postreq` blocks — persistent but lightweight structural markers. Lighter alternative to Heretto-style full border boxes. Extends the existing `<note>` border-left pattern. Bundle with P2-7 since they share the same CSS classes. |
-| P2-9 | [Light theme warmth refinement](feature-requests.md#fr-008-light-theme-warmth-refinement) | Feature | Shift Light theme from cool Slate palette to warmer Stone tones. Same luminance, warmer undertone. CSS variable tuning pass — same pattern as the Geotab theme fix (P1-7, shipped v0.5.1). No structural changes. |
+| ~~P2-7~~ | ~~Hover element labels in visual editor~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
+| ~~P2-8~~ | ~~Structural color bars for DITA body elements~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
+| ~~P2-9~~ | ~~Light theme warmth refinement~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
+| ~~P2-10~~ | ~~Rename "Post-Requisite" hover label to "Postrequisites"~~ | ~~Fix~~ | Shipped in v0.6.1 (see Completed section) |
+| ~~P2-11~~ | ~~Improve theme descriptions to be more contextual~~ | ~~Polish~~ | Shipped in v0.6.1 (see Completed section) |
+| P2-12 | Add aria-label to Format XML button | Fix | UX review (Maya Chen): format button in MonacoDitaEditor needs `aria-label="Format XML"` for screen reader consistency with other toolbar buttons. |
+| P2-13 | Improve Format XML error toast specificity | Polish | UX review (Maya Chen): error toast should say "Failed to format XML: Check for syntax errors" instead of a generic failure message. |
 
-**Dependency chain:** P2-1 → P2-2 (Replace in Heretto needs the API endpoint to deliver the replace target UUID). P2-7 → P2-8 (color bars reuse the CSS classes introduced by hover labels). P2-3, P2-4, P2-5, P2-6, and P2-9 are independent. P2-5 is low effort. P2-6 is the most substantial item in this tier. P2-7 and P2-8 together are a medium lift — CSS + a few lines in the parser.
+**Dependency chain:** P2-1 → P2-2 (Replace in Heretto needs the API endpoint to deliver the replace target UUID). P2-4, P2-5, P2-6 are independent. P2-5 is low effort. P2-6 is the most substantial item in this tier. P2-12 and P2-13 are trivial one-file changes.
 
 ---
 
@@ -71,21 +73,42 @@ No open P0 items.
 
 ## Recommended Execution Order
 
-**Session N (next):** P1-8 (Tooltip positioning fix) then P2-3 (Beautify button). P1-8 is a one-line fix — do it first, then the Beautify button in the same session.
+**Session N (next):** P2-5 (Empty states for Heretto file browser) + P2-12 + P2-13 (format button a11y fixes). Quick wins, low effort.
 
-**Session N+1:** P2-7 + P2-8 + P2-9 (Hover labels, color bars, light theme warmth). All three are CSS-and-parser work with no new components or architecture. P2-7 introduces the CSS classes that P2-8 builds on, so do them in sequence within the same session. P2-9 is independent CSS variable tuning — same session, same context. Ship as a "visual polish" batch.
+**Session N+1 and N+2:** P2-1 then P2-2. The API endpoint and Replace in Heretto workflow. These are the most substantial features and should be done sequentially. Bundle P2-4 (accessibility fixes) into whichever session touches the Heretto modals.
 
-**Session N+2:** P2-5 (Empty states for Heretto file browser). Quick win, low effort, clear UX improvement.
-
-**Session N+3 and N+4:** P2-1 then P2-2. The API endpoint and Replace in Heretto workflow. These are the most substantial features and should be done sequentially. Bundle P2-4 (accessibility fixes) into whichever session touches the Heretto modals.
-
-**Session N+5:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing. Benefits from P2-7's CSS classes being in place.
+**Session N+3:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract ChatSidebar when AI features are on the roadmap, extract DownloadWarningModal when building export, version browser when a third release ships).
 
 ---
 
 ## Completed
+
+### Shipped in v0.6.1 (2026-03-13)
+
+Small polish batch: beautify button + UX copy fixes.
+
+| Former ID | Item | Type | Resolution |
+|-----------|------|------|------------|
+| P2-3 | Beautify button | Feature | Added Format XML button (Code2 icon) to Monaco editor toolbar with Shift+Alt+F shortcut. Toast on success/failure. |
+| P2-10 | Rename "Post-Requisite" to "Postrequisites" | Fix | Updated `::after` content in `index.css` to match DITA standard terminology. |
+| P2-11 | Improve theme descriptions | Polish | Updated `THEME_DESCRIPTIONS` in `Toolbar.tsx` to user-focused copy across all 6 themes. |
+
+---
+
+### Shipped in v0.6.0 (2026-03-13)
+
+Visual polish batch: tooltip fix + body element indicators + light theme warmth.
+
+| Former ID | Item | Type | Resolution |
+|-----------|------|------|------------|
+| P1-8 | Theme dropdown tooltip blocks next option | Bug | Added `placement` prop to `Tooltip.tsx` (`'bottom'` default, `'right'` option). Theme dropdown tooltips use `placement="right"`. |
+| P2-7 | Hover element labels in visual editor | Feature | Extended `ShortdescPlugin.tsx` mutation listener with `BODY_TAG_CLASSES` map covering `shortdesc`, `prereq`, `context`, `result`, `postreq`. Hover-triggered `::after` labels on each element. |
+| P2-8 | Structural color bars for DITA body elements | Feature | Left-edge `border-left: 3px solid` color bars on prereq/context/result/postreq. Four new CSS variables (`--editor-*-bar`) defined across all 6 themes. |
+| P2-9 | Light theme warmth refinement | Feature | Swapped 18 Slate values to Stone in `[data-theme="light"]` block. Increased editor padding `px-8` → `px-12`. |
+
+---
 
 ### Shipped in v0.5.1 (2026-03-12)
 

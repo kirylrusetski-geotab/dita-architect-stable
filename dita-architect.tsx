@@ -752,9 +752,9 @@ export default function ProfessionalDitaEditor() {
                 )}
                 <div className={`flex-1 overflow-y-auto custom-scrollbar pb-10 relative ${tab.herettoFile ? 'pt-[92px]' : 'pt-14'}`}>
                   <RichTextPlugin
-                    contentEditable={<ContentEditable className="outline-none max-w-6xl mx-auto px-8 min-h-[500px]" />}
+                    contentEditable={<ContentEditable className="outline-none max-w-6xl mx-auto px-12 min-h-[500px]" />}
                     placeholder={
-                      <div className="absolute top-14 left-0 right-0 italic pointer-events-none max-w-6xl mx-auto px-8 leading-relaxed" style={{ color: 'var(--app-text-muted)' }}>
+                      <div className="absolute top-14 left-0 right-0 italic pointer-events-none max-w-6xl mx-auto px-12 leading-relaxed" style={{ color: 'var(--app-text-muted)' }}>
                         Start typing your DITA content here...
                       </div>
                     }

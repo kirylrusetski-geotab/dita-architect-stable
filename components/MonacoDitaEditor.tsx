@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import Editor, { OnMount, OnChange, Monaco } from '@monaco-editor/react';
+import { Code2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import type { ThemeName } from './Toolbar';
 
@@ -784,6 +786,26 @@ export const MonacoDitaEditor: React.FC<MonacoDitaEditorProps> = ({
 
   const currentComboName = buildThemeName(editorTheme, syntaxTheme);
 
+  const handleFormatClick = () => {
+    if (!editorRef.current) return;
+
+    try {
+      const model = editorRef.current.getModel();
+      if (!model) return;
+
+      const currentValue = model.getValue();
+      const formattedValue = formatXml(currentValue);
+
+      if (formattedValue !== currentValue) {
+        model.setValue(formattedValue);
+        toast.success('XML formatted successfully');
+      }
+    } catch (error) {
+      console.error('XML formatting error:', error);
+      toast.error('Failed to format XML');
+    }
+  };
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
@@ -793,6 +815,16 @@ export const MonacoDitaEditor: React.FC<MonacoDitaEditorProps> = ({
 
     registerProviders(monaco);
     setupAutoCloseTags(editor, monaco);
+
+    // Register Shift+Alt+F keyboard shortcut for formatting
+    editor.addAction({
+      id: 'format-xml',
+      label: 'Format XML',
+      keybindings: [monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF],
+      run: () => {
+        handleFormatClick();
+      },
+    });
 
     validateDita(editor.getModel(), monaco);
 
@@ -823,7 +855,20 @@ export const MonacoDitaEditor: React.FC<MonacoDitaEditorProps> = ({
   }, [value]);
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full relative">
+      {/* Format toolbar overlay */}
+      <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+        <button
+          onClick={handleFormatClick}
+          disabled={readOnly}
+          className="flex items-center gap-1 px-2 py-1 bg-black/50 hover:bg-black/70 disabled:hover:bg-black/50 disabled:opacity-50 text-white text-xs rounded border border-white/20 transition-colors"
+          title="Format XML (Shift+Alt+F)"
+        >
+          <Code2 size={12} />
+          <span>Format</span>
+        </button>
+      </div>
+
       <Editor
         height="100%"
         defaultLanguage="xml"

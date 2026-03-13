@@ -70,22 +70,28 @@ body {
   --badge-reference-bg: rgba(134, 239, 172, 0.10);
   --badge-reference-border: rgba(134, 239, 172, 0.25);
   --badge-reference-text: #86efac;
+
+  /* Body element bars */
+  --editor-prereq-bar: #60a5fa;
+  --editor-context-bar: #a78bfa;
+  --editor-result-bar: #34d399;
+  --editor-postreq-bar: #f472b6;
 }
 
 [data-theme="light"] {
-  --app-bg: #f1f5f9;
+  --app-bg: #f5f5f4;
   --app-surface: #ffffff;
-  --app-surface-raised: #f1f5f9;
-  --app-border: #e2e8f0;
-  --app-border-subtle: #cbd5e1;
+  --app-surface-raised: #f5f5f4;
+  --app-border: #e7e5e4;
+  --app-border-subtle: #d6d3d1;
   --app-text-primary: #0f172a;
   --app-text-secondary: #1e293b;
   --app-text-muted: #94a3b8;
-  --app-hover: #e2e8f0;
-  --app-btn-bg: #f1f5f9;
-  --app-btn-hover: #e2e8f0;
+  --app-hover: #e7e5e4;
+  --app-btn-bg: #f5f5f4;
+  --app-btn-hover: #e7e5e4;
   --app-btn-text: #1e293b;
-  --app-btn-border: #cbd5e1;
+  --app-btn-border: #d6d3d1;
 
   --editor-bg: #ffffff;
   --editor-text: #1e293b;
@@ -96,21 +102,21 @@ body {
   --editor-quote-text: #92400e;
   --editor-accent: #0369a1;
   --editor-list-text: #1e293b;
-  --editor-code-bg: #f1f5f9;
+  --editor-code-bg: #f5f5f4;
   --editor-code-text: #16a34a;
-  --editor-toolbar-bg: #f8fafc;
-  --editor-toolbar-border: #e2e8f0;
+  --editor-toolbar-bg: #fafaf9;
+  --editor-toolbar-border: #e7e5e4;
   --editor-toolbar-text: #64748b;
   --editor-toolbar-text-strong: #334155;
-  --editor-toolbar-hover: #e2e8f0;
-  --editor-toolbar-divider: #e2e8f0;
-  --editor-bottom-bg: #f8fafc;
-  --editor-bottom-border: #e2e8f0;
+  --editor-toolbar-hover: #e7e5e4;
+  --editor-toolbar-divider: #e7e5e4;
+  --editor-bottom-bg: #fafaf9;
+  --editor-bottom-border: #e7e5e4;
   --editor-bottom-text: #94a3b8;
   --editor-bottom-text-strong: #475569;
-  --editor-scrollbar-track: #f1f5f9;
-  --editor-scrollbar-thumb: #cbd5e1;
-  --editor-scrollbar-thumb-hover: #94a3b8;
+  --editor-scrollbar-track: #f5f5f4;
+  --editor-scrollbar-thumb: #d6d3d1;
+  --editor-scrollbar-thumb-hover: #a8a29e;
 
   --badge-task-bg: rgba(3, 105, 161, 0.08);
   --badge-task-border: rgba(3, 105, 161, 0.25);
@@ -121,6 +127,12 @@ body {
   --badge-reference-bg: rgba(22, 163, 74, 0.08);
   --badge-reference-border: rgba(22, 163, 74, 0.25);
   --badge-reference-text: #16a34a;
+
+  /* Body element bars */
+  --editor-prereq-bar: #3b82f6;
+  --editor-context-bar: #8b5cf6;
+  --editor-result-bar: #10b981;
+  --editor-postreq-bar: #ec4899;
 }
 
 [data-theme="claude"] {
@@ -172,6 +184,12 @@ body {
   --badge-reference-bg: rgba(196, 181, 168, 0.12);
   --badge-reference-border: rgba(196, 181, 168, 0.25);
   --badge-reference-text: #c4b5a8;
+
+  /* Body element bars */
+  --editor-prereq-bar: #93c5fd;
+  --editor-context-bar: #c4b5fd;
+  --editor-result-bar: #6ee7b7;
+  --editor-postreq-bar: #f9a8d4;
 }
 
 [data-theme="nord"] {
@@ -223,6 +241,12 @@ body {
   --badge-reference-bg: rgba(163, 190, 140, 0.10);
   --badge-reference-border: rgba(163, 190, 140, 0.25);
   --badge-reference-text: #a3be8c;
+
+  /* Body element bars */
+  --editor-prereq-bar: #81a1c1;
+  --editor-context-bar: #b48ead;
+  --editor-result-bar: #a3be8c;
+  --editor-postreq-bar: #bf616a;
 }
 
 [data-theme="solarized"] {
@@ -274,6 +298,12 @@ body {
   --badge-reference-bg: rgba(133, 153, 0, 0.10);
   --badge-reference-border: rgba(133, 153, 0, 0.25);
   --badge-reference-text: #859900;
+
+  /* Body element bars */
+  --editor-prereq-bar: #268bd2;
+  --editor-context-bar: #6c71c4;
+  --editor-result-bar: #859900;
+  --editor-postreq-bar: #d33682;
 }
 
 [data-theme="geotab"] {
@@ -325,6 +355,12 @@ body {
   --badge-reference-bg: rgba(60, 81, 100, 0.15);
   --badge-reference-border: rgba(60, 81, 100, 0.30);
   --badge-reference-text: #8db3cc;
+
+  /* Body element bars */
+  --editor-prereq-bar: #5b8db8;
+  --editor-context-bar: #8b7bb8;
+  --editor-result-bar: #5baa8c;
+  --editor-postreq-bar: #b87b8b;
 }
 
 /* Custom scrollbar */
@@ -449,6 +485,74 @@ body {
   letter-spacing: 0.05em;
   opacity: 0.5;
 }
+
+/* Body element indicators */
+.dita-editor-prereq,
+.dita-editor-context,
+.dita-editor-result,
+.dita-editor-postreq {
+  position: relative;
+  padding-left: 0.75rem;
+  margin-bottom: 1rem;
+  line-height: 1.625;
+  color: var(--editor-text);
+}
+
+.dita-editor-prereq {
+  border-left: 3px solid var(--editor-prereq-bar);
+}
+
+.dita-editor-context {
+  border-left: 3px solid var(--editor-context-bar);
+}
+
+.dita-editor-result {
+  border-left: 3px solid var(--editor-result-bar);
+}
+
+.dita-editor-postreq {
+  border-left: 3px solid var(--editor-postreq-bar);
+}
+
+.dita-editor-prereq::after,
+.dita-editor-context::after,
+.dita-editor-result::after,
+.dita-editor-postreq::after {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.5rem;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.dita-editor-prereq::after {
+  content: 'Prerequisite';
+}
+
+.dita-editor-context::after {
+  content: 'Context';
+}
+
+.dita-editor-result::after {
+  content: 'Result';
+}
+
+.dita-editor-postreq::after {
+  content: 'Postrequisites';
+}
+
+.dita-editor-prereq:hover::after,
+.dita-editor-context:hover::after,
+.dita-editor-result:hover::after,
+.dita-editor-postreq:hover::after {
+  opacity: 0.5;
+}
+
 .dita-editor-code {
   background-color: var(--editor-code-bg);
   font-family: 'JetBrains Mono', monospace;

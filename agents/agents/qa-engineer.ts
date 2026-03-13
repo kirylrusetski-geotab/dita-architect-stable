@@ -6,7 +6,7 @@ export const qaEngineer: AgentDefinition = {
   model: 'claude-sonnet-4',
   tools: ['Read', 'Glob', 'Grep', 'Edit', 'Write', 'Bash'],
   permissionMode: 'bypassPermissions',
-  maxTurns: 50,
+  maxTurns: 100,
   reportFile: 'test-results.md',
 
   buildPrompt(ctx: PipelineContext): string {

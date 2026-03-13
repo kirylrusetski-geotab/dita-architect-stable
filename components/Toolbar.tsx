@@ -28,12 +28,12 @@ export const THEME_OPTIONS = [
 export type ThemeName = typeof THEME_OPTIONS[number]['value'];
 
 export const THEME_DESCRIPTIONS: Record<ThemeName, string> = {
-  dark: 'Standard dark theme',
-  light: 'Standard light theme',
-  claude: 'Claude.ai interface theme',
-  nord: 'Developer-focused colors',
-  solarized: 'Developer color scheme',
-  geotab: 'Geotab corporate theme',
+  dark: 'High contrast for low-light work',
+  light: 'Comfortable for extended daytime use',
+  claude: 'Familiar Claude.ai colors',
+  nord: 'Muted arctic palette for focus',
+  solarized: 'Reduced eye strain color science',
+  geotab: 'Geotab brand colors',
 };
 
 interface ToolbarProps {
@@ -136,7 +136,7 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
             }}
           >
             {THEME_OPTIONS.map(opt => (
-              <Tooltip key={opt.value} content={THEME_DESCRIPTIONS[opt.value]}>
+              <Tooltip key={opt.value} content={THEME_DESCRIPTIONS[opt.value]} placement="right">
                 <button
                   role="menuitem"
                   onClick={() => {

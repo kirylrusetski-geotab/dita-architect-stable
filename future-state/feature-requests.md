@@ -7,9 +7,9 @@ Feature requests are differentiated from action items and bugs. Items here are c
 ## FR-001: Add "Beautify" button to XML toolbar
 
 **Requested:** 2026-03-10
-**Status:** Proposed
-**Priority:** TBD
-**Impact:** TBD
+**Status:** Shipped (v0.6.1, 2026-03-13)
+**Priority:** P2-3
+**Impact:** Medium
 
 ### Description
 
@@ -105,8 +105,8 @@ We've built good keyboard shortcuts — bold, italic, save, edit mode toggle —
 ## FR-006: Hover element labels in visual editor
 
 **Requested:** 2026-03-13
-**Status:** Proposed
-**Priority:** Medium
+**Status:** Shipped (v0.6.0, 2026-03-13)
+**Priority:** P2-7
 **Impact:** High
 
 ### Description
@@ -144,8 +144,8 @@ This also pairs well with FR-004 (inline validation hints). Once authors can see
 ## FR-007: Structural color bars for DITA body elements
 
 **Requested:** 2026-03-13
-**Status:** Proposed
-**Priority:** Medium
+**Status:** Shipped (v0.6.0, 2026-03-13)
+**Priority:** P2-8
 **Impact:** Medium
 
 ### Description
@@ -177,8 +177,8 @@ Have you considered how this helps with longer task topics? In a topic with 8 st
 ## FR-008: Light theme warmth refinement
 
 **Requested:** 2026-03-13
-**Status:** Proposed
-**Priority:** Medium
+**Status:** Shipped (v0.6.0, 2026-03-13)
+**Priority:** P2-9
 **Impact:** Medium
 
 ### Description
@@ -212,3 +212,37 @@ No structural changes. Same CSS variable tuning pattern used for the Geotab them
 Compare the screenshots side by side. DITA Doer's light theme feels like paper — warm whites, generous margins, the toolbar barely distinguished from content. Our light theme feels like an application — the three-tier separation (chrome at `#f1f5f9`, toolbar at `#f8fafc`, content at `#ffffff`) is organized but clinical. The blue-gray undertone in every surface reinforces "software" rather than "document."
 
 The proposed shift is subtle — same luminance values, just moving from the Tailwind Slate scale to Stone. The editor still has clear visual hierarchy, but the warmth makes long editing sessions more comfortable and the overall feel more inviting. This is the kind of refinement that authors notice as "it just feels nicer" without being able to articulate exactly why.
+
+---
+
+## FR-009: Add aria-label to Format XML button
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** P2-12
+**Impact:** Low
+
+### Description
+
+The Format XML button added in v0.6.1 is missing an `aria-label="Format XML"` attribute. All other toolbar buttons have appropriate aria-labels for screen reader consistency. One-line fix in `MonacoDitaEditor.tsx`.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Every other button in both toolbars has a matching aria-label. The format button works correctly but is invisible to screen readers. Adding the attribute maintains the accessibility standard established across the rest of the toolbar surface.
+
+---
+
+## FR-010: Improve Format XML error toast specificity
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** P2-13
+**Impact:** Low
+
+### Description
+
+When the Format XML button encounters malformed XML, the error toast shows a generic failure message. Update it to say "Failed to format XML: Check for syntax errors" to give authors actionable guidance.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+A generic "format failed" message leaves the author guessing. Adding "Check for syntax errors" points them toward the XML source pane where Monaco's built-in validation will highlight the problem. It closes the feedback loop — the toast tells them *what* went wrong, and the source pane shows them *where*.

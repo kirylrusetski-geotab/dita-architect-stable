@@ -13,6 +13,15 @@ import {
 import { $isHeadingNode } from '@lexical/rich-text';
 import { useSyncContext } from '../sync';
 
+const BODY_TAG_CLASSES: Record<string, string> = {
+  shortdesc: 'dita-editor-shortdesc',
+  prereq: 'dita-editor-prereq',
+  context: 'dita-editor-context',
+  result: 'dita-editor-result',
+  postreq: 'dita-editor-postreq',
+};
+const ALL_BODY_CLASSES = Object.values(BODY_TAG_CLASSES);
+
 /**
  * Handles the DITA authoring flow: H1 (title) → shortdesc → paragraph.
  *
@@ -96,10 +105,14 @@ export const ShortdescPlugin = () => {
             const domElement = editor.getElementByKey(key);
             if (!domElement) return;
 
-            if (origin?.tag === 'shortdesc') {
-              domElement.classList.add('dita-editor-shortdesc');
-            } else {
-              domElement.classList.remove('dita-editor-shortdesc');
+            // Remove all managed classes first
+            ALL_BODY_CLASSES.forEach(className => {
+              domElement.classList.remove(className);
+            });
+
+            // Add the appropriate class if origin tag matches
+            if (origin?.tag && BODY_TAG_CLASSES[origin.tag]) {
+              domElement.classList.add(BODY_TAG_CLASSES[origin.tag]);
             }
           });
         });
