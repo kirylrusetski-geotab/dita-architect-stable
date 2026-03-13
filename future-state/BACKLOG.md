@@ -41,17 +41,17 @@ No open P0 items.
 | P2-2 | [Replace in Heretto workflow](altitude-release-notes-integration.md#feature-2-replace-in-heretto) | Feature | Enables draft-to-publish within the editor. Depends on P2-1 (the API delivers content with a replace target UUID). |
 | ~~P2-3~~ | ~~Beautify button~~ | ~~Feature~~ | Shipped in v0.6.1 (see Completed section) |
 | P2-4 | [Accessibility fixes on Heretto modals](altitude-release-notes-integration.md#accessibility-improvements-discovered-during-review) | Fix | Label associations, aria-labels, aria-live, focus management. Bundle with P2-1/P2-2 since we'll be touching related components. |
-| P2-5 | [Empty states for Heretto file browser](feature-requests.md#fr-003-empty-states-for-heretto-file-browser) | Feature | Empty folders show nothing — no message, no affordance. Authors can't tell if a folder is empty, loading, or broken. Add `No topics in this folder` message with a `Create new topic` CTA. Low effort, high trust signal. |
+| ~~P2-5~~ | ~~Empty states for Heretto file browser~~ | ~~Feature~~ | Shipped in v0.6.2 (see Completed section) |
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation. |
 | ~~P2-7~~ | ~~Hover element labels in visual editor~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
 | ~~P2-8~~ | ~~Structural color bars for DITA body elements~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
 | ~~P2-9~~ | ~~Light theme warmth refinement~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
 | ~~P2-10~~ | ~~Rename "Post-Requisite" hover label to "Postrequisites"~~ | ~~Fix~~ | Shipped in v0.6.1 (see Completed section) |
 | ~~P2-11~~ | ~~Improve theme descriptions to be more contextual~~ | ~~Polish~~ | Shipped in v0.6.1 (see Completed section) |
-| P2-12 | Add aria-label to Format XML button | Fix | UX review (Maya Chen): format button in MonacoDitaEditor needs `aria-label="Format XML"` for screen reader consistency with other toolbar buttons. |
-| P2-13 | Improve Format XML error toast specificity | Polish | UX review (Maya Chen): error toast should say "Failed to format XML: Check for syntax errors" instead of a generic failure message. |
+| ~~P2-12~~ | ~~Add aria-label to Format XML button~~ | ~~Fix~~ | Shipped in v0.6.2 (see Completed section) |
+| ~~P2-13~~ | ~~Improve Format XML error toast specificity~~ | ~~Polish~~ | Shipped in v0.6.2 (see Completed section) |
 
-**Dependency chain:** P2-1 → P2-2 (Replace in Heretto needs the API endpoint to deliver the replace target UUID). P2-4, P2-5, P2-6 are independent. P2-5 is low effort. P2-6 is the most substantial item in this tier. P2-12 and P2-13 are trivial one-file changes.
+**Dependency chain:** P2-1 → P2-2 (Replace in Heretto needs the API endpoint to deliver the replace target UUID). P2-4 and P2-6 are independent. P2-6 is the most substantial item in this tier.
 
 ---
 
@@ -73,17 +73,27 @@ No open P0 items.
 
 ## Recommended Execution Order
 
-**Session N (next):** P2-5 (Empty states for Heretto file browser) + P2-12 + P2-13 (format button a11y fixes). Quick wins, low effort.
+**Session N (next) and N+1:** P2-1 then P2-2. The API endpoint and Replace in Heretto workflow. These are the most substantial remaining features and should be done sequentially. Bundle P2-4 (accessibility fixes) into whichever session touches the Heretto modals.
 
-**Session N+1 and N+2:** P2-1 then P2-2. The API endpoint and Replace in Heretto workflow. These are the most substantial features and should be done sequentially. Bundle P2-4 (accessibility fixes) into whichever session touches the Heretto modals.
-
-**Session N+3:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+2:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract ChatSidebar when AI features are on the roadmap, extract DownloadWarningModal when building export, version browser when a third release ships).
 
 ---
 
 ## Completed
+
+### Shipped in v0.6.2 (2026-03-13)
+
+Accessibility and empty states batch.
+
+| Former ID | Item | Type | Resolution |
+|-----------|------|------|------------|
+| P2-5 | Empty states for Heretto file browser | Feature | Added "No topics in this folder" message with optional "Create new topic" button. Proper modal sequencing from browser to new topic flow. |
+| P2-12 | Add aria-label to Format XML button | Fix | Added `aria-label="Format XML"` to format button in `MonacoDitaEditor.tsx`. |
+| P2-13 | Improve Format XML error toast specificity | Polish | Error toast updated to "Failed to format XML: Check for syntax errors". |
+
+---
 
 ### Shipped in v0.6.1 (2026-03-13)
 

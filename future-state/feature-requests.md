@@ -54,8 +54,8 @@ Right now with two versions this isn't urgent, but every release adds another en
 ## FR-003: Empty states for Heretto file browser
 
 **Requested:** 2026-03-12
-**Status:** Proposed
-**Priority:** Medium
+**Status:** Shipped (v0.6.2, 2026-03-13)
+**Priority:** P2-5
 **Impact:** Medium
 
 ### Description
@@ -218,7 +218,7 @@ The proposed shift is subtle — same luminance values, just moving from the Tai
 ## FR-009: Add aria-label to Format XML button
 
 **Requested:** 2026-03-13
-**Status:** Proposed
+**Status:** Shipped (v0.6.2, 2026-03-13)
 **Priority:** P2-12
 **Impact:** Low
 
@@ -235,7 +235,7 @@ Every other button in both toolbars has a matching aria-label. The format button
 ## FR-010: Improve Format XML error toast specificity
 
 **Requested:** 2026-03-13
-**Status:** Proposed
+**Status:** Shipped (v0.6.2, 2026-03-13)
 **Priority:** P2-13
 **Impact:** Low
 

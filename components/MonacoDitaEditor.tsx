@@ -802,7 +802,7 @@ export const MonacoDitaEditor: React.FC<MonacoDitaEditorProps> = ({
       }
     } catch (error) {
       console.error('XML formatting error:', error);
-      toast.error('Failed to format XML');
+      toast.error('Failed to format XML: Check for syntax errors');
     }
   };
 
@@ -863,6 +863,7 @@ export const MonacoDitaEditor: React.FC<MonacoDitaEditorProps> = ({
           disabled={readOnly}
           className="flex items-center gap-1 px-2 py-1 bg-black/50 hover:bg-black/70 disabled:hover:bg-black/50 disabled:opacity-50 text-white text-xs rounded border border-white/20 transition-colors"
           title="Format XML (Shift+Alt+F)"
+          aria-label="Format XML"
         >
           <Code2 size={12} />
           <span>Format</span>

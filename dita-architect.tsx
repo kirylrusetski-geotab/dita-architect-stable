@@ -337,6 +337,7 @@ export default function ProfessionalDitaEditor() {
           setSaveFileName={setHerettoSaveFileName}
           saving={herettoSaving}
           onSaveNew={handleHerettoSaveNew}
+          onCreateNew={() => { setIsHerettoBrowserOpen(false); setIsNewTopicModalOpen(true); }}
           onClose={() => setIsHerettoBrowserOpen(false)}
         />
       )}

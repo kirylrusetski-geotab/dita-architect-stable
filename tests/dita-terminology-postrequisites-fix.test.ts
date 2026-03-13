@@ -124,7 +124,7 @@ describe('DITA terminology fix for postrequisites', () => {
       // Should be in the same section with other DITA editor elements
       const ditaEditorRulesMatch = cssContent.match(/\.dita-editor-\w+::/g);
       expect(ditaEditorRulesMatch).toBeTruthy();
-      expect(ditaEditorRulesMatch.length).toBeGreaterThan(1);
+      expect(ditaEditorRulesMatch!.length).toBeGreaterThan(1);
     });
   });
 
@@ -175,7 +175,7 @@ describe('DITA terminology fix for postrequisites', () => {
       // Should be part of a consistent set of visual indicators
       const afterPseudoElements = cssContent.match(/\.dita-editor-\w+::after/g);
       expect(afterPseudoElements).toBeTruthy();
-      expect(afterPseudoElements.length).toBeGreaterThan(1);
+      expect(afterPseudoElements!.length).toBeGreaterThan(1);
     });
   });
 });

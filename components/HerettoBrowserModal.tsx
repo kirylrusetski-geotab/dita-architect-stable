@@ -31,6 +31,7 @@ interface HerettoBrowserModalProps {
   setSaveFileName: (name: string) => void;
   saving: boolean;
   onSaveNew: (folderUuid: string) => void;
+  onCreateNew?: () => void;
   onClose: () => void;
 }
 
@@ -55,6 +56,7 @@ export const HerettoBrowserModal = ({
   setSaveFileName,
   saving,
   onSaveNew,
+  onCreateNew,
   onClose,
 }: HerettoBrowserModalProps) => (
   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" onKeyDown={e => { if (e.key === 'Escape') onClose(); }}>
@@ -266,8 +268,16 @@ export const HerettoBrowserModal = ({
                 <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--editor-accent)' }} />
               </div>
             ) : items.length === 0 ? (
-              <div className="flex items-center justify-center h-full py-12 text-sm" style={{ color: 'var(--app-text-muted)' }}>
-                Empty folder
+              <div className="flex flex-col items-center justify-center h-full py-12 text-sm" style={{ color: 'var(--app-text-muted)' }}>
+                <div className="mb-4">No topics in this folder</div>
+                {onCreateNew && (
+                  <button
+                    onClick={onCreateNew}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors"
+                  >
+                    Create new topic
+                  </button>
+                )}
               </div>
             ) : (
               items.map(item => (
