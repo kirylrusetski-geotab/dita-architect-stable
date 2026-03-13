@@ -33,6 +33,9 @@ export const RELEASE_NOTES: ReleaseNote[] = [
           'Lists inside table cells render correctly \u2014 mixed inline-and-block content in table entries is parsed in reading order',
           'Empty table rows filtered out \u2014 rows with no entries no longer create blank visual gaps',
           'Theme dropdown no longer hidden behind the Heretto context toolbar',
+          'Concept-to-task conversion no longer fails to save to Heretto \u2014 converted task topics now include the required <steps> element per the DITA task DTD',
+          'Heretto save errors now surface specific DTD validation details instead of a generic "Failed to save" message',
+          'Visual editor syncs immediately after topic type conversion without requiring focus',
         ],
       },
       {
@@ -48,7 +51,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         items: [
           'Pipeline health reporting \u2014 real-time dashboard, error categorization, and fallback plan generation when agents fail',
           'Agent turn limits increased to 50\u2013100 to prevent mid-task timeouts on complex work',
-          '437 tests across 19 test suites, with new coverage for conkeyref placeholders, mixed-content table cells, and CSS variable consistency',
+          '458 tests across 21 test suites, with new coverage for topic type conversions, conkeyref placeholders, mixed-content table cells, and CSS variable consistency',
         ],
       },
     ],
