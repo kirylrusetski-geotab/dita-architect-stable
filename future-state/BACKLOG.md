@@ -27,7 +27,11 @@ No open P0 items.
 
 ### P1 — Before Next Feature Work
 
-No open P1 items.
+| ID | Item | Type | Rationale |
+|----|------|------|-----------|
+| P1-8 | Theme dropdown tooltip blocks next option | Bug | The `Tooltip` component (`Tooltip.tsx`) positions descriptions below the hovered item (`top-full`). Inside the theme dropdown, this covers the next option — hovering "Claude" hides "Solarized." Fix: position tooltip to the right (`left-full`) when used inside a vertical list. One-line CSS change in the Tooltip component, or add a `placement` prop. |
+
+**Fix note:** Surgical. The `Tooltip` component is 12 lines. Either change the default positioning for dropdown contexts, or add a `placement` prop and pass `"right"` from the theme dropdown in `Toolbar.tsx:139`. Bundle with P2-7/P2-8/P2-9 (visual polish session) or fix independently — it's a 5-minute change.
 
 ---
 
@@ -67,7 +71,7 @@ No open P1 items.
 
 ## Recommended Execution Order
 
-**Session N (next):** P2-3 (Beautify button). Quick win — the function exists, just add the button and shortcut. Good momentum before the larger integration work.
+**Session N (next):** P1-8 (Tooltip positioning fix) then P2-3 (Beautify button). P1-8 is a one-line fix — do it first, then the Beautify button in the same session.
 
 **Session N+1:** P2-7 + P2-8 + P2-9 (Hover labels, color bars, light theme warmth). All three are CSS-and-parser work with no new components or architecture. P2-7 introduces the CSS classes that P2-8 builds on, so do them in sequence within the same session. P2-9 is independent CSS variable tuning — same session, same context. Ship as a "visual polish" batch.
 
