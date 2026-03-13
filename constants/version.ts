@@ -21,6 +21,62 @@ export interface ReleaseNote {
  */
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.7.1',
+    date: '2026-03-13',
+    title: 'Heretto integration \u2014 draft topics, preview diffs, and replace live documents directly from the editor.',
+    sections: [
+      {
+        heading: 'New Features',
+        items: [
+          'Replace in Heretto \u2014 draft a topic, preview the diff against the live version, and replace it directly from the editor. The three-step wizard shows you exactly what will change before you commit. After replacing, the tab transitions to a live Heretto-backed document with full save, refresh, and conflict detection.',
+          'External content loading API \u2014 external tools can now load DITA content into the editor via a stable HTTP endpoint. Content is validated and beautified automatically, replacing the previous browser automation approach.',
+          'Heretto empty states \u2014 empty folders now show "No topics in this folder" with a "Create new topic" button instead of blank space.',
+          'Format XML \u2014 new toolbar button (or Shift+Alt+F) to beautify your XML source. Errors now tell you "Failed to format XML: Check for syntax errors" instead of a generic message.',
+        ],
+      },
+      {
+        heading: 'Accessibility',
+        items: [
+          'All Heretto modals now have proper label associations, aria-live regions on search progress, aria-labels on icon buttons, focus management on open, and aria-labelledby on headings.',
+          'Format XML button and Replace bar buttons have screen reader labels.',
+        ],
+      },
+      {
+        heading: 'Polish',
+        items: [
+          'Import toast now says "Imported {fileName}" instead of developer-centric "Loaded from external tool".',
+          'Theme descriptions updated to help you choose: "High contrast for low-light work", "Comfortable for extended daytime use", and more.',
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.6.0',
+    date: '2026-03-13',
+    title: 'Visual polish \u2014 body element indicators, light theme warmth, and tooltip fixes.',
+    sections: [
+      {
+        heading: 'Bug Fixes',
+        items: [
+          'Theme dropdown tooltips no longer cover the next option \u2014 they now appear to the right.',
+        ],
+      },
+      {
+        heading: 'New Features',
+        items: [
+          'Body element indicators \u2014 prereq, context, result, and postreq blocks now show left-edge color bars and hover labels so you can tell which DITA element you\'re editing without checking the XML source.',
+          'Light theme warmth \u2014 the Light theme shifted from cool Slate to warmer Stone tones. Same clarity, more comfortable for long sessions.',
+        ],
+      },
+      {
+        heading: 'Terminology',
+        items: [
+          '"Post-Requisite" label corrected to "Postrequisites" to match DITA standard terminology.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.5.1',
     date: '2026-03-12',
     title: 'Rendering fixes and editor improvements — codeblocks, tables, and references now display faithfully in the visual editor.',
