@@ -1,158 +1,119 @@
 # DITA Architect
 
-A browser-based DITA XML authoring tool with a split-pane editor: WYSIWYG visual editing on the left, XML source on the right, with bidirectional sync between them.
+A lightweight DITA editor that runs in your browser. Write in a visual editor on the left, see the XML source on the right -- changes sync between both sides as you work.
 
-Built for technical writers who need to edit DITA content without a heavyweight desktop CMS client.
+No installation beyond the initial setup. No heavy CMS client. Open a topic, edit, save to Heretto.
 
-## Features
+## What You Can Do
 
-- **Split-pane editing** -- Lexical-powered visual editor and Monaco XML source editor, synced bidirectionally
-- **Heretto CMS integration** -- Browse, search, open, edit, and save topics directly to Heretto CMS with conflict detection and background polling
-- **Table context menu** -- Right-click any table cell to insert/delete rows and columns (CALS `<table>` and `<simpletable>`)
-- **Edit mode with tracked changes** -- Isolate edits before committing; word-level insertions highlighted, deletions shown with strikethrough
-- **DITA-aware auto-completion** -- Context-sensitive element suggestions in the XML editor based on DITA content models
-- **Format XML** -- One-click beautify (or Shift+Alt+F) with `<codeblock>` and `xml:space="preserve"` protection
-- **Replace in Heretto** -- Draft a topic, preview the diff against the live version, and replace it directly from the editor
-- **Multi-tab editing** -- Open several topics with independent undo history and sync state
-- **5 app themes** -- Dark, Light, Claude, Nord, Solarized
-- **7 syntax themes** -- Material, GitHub, Monokai, Dracula, One Dark, Catppuccin, Daylight
-- **Body element indicators** -- Hover labels and left-edge color bars for `prereq`, `context`, `result`, `postreq`
-- **Conkeyref/keyref placeholder chips** -- Unresolved references display as visible chips instead of blank space
-- **Readability metrics** -- Word count, character count, Flesch-Kincaid score in the status bar
-- **Import verification** -- Round-trip integrity check on file import with unsupported element detection
+**Write visually.** The left pane is a rich text editor. Bold, italic, lists, tables, notes, code blocks -- they all render the way your readers will see them. You don't need to think about XML tags while you're writing.
 
-## Supported DITA Elements
+**See the XML when you need it.** The right pane shows the raw DITA source with syntax highlighting, auto-completion, and one-click formatting. Edits in either pane sync to the other automatically, or press Ctrl+Enter to sync manually.
 
-### Block elements
+**Work with tables without touching XML.** Right-click any table cell to insert or delete rows and columns. Works for both CALS tables and simpletables.
 
-`<title>`, `<shortdesc>`, `<prereq>`, `<context>`, `<result>`, `<postreq>`, `<p>`, `<note>`, `<steps>` / `<ol>` / `<ul>`, `<step>` / `<li>`, `<cmd>`, `<section>`, `<table>`, `<simpletable>`, `<codeblock>`, `<fig>`, `<image>`
+**Open topics from Heretto.** Browse your Heretto CMS folders, search for topics, open them in the editor, and save changes back. The editor checks for conflicts if someone else edits the same topic while you're working.
 
-### Inline elements
+**Replace topics in Heretto.** Draft a new version of a topic, preview a side-by-side diff against the live version, and replace it when you're ready.
 
-| Element | Visual rendering |
-|---|---|
-| `<b>`, `<strong>` | **Bold** text |
-| `<i>`, `<em>` | *Italic* text |
-| `<codeph>` | `Code` formatted text |
-| `<uicontrol>` | **Bold** (preserves tag on round-trip) |
-| `<wintitle>` | *Italic* (preserves tag on round-trip) |
-| `<xref>` | Clickable link |
-| `<ph>` with conkeyref/keyref/conref | Inline reference chip |
-| `<term>` with keyref | Inline reference chip |
+**Track your changes.** Click the pencil icon to enter Edit Mode. Your insertions are highlighted and deletions are shown with strikethrough. Accept to merge your changes, or reject to restore the original.
 
-Unrecognized elements are rendered as read-only opaque blocks in the visual editor and are fully preserved in the XML source.
+**Work with multiple topics.** Open several topics in tabs. Each tab has its own undo history and sync state.
 
-## Getting Started
+**See where you are in the structure.** Hover over a paragraph in the visual editor to see which DITA element it belongs to -- `CONTEXT`, `RESULT`, `PREREQUISITE`, `POSTREQUISITE` -- with color-coded left-edge bars so you can tell where one section ends and another begins.
 
-### Prerequisites
+**Spot unresolved references.** Conkeyrefs, keyrefs, and conrefs that can't be resolved show up as labeled chips (e.g., `[conkeyref: glossary/term]`) instead of blank space.
 
-- Node.js 20+
-- npm 10+
+**Choose your theme.** 5 app themes (Dark, Light, Claude, Nord, Solarized) and 7 syntax themes for the XML pane.
 
-### Install and run
+## Setup
 
-```bash
+You'll need two things installed on your machine: **Node.js** and **Git**. If you're not sure whether you have them, ask your Claude Code assistant:
+
+> Check if I have Node.js and Git installed, and help me install anything that's missing
+
+### First-time setup
+
+Open your terminal (or ask Claude Code to run this for you) and paste these four lines:
+
+```
 git clone https://github.com/kirylrusetski-geotab/dita-architect-stable.git
 cd dita-architect-stable
 npm install
 npm run dev
 ```
 
-The editor opens at [http://localhost:3000](http://localhost:3000).
+Then open [http://localhost:3000](http://localhost:3000) in your browser. That's it -- the editor is running.
+
+### Starting the editor after the first time
+
+Open your terminal, go to the project folder, and run:
+
+```
+cd dita-architect-stable
+npm run dev
+```
+
+Or ask Claude Code:
+
+> Start the DITA Architect dev server
 
 ### Updating to the latest version
 
-```bash
+When the team ships a new version, update by running:
+
+```
+cd dita-architect-stable
 git pull
 npm install
 npm run dev
 ```
 
-### Heretto CMS connection (optional)
+Or ask Claude Code:
 
-To connect to Heretto CMS, create `~/heretto.json`:
+> Pull the latest changes for DITA Architect and restart the dev server
+
+### Connecting to Heretto (optional)
+
+You can connect to Heretto CMS in two ways:
+
+1. **From the app:** Click the Heretto icon in the toolbar and enter your email and API token in the connection modal.
+
+2. **From a file:** Create a file called `heretto.json` in your home folder with your credentials:
 
 ```json
 {
-  "email": "your.email@company.com",
+  "email": "your.name@geotab.com",
   "token": "your-heretto-api-token"
 }
 ```
 
-You can also configure credentials from the Heretto connection modal inside the app.
+Without a Heretto connection, the editor still works -- you can create new topics from templates (task, concept, reference), open local `.dita` files by dragging them into the browser, and save files locally.
 
-Without Heretto credentials, the editor works fully offline -- open local files via drag-and-drop or create new topics from templates (task, concept, reference).
+## Keyboard Shortcuts
 
-## Scripts
-
-| Command | Description |
+| Shortcut | Action |
 |---|---|
-| `npm run dev` | Start dev server on localhost:3000 |
-| `npm run build` | Production build to `dist/` |
-| `npm run preview` | Preview production build |
-| `npm test` | Run test suite |
-| `npm run test:watch` | Run tests in watch mode |
+| Ctrl+B | Bold |
+| Ctrl+I | Italic |
+| Ctrl+Enter | Sync XML to visual editor |
+| Shift+Alt+F | Format (beautify) XML |
+| Ctrl+S | Save to Heretto (when connected) |
+| Escape | Close modal or dismiss menu |
 
-## Tech Stack
+## Supported DITA Elements
 
-| Layer | Technology |
-|---|---|
-| UI Framework | [React 19](https://react.dev) |
-| Visual Editor | [Lexical 0.16.0](https://lexical.dev) |
-| XML Editor | [Monaco Editor](https://microsoft.github.io/monaco-editor/) |
-| Build Tool | [Vite 6](https://vite.dev) |
-| Styling | [Tailwind CSS 4](https://tailwindcss.com) |
-| Icons | [Lucide React](https://lucide.dev) |
-| Tests | Vitest + Testing Library |
-| Types | TypeScript 5.8 |
+The visual editor renders these elements as formatted content:
 
-## Project Structure
+- **Headings:** `<title>`, `<shortdesc>`
+- **Body:** `<p>`, `<note>`, `<section>`, `<prereq>`, `<context>`, `<result>`, `<postreq>`
+- **Lists:** `<ol>`, `<ul>`, `<li>`, `<steps>`, `<step>`, `<cmd>`
+- **Tables:** `<table>` (CALS), `<simpletable>`
+- **Media:** `<fig>`, `<image>`, `<codeblock>`
+- **Inline:** `<b>`, `<i>`, `<codeph>`, `<uicontrol>`, `<wintitle>`, `<xref>`, `<ph>`, `<term>`
 
-```
-dita-architect.tsx              Main application component
-index.css                       Theme definitions and editor styles
-textAnalysis.ts                 Word count, character count, readability scoring
+Elements the editor doesn't recognize are shown as labeled read-only blocks -- they won't be lost or changed when you save.
 
-components/
-  Toolbar.tsx                   Visual editor toolbar with theme switcher
-  BottomToolbar.tsx             Status bar (word/char count, readability)
-  MonacoDitaEditor.tsx          Monaco wrapper with validation and completion
-  SyncManager.tsx               Bidirectional Lexical <-> XML sync
-  TableActionMenuPlugin.tsx     Right-click table context menu
-  EditModePlugin.tsx            Edit mode toggle (read-only lock)
-  TrackedChangesPlugin.tsx      Tracked insertions/deletions
-  ShortdescPlugin.tsx           H1 -> shortdesc -> paragraph authoring flow
-  DitaOpaqueNode.tsx            Read-only block for unrecognized elements
-  DitaCodeBlockNode.tsx         Editable <codeblock> node
-  DitaImageNode.tsx             Block-level <fig>/<image> display
-  DitaPhRefNode.tsx             Inline reference chip (<ph>, <term> keyrefs)
-  ReleaseNotesModal.tsx         What's New modal
-  Tooltip.tsx                   Reusable hover tooltip
+## Questions or Issues
 
-sync/
-  parseXmlToLexical.ts          XML -> Lexical tree parser
-  serializeLexicalToXml.ts      Lexical tree -> DITA XML serializer (DOM-patching)
-  nodeOriginMap.ts              Maps Lexical node keys to DITA element origins
-
-hooks/
-  useTabManager.ts              Tab state: open/close/switch, type conversion
-  useHerettoCms.ts              Heretto CMS API: browse, search, open, save
-  useLocalFile.ts               Local file open/save, drag-and-drop
-  useEditorUi.ts                UI state: themes, dropdowns, keyboard shortcuts
-
-constants/
-  version.ts                    App version and release notes
-  dita.ts                       DITA templates and initial content
-  heretto.ts                    Heretto root UUID and folder cache
-
-lib/
-  xml-utils.ts                  XML validation, formatting, comparison
-  heretto-utils.ts              Heretto API response parsing
-  dita.ts                       DITA element definitions
-
-tests/                          773 tests across 35 test suites
-```
-
-## License
-
-Internal use -- Geotab Inc.
+Reach out to Kiryl Rusetski on Google Chat or file an issue in this repository.
