@@ -75,6 +75,8 @@ Or ask Claude Code:
 
 ### Connecting to Heretto (optional)
 
+You'll need your Heretto API token. Generate one at [Heretto Token Management](https://geotab.heretto.com/tools/token-management/tokens.xql) (log in to Heretto first).
+
 You can connect to Heretto CMS in two ways:
 
 1. **From the app:** Click the Heretto icon in the toolbar and enter your email and API token in the connection modal.
