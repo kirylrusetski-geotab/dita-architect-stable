@@ -19,11 +19,16 @@ export const BottomToolbar = () => {
       sentenceCount: 0,
       syllableCount: 0,
     };
-    editor.getEditorState().read(() => {
-      const root = $getRoot();
-      const text = root.getTextContent();
-      initialStats = analyzeText(text);
-    });
+    try {
+      editor.getEditorState().read(() => {
+        const root = $getRoot();
+        const text = root.getTextContent();
+        initialStats = analyzeText(text);
+      });
+    } catch (error) {
+      console.warn('BottomToolbar: Failed to read initial editor state:', error);
+      // Keep default initialStats (zeros) as fallback
+    }
     return initialStats;
   });
 
@@ -40,11 +45,16 @@ export const BottomToolbar = () => {
     });
 
     // Immediately read current state to catch content parsed before listener attached
-    editor.getEditorState().read(() => {
-      const root = $getRoot();
-      const text = root.getTextContent();
-      setStats(analyzeText(text));
-    });
+    try {
+      editor.getEditorState().read(() => {
+        const root = $getRoot();
+        const text = root.getTextContent();
+        setStats(analyzeText(text));
+      });
+    } catch (error) {
+      console.warn('BottomToolbar: Failed to read current editor state:', error);
+      // Stats will remain at initial values
+    }
 
     return unregister;
   }, [editor]);
