@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -16,6 +17,7 @@ import { ParagraphNode, TextNode } from 'lexical';
 import { MonacoDitaEditor } from './components/MonacoDitaEditor';
 import { Toolbar } from './components/Toolbar';
 import { BottomToolbar } from './components/BottomToolbar';
+import { Tooltip } from './components/Tooltip';
 import { SyncManager } from './components/SyncManager';
 import { TableColumnSizer } from './components/TableColumnSizer';
 import { EditModePlugin } from './components/EditModePlugin';
@@ -27,7 +29,7 @@ import { DitaCodeBlockNode } from './components/DitaCodeBlockNode';
 import { DitaImageNode } from './components/DitaImageNode';
 import { DitaPhRefNode } from './components/DitaPhRefNode';
 import { TrackedDeletionNode } from './components/TrackedDeletionNode';
-import { Code, CheckCircle, AlertTriangle, BookOpen, Save, FolderOpen, RefreshCw, FilePlus, ChevronDown, CloudUpload, FileText, Loader2, X, PanelRightClose, PanelRightOpen, Upload } from 'lucide-react';
+import { Code, CheckCircle, AlertTriangle, BookOpen, Save, FolderOpen, RefreshCw, FilePlus, ChevronDown, CloudUpload, FileText, Loader2, X, PanelRightClose, PanelRightOpen, Upload, Code2 } from 'lucide-react';
 import { ConfirmModal } from './components/ConfirmModal';
 import { TopicTypeModal } from './components/TopicTypeModal';
 import { SaveTopicModal } from './components/SaveTopicModal';
@@ -40,7 +42,7 @@ import { HerettoReplaceModal } from './components/HerettoReplaceModal';
 import { HerettoReplaceBar } from './components/HerettoReplaceBar';
 import { SYNTAX_THEME_OPTIONS } from './components/MonacoDitaEditor';
 import type { XmlError } from './components/MonacoDitaEditor';
-import { formatRelativeTime } from './lib/xml-utils';
+import { formatRelativeTime, formatXml } from './lib/xml-utils';
 import { useEditorUi } from './hooks/useEditorUi';
 import { useTabManager } from './hooks/useTabManager';
 import { createTab } from './types/tab';
@@ -162,6 +164,7 @@ export default function ProfessionalDitaEditor() {
     herettoSelected,
     setHerettoSelected,
     herettoSaving,
+    herettoSaveProgress,
     isHerettoDropdownOpen,
     setIsHerettoDropdownOpen,
     herettoDropdownRef,
@@ -245,6 +248,24 @@ export default function ProfessionalDitaEditor() {
     setTabs,
     setActiveTabId,
   });
+
+  const handleFormatClick = () => {
+    const monacoApiRef = activeTab.monacoApiRef;
+    if (!monacoApiRef?.current) return;
+
+    try {
+      const currentValue = activeTab.xmlContent;
+      const formattedValue = formatXml(currentValue);
+
+      if (formattedValue !== currentValue) {
+        updateTab(activeTab.id, { xmlContent: formattedValue, lastUpdatedBy: 'code' });
+        toast.success('XML formatted successfully');
+      }
+    } catch (error) {
+      console.error('XML formatting error:', error);
+      toast.error('Failed to format XML: Check for syntax errors');
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" data-theme={appTheme} style={{ backgroundColor: 'var(--app-bg)' }}>
@@ -761,7 +782,17 @@ export default function ProfessionalDitaEditor() {
                     {/* Right: status + actions */}
                     <div className="flex items-center gap-3 text-xs shrink-0">
                       <div className="flex items-center gap-1.5" style={{ color: 'var(--app-text-muted)' }}>
-                        {tab.herettoRemoteChanged ? (
+                        {herettoSaveProgress === 'saving' ? (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                            <span>Saving to Heretto...</span>
+                          </>
+                        ) : herettoSaveProgress === 'verifying' ? (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                            <span>Verifying save...</span>
+                          </>
+                        ) : tab.herettoRemoteChanged ? (
                           <>
                             <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                             <span>{tab.herettoDirty ? 'Conflict — updated in Heretto' : 'Updated in Heretto'}</span>
@@ -804,7 +835,7 @@ export default function ProfessionalDitaEditor() {
                           }}
                         >
                           {herettoSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CloudUpload className="w-3 h-3" />}
-                          Commit
+                          Save to Heretto
                         </button>
                       )}
 
@@ -918,27 +949,30 @@ export default function ProfessionalDitaEditor() {
             }}
           >
             <div className="relative" ref={syntaxDropdownRef}>
-              <button
-                onClick={() => setIsSyntaxThemeOpen(prev => !prev)}
-                onKeyDown={e => {
-                  if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (!isSyntaxThemeOpen) setIsSyntaxThemeOpen(true);
-                    setTimeout(() => {
-                      const first = syntaxDropdownRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
-                      first?.focus();
-                    }, 0);
-                  }
-                }}
-                aria-haspopup="true"
-                aria-expanded={isSyntaxThemeOpen}
-                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest rounded px-2 py-1 transition-colors hover-app"
-                style={{ color: 'var(--app-text-muted)' }}
-              >
-                <Code className="w-4 h-4" />
-                {SYNTAX_THEME_OPTIONS.find(t => t.value === syntaxTheme)?.label ?? 'XML Source'}
-                <ChevronDown className={`w-3 h-3 transition-transform ${isSyntaxThemeOpen ? 'rotate-180' : ''}`} />
-              </button>
+              <Tooltip content="Syntax theme">
+                <button
+                  onClick={() => setIsSyntaxThemeOpen(prev => !prev)}
+                  onKeyDown={e => {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      if (!isSyntaxThemeOpen) setIsSyntaxThemeOpen(true);
+                      setTimeout(() => {
+                        const first = syntaxDropdownRef.current?.querySelector('[role="menuitem"]') as HTMLElement | null;
+                        first?.focus();
+                      }, 0);
+                    }
+                  }}
+                  aria-haspopup="true"
+                  aria-expanded={isSyntaxThemeOpen}
+                  aria-label={`Select syntax theme: ${SYNTAX_THEME_OPTIONS.find(t => t.value === syntaxTheme)?.label ?? 'XML Source'}`}
+                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest rounded px-2 py-1 transition-colors hover-app"
+                  style={{ color: 'var(--app-text-muted)' }}
+                >
+                  <Code className="w-4 h-4" />
+                  {SYNTAX_THEME_OPTIONS.find(t => t.value === syntaxTheme)?.label ?? 'XML Source'}
+                  <ChevronDown className={`w-3 h-3 transition-transform ${isSyntaxThemeOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </Tooltip>
 
               {isSyntaxThemeOpen && (
                 <div
@@ -980,6 +1014,16 @@ export default function ProfessionalDitaEditor() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Tooltip content="Format XML (Shift+Alt+F)">
+                <button
+                  onClick={handleFormatClick}
+                  className="p-1 rounded transition-colors hover-app-text"
+                  style={{ color: 'var(--app-text-muted)' }}
+                  aria-label="Format XML"
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                </button>
+              </Tooltip>
               {currentTopicType !== 'undefined' && (
                 <div
                   className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider"
@@ -992,14 +1036,16 @@ export default function ProfessionalDitaEditor() {
                   {currentTopicType}
                 </div>
               )}
-              <button
-                onClick={() => setCodeEditorCollapsed(true)}
-                className="p-1 rounded transition-colors hover-app-text"
-                style={{ color: 'var(--app-text-muted)' }}
-                title="Collapse XML editor"
-              >
-                <PanelRightClose className="w-3.5 h-3.5" />
-              </button>
+              <Tooltip content="Collapse XML editor">
+                <button
+                  onClick={() => setCodeEditorCollapsed(true)}
+                  className="p-1 rounded transition-colors hover-app-text"
+                  style={{ color: 'var(--app-text-muted)' }}
+                  aria-label="Collapse XML editor"
+                >
+                  <PanelRightClose className="w-3.5 h-3.5" />
+                </button>
+              </Tooltip>
             </div>
           </div>
 
@@ -1020,6 +1066,7 @@ export default function ProfessionalDitaEditor() {
                 editorTheme={appTheme}
                 syntaxTheme={syntaxTheme}
                 onEditorReady={(api) => { tab.monacoApiRef.current = api; }}
+                onFormat={handleFormatClick}
               />
             </div>
           ))}
