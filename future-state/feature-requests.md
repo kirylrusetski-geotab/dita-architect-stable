@@ -607,7 +607,7 @@ Imagine a Claude Code skill that says: "This topic is 2,400 words at a 12th-grad
 ## FR-024: Table context menu (insert/delete rows and columns)
 
 **Requested:** 2026-03-16
-**Status:** Proposed
+**Status:** Shipped (v0.7.2, 2026-03-16)
 **Priority:** Medium
 **Impact:** High
 
@@ -685,3 +685,55 @@ Right now, the only way to create a table in DITA Architect is to type the XML m
 Have you considered defaulting to `"Include header row"` checked? In my experience reviewing DITA content, virtually every table has a header row. Starting with one saves authors from remembering to add it, and producing tables without `<thead>` is a common DITA quality issue that reviewers flag. A sensible default prevents a common mistake.
 
 For the toolbar placement, I'd suggest grouping it with the list buttons (ordered list, unordered list) since tables are structural elements in the same category. The tooltip `"Insert table"` is concise and matches the pattern of our other toolbar tooltips.
+
+---
+
+## FR-026: Table context menu accessibility (ARIA roles and keyboard navigation)
+
+**Requested:** 2026-03-16
+**Source:** Maya Chen UX review of FR-024 implementation
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** Medium
+
+### Description
+
+The table context menu shipped in FR-024 lacks proper accessibility attributes and keyboard navigation. Add ARIA roles, focus management, and keyboard interaction to bring the context menu up to accessibility standards.
+
+### Required Changes
+
+1. Add `role="menu"` to the context menu container and `role="menuitem"` to each menu item.
+2. Add `aria-label="Table actions"` to the menu container.
+3. Implement arrow key navigation (Up/Down) between menu items.
+4. Move focus to the first menu item when the menu opens.
+5. Add screen reader announcements when table operations complete (e.g., "Row inserted below").
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+The context menu works correctly for mouse users but is invisible to screen readers and inaccessible via keyboard beyond ESC to dismiss. Adding `role="menu"` and `role="menuitem"` makes the menu discoverable by assistive technology. Arrow key navigation is the expected interaction pattern for menus — without it, keyboard users can see the menu but can't operate it. Focus management on open ensures the menu is immediately actionable without requiring a Tab keypress to reach it. Screen reader announcements confirm that the action completed, which is especially important since table structure changes may not be visually obvious to users relying on assistive technology.
+
+---
+
+## FR-027: User feedback for prevented table operations
+
+**Requested:** 2026-03-16
+**Source:** Maya Chen UX review of FR-024 implementation
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** Medium
+
+### Description
+
+When a user attempts to delete the last remaining row or column in a table, the operation silently fails. Add toast notifications explaining why the action was prevented, and add explanatory tooltips to the delete menu items.
+
+### Required Changes
+
+1. When last-row deletion is prevented, show a toast: `"Cannot delete the last row — tables must have at least one row"`
+2. When last-column deletion is prevented, show a toast: `"Cannot delete the last column — tables must have at least one column"`
+3. Add tooltips on hover for delete menu items:
+   - Delete row: `"Remove this row (at least one row must remain)"`
+   - Delete column: `"Remove this column (at least one column must remain)"`
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Silent failure when trying to delete the last row or column violates the principle of reducing cognitive load — users shouldn't have to guess why an action didn't work. The author clicks "Delete row," nothing happens, and they're left wondering if the click didn't register, if there's a bug, or if they're doing something wrong. A toast notification immediately closes the feedback loop: the action was received, understood, and intentionally prevented, with a clear explanation of why. The tooltips provide proactive guidance so users understand the constraint before they encounter it.

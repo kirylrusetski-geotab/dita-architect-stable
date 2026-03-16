@@ -20,6 +20,7 @@ import { BottomToolbar } from './components/BottomToolbar';
 import { Tooltip } from './components/Tooltip';
 import { SyncManager } from './components/SyncManager';
 import { TableColumnSizer } from './components/TableColumnSizer';
+import { TableActionMenuPlugin } from './components/TableActionMenuPlugin';
 import { EditModePlugin } from './components/EditModePlugin';
 import { TrackedChangesPlugin } from './components/TrackedChangesPlugin';
 import { EmptyToH1Plugin } from './components/EmptyToH1Plugin';
@@ -890,6 +891,7 @@ export default function ProfessionalDitaEditor() {
                     />
                   </SyncManager>
                   <TableColumnSizer />
+                  <TableActionMenuPlugin />
                   <TrackedChangesPlugin
                     editMode={tab.editMode}
                     snapshotRef={tab.snapshotRef}

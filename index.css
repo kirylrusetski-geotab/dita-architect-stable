@@ -674,6 +674,37 @@ body {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
+/* Table Action Menu */
+.table-action-menu {
+  background-color: var(--app-surface-raised);
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 180px;
+  padding: 4px;
+  z-index: 20;
+}
+
+.table-action-menu-item {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--app-text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.table-action-menu-item:hover {
+  background-color: var(--app-hover);
+  color: var(--app-text-primary);
+}
+
+.table-action-menu-separator {
+  height: 1px;
+  background-color: var(--app-border-subtle);
+  margin: 4px 0;
+}
+
 /* Heretto Browser Modal */
 .heretto-item:last-child {
   border-bottom: none !important;

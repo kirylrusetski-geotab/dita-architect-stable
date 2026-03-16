@@ -508,6 +508,16 @@ const patchTableElement = (domEl: Element, lexicalNode: any, doc: Document) => {
   if (!tgroup) return;
 
   const lexicalRows = lexicalNode.getChildren ? lexicalNode.getChildren() : [];
+
+  // Recalculate @cols attribute based on actual column count
+  if (lexicalRows.length > 0) {
+    const firstRow = lexicalRows[0];
+    const firstRowCells = firstRow.getChildren ? firstRow.getChildren() : [];
+    const actualColCount = firstRowCells.length;
+    if (actualColCount > 0) {
+      tgroup.setAttribute('cols', String(actualColCount));
+    }
+  }
   let lexIdx = 0;
 
   // Patch thead rows
