@@ -32,8 +32,10 @@ coverage/
 # TypeScript build info
 *.tsbuildinfo
 
-# Agent reports
-agents/.reports/
-
-# Local Claude skills
-.claude/skills/
+# Development infrastructure (kept locally, not shared)
+agents/
+.claude/
+future-state/
+bugreports/
+PROJECT_LOG.md
+debug-test.js
