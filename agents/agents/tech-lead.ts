@@ -114,7 +114,7 @@ ${ctx.reports.devops ?? 'Not available.'}
 
 ### Taylor Brooks's Test Results
 ${ctx.reports.testResults ?? 'Not available.'}
-
+${ctx.reports.pipelineBranch ? `\n### Pipeline Branch\nAll implementation changes were made on branch \`${ctx.reports.pipelineBranch}\`. The user can review the diff with \`git diff main...${ctx.reports.pipelineBranch}\` and merge when satisfied.\n` : ''}${ctx.reports.retryWarning ? `\n### Retry Warnings\n${ctx.reports.retryWarning}\nThese gates still failed after the retry. Flag this explicitly in your assessment — the ship may not be clean.\n` : ''}
 ## Instructions
 1. Synthesize all reports into a clear executive summary.
 2. Call out what shipped, what was flagged, and what needs follow-up.

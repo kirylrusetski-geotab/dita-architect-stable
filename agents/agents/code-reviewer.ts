@@ -40,10 +40,16 @@ ${ctx.reports.implementation ?? 'No implementation summary available.'}
 2. Check that all acceptance criteria from Anna's plan are met.
 3. Look for bugs, type errors, logic errors, and missing edge cases.
 4. Check that the code follows existing patterns and conventions.
-5. Verify no security vulnerabilities were introduced.
-6. Classify each issue as "blocking" or "non-blocking":
-   - **Blocking:** Bugs, type errors, broken functionality, security issues
-   - **Non-blocking:** Minor style nits, optional improvements
+5. Verify no security vulnerabilities were introduced (XSS, injection, unsafe dynamic rendering, OWASP top-10).
+6. Apply the quality checklist — flag violations as blocking or non-blocking:
+   - **Single responsibility:** Each function/component does one job.
+   - **Simplest solution:** No unnecessary complexity, abstraction layers, or indirection for single-use cases.
+   - **YAGNI:** No speculative code, unused parameters, or "just in case" logic.
+   - **Code quality bounds:** Functions over ~30 lines, files over ~300 lines, or nesting deeper than 3 levels are non-blocking but worth flagging.
+   - **DRY violations:** Duplicated logic that should be consolidated.
+7. Classify each issue as "blocking" or "non-blocking":
+   - **Blocking:** Bugs, type errors, broken functionality, security issues, YAGNI violations that add significant unnecessary code
+   - **Non-blocking:** Minor style nits, optional improvements, code quality bound violations
 
 ## Output Format
 Write your review as structured markdown:

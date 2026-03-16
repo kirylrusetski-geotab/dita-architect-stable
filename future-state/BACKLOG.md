@@ -1,6 +1,6 @@
 # DITA Architect Backlog
 
-**Last updated:** 2026-03-13
+**Last updated:** 2026-03-16
 
 This is the single prioritized backlog for DITA Architect. Every actionable item — bugs, features, integration work, asset extraction — lives here with a clear priority, dependency chain, and execution criteria.
 
@@ -29,7 +29,10 @@ No open P0 items.
 
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
-~~P1-8~~ — Shipped in v0.6.0 (see Completed section)
+| ~~P1-8~~ | ~~Theme dropdown tooltip blocks next option~~ | ~~Bug~~ | Shipped in v0.6.0 (see Completed section) |
+| P1-9 | Word/character count shows `0 words \| 0 characters` on initial load | Bug | Counter displays zeros when a topic is first opened from Heretto. Only updates to correct values after the visual editor re-syncs (e.g., clicking into the Lexical pane). The count should reflect content immediately on load. Found during Maya Chen authoring session (2026-03-13). |
+| P1-10 | XML→visual sync blocked during conflict state | Bug | When `Conflict — updated in Heretto` is showing, Ctrl+Enter does not sync XML editor changes to the visual editor. The sync only flushes when the visual editor gains focus *after* the conflict is resolved. This breaks the documented behavior (`Press Ctrl+Enter to sync between editors`). Authors have no indication that sync is blocked or how to unblock it. Found during Maya Chen authoring session (2026-03-13). |
+| P1-11 | Format XML button floats outside the XML toolbar | Bug | The Format button is rendered as an `absolute top-2 right-2` overlay inside `MonacoDitaEditor.tsx`, floating over the Monaco editor canvas. It should be in the XML toolbar row in `dita-architect.tsx` (the `h-10` bar with the syntax theme picker, TASK badge, and collapse button). Fix: move the button into the toolbar div (~line 982, `flex items-center gap-2` group), lift the format handler up, and restyle the button from its current `bg-black/50` pill to match the existing toolbar button styling (consistent with collapse icon and other toolbar controls). |
 
 ---
 
@@ -37,25 +40,15 @@ No open P0 items.
 
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
-| ~~P2-1~~ | ~~API endpoint for external content loading~~ | ~~Feature~~ | Shipped in v0.7.0 (see Completed section) |
-| ~~P2-2~~ | ~~Replace in Heretto workflow~~ | ~~Feature~~ | Shipped in v0.7.1 (see Completed section) |
-| ~~P2-3~~ | ~~Beautify button~~ | ~~Feature~~ | Shipped in v0.6.1 (see Completed section) |
-| ~~P2-4~~ | ~~Accessibility fixes on Heretto modals~~ | ~~Fix~~ | Shipped in v0.7.1 (see Completed section) |
-| ~~P2-5~~ | ~~Empty states for Heretto file browser~~ | ~~Feature~~ | Shipped in v0.6.2 (see Completed section) |
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation. |
-| ~~P2-7~~ | ~~Hover element labels in visual editor~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
-| ~~P2-8~~ | ~~Structural color bars for DITA body elements~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
-| ~~P2-9~~ | ~~Light theme warmth refinement~~ | ~~Feature~~ | Shipped in v0.6.0 (see Completed section) |
-| ~~P2-10~~ | ~~Rename "Post-Requisite" hover label to "Postrequisites"~~ | ~~Fix~~ | Shipped in v0.6.1 (see Completed section) |
-| ~~P2-11~~ | ~~Improve theme descriptions to be more contextual~~ | ~~Polish~~ | Shipped in v0.6.1 (see Completed section) |
-| ~~P2-12~~ | ~~Add aria-label to Format XML button~~ | ~~Fix~~ | Shipped in v0.6.2 (see Completed section) |
-| ~~P2-13~~ | ~~Improve Format XML error toast specificity~~ | ~~Polish~~ | Shipped in v0.6.2 (see Completed section) |
-| ~~P2-14~~ | ~~Refine external load toast copy~~ | ~~Polish~~ | Shipped in v0.7.1 (see Completed section) |
 | P2-15 | Improve HerettoReplaceModal recovery text | Polish | UX review (Maya Chen): make Heretto version history recovery path more specific — suggest "To recover, use Heretto's version history (topic -> History tab)." |
 | P2-16 | Improve DiffViewer empty state copy | Polish | UX review (Maya Chen): when no changes detected, use "No changes detected — your content matches the version in Heretto" instead of generic "No changes detected". |
 | P2-17 | Use contextual placeholder in HerettoStatusModal | Polish | UX review (Maya Chen): change email placeholder from "user@example.com" to "your.name@company.com" to clarify it's a work email. |
+| P2-18 | Investigate save confirmation feedback loop | Investigation | After clicking `Heretto > Save` or `Commit`, the status bar stays on `Unsaved changes` with no toast, progress indicator, or success/failure message. Needs investigation: is the PUT firing and succeeding silently (status indicator bug), or is the save not triggering at all (functional bug)? Either way, the UI should show `Saving...` → `Saved and verified` or an error. Found during Maya Chen authoring session (2026-03-13). |
 
-**Dependency chain:** P2-6 is the only substantial remaining item. P2-15, P2-16, P2-17 are trivial one-line copy changes.
+> P2-1 through P2-5, P2-7 through P2-14 have all shipped (v0.6.0–v0.7.1). See Completed section for details.
+
+**Dependency chain:** P1-9, P1-10, and P1-11 are bugs that should be fixed before next feature work. P2-18 needs investigation to determine if it's a status indicator bug or a functional save bug. P2-6 is the only substantial feature item. P2-15, P2-16, P2-17 are trivial one-line copy changes.
 
 ---
 
@@ -74,14 +67,20 @@ No open P0 items.
 | P3-7 | Geotab theme session action items | Polish | Theme descriptions, tooltip font size, screen reader testing, visual verification. See `.claude/session-2026-03-10-geotab-theme.md`. |
 | P3-8 | [Release notes version browser in What's New modal](feature-requests.md#fr-002-release-notes-version-browser-in-whats-new-modal) | Feature | Modal currently shows only the latest entry. A version selector turns it from a one-time notification into a lightweight changelog. Low urgency — only two versions exist today. |
 | P3-9 | [Keyboard shortcut cheat sheet](feature-requests.md#fr-005-keyboard-shortcut-cheat-sheet) | Feature | Good shortcuts exist but are undiscoverable without reading source. Overlay triggered by `?` or `Cmd+/`, grouped by category. Small surface, signals respect for keyboard-driven workflows. |
+| P3-10 | [Rename `Commit` to `Save to Heretto`](feature-requests.md#fr-015-rename-commit-button-to-save-to-heretto) | Polish | UX review (Maya Chen): `Commit` is Git vocabulary that doesn't match a writer's mental model. Unify with `Save to Heretto` across status bar and Heretto dropdown. |
+| P3-11 | [Use writer-friendly vocabulary in status bar](feature-requests.md#fr-016-use-writer-friendly-vocabulary-in-heretto-status-bar) | Polish | UX review (Maya Chen): Status bar terms like `Unsaved changes` + `Commit` and `Conflict` are developer-centric. Rephrase for technical writers. |
 
 ---
 
 ## Recommended Execution Order
 
-**Session N (next):** P2-15 + P2-16 + P2-17 (UX copy fixes). Three trivial one-line changes, ship as a quick batch.
+**Session N (next):** P1-11 (Format button placement) + P1-9 (word count bug) + P1-10 (sync blocked during conflict). P1-11 is the simplest — move one button and restyle. P1-9 and P1-10 require state management investigation.
 
-**Session N+1:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+1:** P2-18 (investigate save feedback loop). Determine root cause — is save firing silently or not firing at all? Then fix accordingly.
+
+**Session N+2:** P2-15 + P2-16 + P2-17 (UX copy fixes). Three trivial one-line changes, ship as a quick batch.
+
+**Session N+3:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract DownloadWarningModal when building export, version browser when a third release ships). **P3-1 through P3-4 are blocked** on LLM API key access — no timeline; defer to future roadmap unless key becomes available.
 
@@ -163,6 +162,20 @@ All P0 and P1 items from the original backlog were resolved in a single session 
 | P1-5 | [Empty table rows rendered as blank space](../bugreports/BUG-empty-table-rows.md) | Bug | Rows with no `<entry>` children filtered during parsing. |
 | P1-6 | [Theme dropdown hidden behind Heretto context toolbar](../bugreports/BUG-theme-dropdown-z-index.md) | Bug | z-index fix in `Toolbar.tsx`. |
 | P1-7 | [Geotab theme lacks visual hierarchy](../bugreports/BUG-geotab-theme-low-contrast.md) | Bug | Three-tier contrast hierarchy in `index.css`. |
+
+---
+
+### Pre-backlog (v0.5.0 and earlier)
+
+Features shipped before the backlog was formalized. Added retroactively for traceability.
+
+| Item | Type | Resolution |
+|------|------|------------|
+| DITA-aware auto-completion in XML editor | Feature | Context-sensitive element suggestions via `registerCompletionItemProvider` in `MonacoDitaEditor.tsx`. Walks tag stack to determine parent element, suggests only valid DITA children from a full `ditaContentModel`. Triggered on `<` or Ctrl+Space. |
+| Auto-close XML tags | Feature | `setupAutoCloseTags` in `MonacoDitaEditor.tsx`. Inserts matching closing tag on `>` keystroke and positions cursor between open/close pair. Skips self-closing tags, closing tags, comments, PIs, and DOCTYPE declarations. |
+| Clickable error panel (jump-to-line) | Feature | Code Status Footer in `dita-architect.tsx`. Problems panel shows XML errors as clickable buttons that call `monacoApiRef.current.revealLine()` to jump to the offending line. |
+| Import integrity check (double-fetch verification) | Feature | `ImportVerificationModal` + `useHerettoCms`. Topic content is fetched twice from Heretto and compared before opening. Flags unrecognized DITA elements that won't render in the visual editor. |
+| Processing instruction round-trip preservation | Feature | Heretto review markers (`<?ezd-review-start?>` / `<?ezd-review-end?>`) are filtered from Lexical rendering but preserved and round-tripped in the XML output. |
 
 ---
 

@@ -159,7 +159,7 @@ export const DiffViewer = ({
             </span>
           )}
           {lineStats.added === 0 && lineStats.removed === 0 && (
-            <span>No changes detected</span>
+            <span>No changes detected — your content matches the version in Heretto</span>
           )}
         </div>
       )}

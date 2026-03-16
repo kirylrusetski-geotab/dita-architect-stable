@@ -28,7 +28,7 @@ export const BottomToolbar = () => {
   });
 
   useEffect(() => {
-    return editor.registerUpdateListener(({ editorState }) => {
+    const unregister = editor.registerUpdateListener(({ editorState }) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         editorState.read(() => {
@@ -38,6 +38,15 @@ export const BottomToolbar = () => {
         });
       }, DEBOUNCE_MS);
     });
+
+    // Immediately read current state to catch content parsed before listener attached
+    editor.getEditorState().read(() => {
+      const root = $getRoot();
+      const text = root.getTextContent();
+      setStats(analyzeText(text));
+    });
+
+    return unregister;
   }, [editor]);
 
   // Cleanup pending timeout on unmount

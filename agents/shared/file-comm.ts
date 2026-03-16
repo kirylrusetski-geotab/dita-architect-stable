@@ -11,6 +11,7 @@ const PROJECT_LOG_FILE = path.join(PROJECT_ROOT, 'PROJECT_LOG.md');
 export const REPORT_FILES = {
   kickoff: 'kickoff.md',
   plan: 'plan.md',
+  discovery: 'discovery.md',
   implementation: 'implementation.md',
   review: 'review.md',
   uxReview: 'ux-review.md',

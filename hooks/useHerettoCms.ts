@@ -37,6 +37,7 @@ export function useHerettoCms({
   const [herettoItems, setHerettoItems] = useState<HerettoItem[]>([]);
   const [herettoSelected, setHerettoSelected] = useState<HerettoItem | HerettoSearchResult | null>(null);
   const [herettoSaving, setHerettoSaving] = useState(false);
+  const [herettoSaveProgress, setHerettoSaveProgress] = useState<'idle' | 'saving' | 'verifying' | 'complete'>('idle');
   const [isHerettoDropdownOpen, setIsHerettoDropdownOpen] = useState(false);
   const herettoDropdownRef = useRef<HTMLDivElement>(null);
   const [herettoSaveFileName, setHerettoSaveFileName] = useState('');
@@ -422,6 +423,7 @@ export function useHerettoCms({
     herettoSaveAbortRef.current = abort;
 
     setHerettoSaving(true);
+    setHerettoSaveProgress('saving');
     try {
       const res = await fetch(`/heretto-api/all-files/${herettoFile.uuid}/content`, {
         method: 'PUT',
@@ -449,6 +451,7 @@ export function useHerettoCms({
         throw new Error(errorMessage);
       }
 
+      setHerettoSaveProgress('verifying');
       const verifyRes = await fetch(`/heretto-api/all-files/${herettoFile.uuid}/content`, { signal: abort.signal });
       if (!verifyRes.ok) throw new Error('Failed to verify');
       const remote = await verifyRes.text();
@@ -456,6 +459,7 @@ export function useHerettoCms({
       if (abort.signal.aborted) return;
 
       const comparison = compareXml(content, remote);
+      setHerettoSaveProgress('complete');
       if (comparison === 'identical') {
         toast.success(`Saved and verified ${herettoFile.name}`);
       } else if (comparison === 'formatting') {
@@ -463,6 +467,7 @@ export function useHerettoCms({
       } else {
         toast.warning(`Saved ${herettoFile.name}, but remote content differs — verify manually`);
       }
+      setHerettoSaveProgress('idle');
 
       // Update savedXmlRef outside the state updater to avoid mutating React state.
       // savedXmlRef is a stable ref-like object (created once per tab in createTab()),
@@ -477,6 +482,7 @@ export function useHerettoCms({
       if (abort.signal.aborted) return;
       const message = err instanceof Error ? err.message : String(err);
       toast.error(`Failed to save to Heretto: ${message}`);
+      setHerettoSaveProgress('idle');
     } finally {
       if (!abort.signal.aborted) setHerettoSaving(false);
     }
@@ -671,6 +677,7 @@ export function useHerettoCms({
     herettoSelected,
     setHerettoSelected,
     herettoSaving,
+    herettoSaveProgress,
     isHerettoDropdownOpen,
     setIsHerettoDropdownOpen,
     herettoDropdownRef,

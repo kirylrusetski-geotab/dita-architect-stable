@@ -20,12 +20,15 @@ export interface PipelineContext {
   reports: {
     kickoff?: string;
     plan?: string;
+    discovery?: string;
     implementation?: string;
     review?: string;
     uxReview?: string;
     devops?: string;
     testResults?: string;
     wrapup?: string;
+    pipelineBranch?: string;
+    retryWarning?: string;
   };
 }
 

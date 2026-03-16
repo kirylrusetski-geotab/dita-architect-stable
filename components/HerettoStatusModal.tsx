@@ -93,7 +93,7 @@ export const HerettoStatusModal = ({
         }}
         onFocus={e => (e.currentTarget.style.borderColor = 'var(--editor-accent)')}
         onBlur={e => (e.currentTarget.style.borderColor = 'var(--app-border-subtle)')}
-        placeholder="user@example.com"
+        placeholder="your.name@company.com"
       />
 
       {/* Token */}

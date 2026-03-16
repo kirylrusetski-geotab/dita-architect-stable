@@ -331,3 +331,49 @@ One-line change in `components/HerettoStatusModal.tsx`.
 ### Value Proposition (Maya Chen, UX Advisor)
 
 Placeholder text is a micro-affordance — it answers "what goes here?" at a glance. `user@example.com` is a developer convention that signals nothing about the context. `your.name@company.com` subtly communicates "use your work email" without needing a label change. Small touch, professional signal.
+
+---
+
+## FR-015: Rename `Commit` button to `Save to Heretto`
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** Low
+**Impact:** Medium
+
+### Description
+
+The Heretto-connected status bar shows a `Commit` button alongside status text like `Unsaved changes` or `Conflict — updated in Heretto`. The `Commit` label is developer/Git vocabulary that doesn't match a technical writer's mental model. Additionally, there is both a `Commit` button in the status bar and a `Save` option in the Heretto dropdown menu, creating ambiguity about which action actually saves to Heretto.
+
+- **Current:** `Commit` button in status bar + `Save` in Heretto dropdown
+- **Suggested:** Single `Save to Heretto` label for the primary save action, consistent across both locations
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+During my authoring session, I clicked `Commit` expecting it to save my changes to Heretto. It resolved the conflict state but didn't save. Then I tried `Heretto > Save` and couldn't tell if it worked either. Two buttons that sound like they do similar things but behave differently is a recipe for confusion.
+
+Authors think in terms of "save my work." They don't think in terms of "commit." The label should match the action and the audience. `Save to Heretto` is unambiguous — it tells you *what* will happen and *where*. If `Commit` is doing something different from `Save` (like resolving a conflict vs. pushing content), those should be visually and verbally distinct — not two buttons that look interchangeable but aren't.
+
+---
+
+## FR-016: Use writer-friendly vocabulary in Heretto status bar
+
+**Requested:** 2026-03-13
+**Status:** Proposed
+**Priority:** Low
+**Impact:** Medium
+
+### Description
+
+The Heretto status bar uses developer-centric terms that don't align with a technical writer's workflow vocabulary. The combination of `Unsaved changes` + `Commit` reads like a Git staging area, not a document editor.
+
+- **Current status states:** `Unsaved changes`, `Conflict — updated in Heretto`, `Saved just now`
+- **Current action:** `Commit`
+- **Suggested states:** `Edited — not saved`, `Someone else edited this in Heretto`, `Saved to Heretto`
+- **Suggested action:** `Save to Heretto` (see FR-015)
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+The status bar is the author's primary feedback channel for document state. Every word in it should be immediately parseable by someone who has never used Git. `Unsaved changes` is borderline fine, but paired with `Commit` it creates a Git mental model that doesn't serve the audience. `Conflict` is technical jargon — "Someone else edited this in Heretto" tells the author exactly what happened in language they understand.
+
+This isn't about dumbing things down — it's about matching the language to the user. The same author who would be confused by `Commit` would instantly understand `Save to Heretto`. The status bar should speak the author's language, not the developer's.

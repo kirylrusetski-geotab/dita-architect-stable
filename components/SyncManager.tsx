@@ -59,7 +59,7 @@ export const SyncManager = ({ xmlContent, onLexicalChange, lastUpdatedBy, syncTr
   // Helper: apply pending XML to Lexical
   const applyPendingSync = useCallback(() => {
     const pending = pendingXmlRef.current;
-    if (pending === null || pending === lastXmlRef.current) return;
+    if (pending === null) return;
 
     isSyncingFromXmlRef.current = true;
     const success = parseXmlToLexical(pending, editor, nodeOriginMap);
@@ -105,9 +105,7 @@ export const SyncManager = ({ xmlContent, onLexicalChange, lastUpdatedBy, syncTr
       });
     } else {
       // Monaco (or other) is focused → apply XML to Lexical
-      if (xmlContent !== lastXmlRef.current) {
-        pendingXmlRef.current = xmlContent;
-      }
+      pendingXmlRef.current = xmlContent;
       applyPendingSync();
     }
   }, [syncTrigger]);
