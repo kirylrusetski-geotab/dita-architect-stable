@@ -27,12 +27,9 @@ No open P0 items.
 
 ### P1 — Before Next Feature Work
 
-| ID | Item | Type | Rationale |
-|----|------|------|-----------|
-| ~~P1-8~~ | ~~Theme dropdown tooltip blocks next option~~ | ~~Bug~~ | Shipped in v0.6.0 (see Completed section) |
-| P1-9 | Word/character count shows `0 words \| 0 characters` on initial load | Bug | Counter displays zeros when a topic is first opened from Heretto. Only updates to correct values after the visual editor re-syncs (e.g., clicking into the Lexical pane). The count should reflect content immediately on load. Found during Maya Chen authoring session (2026-03-13). |
-| P1-10 | XML→visual sync blocked during conflict state | Bug | When `Conflict — updated in Heretto` is showing, Ctrl+Enter does not sync XML editor changes to the visual editor. The sync only flushes when the visual editor gains focus *after* the conflict is resolved. This breaks the documented behavior (`Press Ctrl+Enter to sync between editors`). Authors have no indication that sync is blocked or how to unblock it. Found during Maya Chen authoring session (2026-03-13). |
-| P1-11 | Format XML button floats outside the XML toolbar | Bug | The Format button is rendered as an `absolute top-2 right-2` overlay inside `MonacoDitaEditor.tsx`, floating over the Monaco editor canvas. It should be in the XML toolbar row in `dita-architect.tsx` (the `h-10` bar with the syntax theme picker, TASK badge, and collapse button). Fix: move the button into the toolbar div (~line 982, `flex items-center gap-2` group), lift the format handler up, and restyle the button from its current `bg-black/50` pill to match the existing toolbar button styling (consistent with collapse icon and other toolbar controls). |
+No open P1 items.
+
+> P1-8 through P1-11 have all shipped (v0.6.0–v0.7.2). See Completed section for details.
 
 ---
 
@@ -48,7 +45,7 @@ No open P0 items.
 
 > P2-1 through P2-5, P2-7 through P2-14 have all shipped (v0.6.0–v0.7.1). See Completed section for details.
 
-**Dependency chain:** P1-9, P1-10, and P1-11 are bugs that should be fixed before next feature work. P2-18 needs investigation to determine if it's a status indicator bug or a functional save bug. P2-6 is the only substantial feature item. P2-15, P2-16, P2-17 are trivial one-line copy changes.
+**Dependency chain:** P2-18 needs investigation to determine if it's a status indicator bug or a functional save bug. P2-6 is the only substantial feature item. P2-15, P2-16, P2-17 are trivial one-line copy changes.
 
 ---
 
@@ -74,19 +71,30 @@ No open P0 items.
 
 ## Recommended Execution Order
 
-**Session N (next):** P1-11 (Format button placement) + P1-9 (word count bug) + P1-10 (sync blocked during conflict). P1-11 is the simplest — move one button and restyle. P1-9 and P1-10 require state management investigation.
+**Session N (next):** P2-18 (investigate save feedback loop). Determine root cause — is save firing silently or not firing at all? Then fix accordingly.
 
-**Session N+1:** P2-18 (investigate save feedback loop). Determine root cause — is save firing silently or not firing at all? Then fix accordingly.
+**Session N+1:** P2-15 + P2-16 + P2-17 (UX copy fixes). Three trivial one-line changes, ship as a quick batch.
 
-**Session N+2:** P2-15 + P2-16 + P2-17 (UX copy fixes). Three trivial one-line changes, ship as a quick batch.
-
-**Session N+3:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+2:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract DownloadWarningModal when building export, version browser when a third release ships). **P3-1 through P3-4 are blocked** on LLM API key access — no timeline; defer to future roadmap unless key becomes available.
 
 ---
 
 ## Completed
+
+### Shipped in v0.7.2 (2026-03-16)
+
+P1 bug fixes: word count, sync during conflict, format button placement. Tooltips and aria-labels on XML toolbar.
+
+| Former ID | Item | Type | Resolution |
+|-----------|------|------|------------|
+| P1-9 | Word/character count shows zeros on initial load | Bug | Defensive try-catch error boundaries in `BottomToolbar.tsx` around editor state reads. Immediate state read in `useEffect` catches content parsed before listener attached. |
+| P1-10 | XML→visual sync blocked during conflict state | Bug | Removed redundant `pending === lastXmlRef.current` condition in `SyncManager.tsx` that prevented Ctrl+Enter sync during Heretto conflict state. |
+| P1-11 | Format XML button floats outside XML toolbar | Bug | Moved Format button from absolute-positioned overlay in `MonacoDitaEditor.tsx` into the XML toolbar row in `dita-architect.tsx`. Restyled to match existing toolbar button pattern. |
+| — | XML toolbar tooltips and aria-labels | Feature | Added `<Tooltip>` wrappers and aria-labels to all three XML toolbar items (syntax theme dropdown, format button, collapse button). Dynamic aria-label on syntax theme: `"Select syntax theme: {theme}"`. Keyboard shortcut in format tooltip: `"Format XML (Shift+Alt+F)"`. |
+
+---
 
 ### Shipped in v0.7.1 (2026-03-13)
 

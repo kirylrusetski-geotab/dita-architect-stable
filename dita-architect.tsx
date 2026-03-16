@@ -1014,16 +1014,6 @@ export default function ProfessionalDitaEditor() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Tooltip content="Format XML (Shift+Alt+F)">
-                <button
-                  onClick={handleFormatClick}
-                  className="p-1 rounded transition-colors hover-app-text"
-                  style={{ color: 'var(--app-text-muted)' }}
-                  aria-label="Format XML"
-                >
-                  <Code2 className="w-3.5 h-3.5" />
-                </button>
-              </Tooltip>
               {currentTopicType !== 'undefined' && (
                 <div
                   className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider"
@@ -1036,7 +1026,17 @@ export default function ProfessionalDitaEditor() {
                   {currentTopicType}
                 </div>
               )}
-              <Tooltip content="Collapse XML editor">
+              <Tooltip content="Format XML (Shift+Alt+F)">
+                <button
+                  onClick={handleFormatClick}
+                  className="p-1 rounded transition-colors hover-app-text"
+                  style={{ color: 'var(--app-text-muted)' }}
+                  aria-label="Format XML"
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Collapse">
                 <button
                   onClick={() => setCodeEditorCollapsed(true)}
                   className="p-1 rounded transition-colors hover-app-text"
