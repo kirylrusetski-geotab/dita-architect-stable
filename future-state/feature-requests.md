@@ -377,3 +377,311 @@ The Heretto status bar uses developer-centric terms that don't align with a tech
 The status bar is the author's primary feedback channel for document state. Every word in it should be immediately parseable by someone who has never used Git. `Unsaved changes` is borderline fine, but paired with `Commit` it creates a Git mental model that doesn't serve the audience. `Conflict` is technical jargon — "Someone else edited this in Heretto" tells the author exactly what happened in language they understand.
 
 This isn't about dumbing things down — it's about matching the language to the user. The same author who would be confused by `Commit` would instantly understand `Save to Heretto`. The status bar should speak the author's language, not the developer's.
+
+---
+
+## FR-017: Editor status API endpoint
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** High
+
+### Description
+
+Add a `GET /api/status` endpoint that returns the editor's current state: version, Heretto connection status, number of open tabs, active theme. This is the handshake endpoint — any Claude Code skill that integrates with DITA Architect should start here to confirm the editor is running and ready.
+
+### Suggested Response
+
+```json
+{
+  "version": "0.7.2",
+  "herettoConnected": true,
+  "tabCount": 3,
+  "activeTabId": "tab-2",
+  "theme": "dark"
+}
+```
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Every Claude Code skill that talks to DITA Architect needs a way to answer one question first: "is the editor running?" Without this, skills fail silently or throw opaque network errors. A status endpoint lets a skill say `"DITA Architect is not running on localhost:3000 — start it with npm run dev"` instead of leaving the user to debug a connection refused error. It's the difference between a tool that assumes everything is fine and one that checks before acting.
+
+---
+
+## FR-018: List open tabs API endpoint
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** High
+
+### Description
+
+Add a `GET /api/tabs` endpoint that returns all open tabs with their metadata: id, file name, Heretto file info, dirty state, and XML error count. Include the `activeTabId` at the top level so callers know which tab the author is currently working in.
+
+### Suggested Response
+
+```json
+{
+  "activeTabId": "tab-2",
+  "tabs": [
+    {
+      "id": "tab-2",
+      "fileName": "setting-up-traffic-analysis.dita",
+      "herettoFile": { "uuid": "abc-123", "name": "Setting up a Traffic Analysis" },
+      "dirty": true,
+      "xmlErrorCount": 0
+    },
+    {
+      "id": "tab-3",
+      "fileName": "new-topic.dita",
+      "herettoFile": null,
+      "dirty": false,
+      "xmlErrorCount": 1
+    }
+  ]
+}
+```
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+This is the foundation for any Claude Code skill that wants to work *with* the editor rather than just pushing content *at* it. A skill that says "review the current topic for DITA best practices" needs to know which topic is active. A skill that says "check all open tabs for broken cross-references" needs the full list. Without this endpoint, every skill has to guess — and guessing means either asking the user to specify (friction) or assuming there's only one tab (wrong). The `activeTabId` field is the key detail: it answers "what is the author looking at right now?" without requiring them to say so.
+
+---
+
+## FR-019: Read tab content API endpoint
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** High
+
+### Description
+
+Add a `GET /api/tabs/:id/content` endpoint that returns the full XML content of a specific tab along with relevant metadata. This enables the "copilot" pattern — Claude Code reads the author's current work, analyzes it, and provides suggestions.
+
+### Suggested Response
+
+```json
+{
+  "id": "tab-2",
+  "fileName": "setting-up-traffic-analysis.dita",
+  "herettoFile": { "uuid": "abc-123", "name": "Setting up a Traffic Analysis" },
+  "dirty": true,
+  "xmlErrors": [],
+  "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE task ...>..."
+}
+```
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+This is the endpoint that makes DITA Architect a *collaborative* tool rather than a closed editor. Right now, the only way to get content out of the editor is to copy-paste from the XML pane or save to Heretto and fetch via API. Neither of those works for a Claude Code skill that wants to read, analyze, and respond in real time.
+
+Have you considered the workflows this unlocks? A skill reads the XML, checks that every `<step>` has a `<cmd>`, flags any `<xref>` without an `href`, counts words per section, or suggests where to split a 3,000-word topic. All from the terminal, while the author keeps writing. The response includes `xmlErrors` and `dirty` state so the skill has full context — it knows whether the content has unsaved changes and whether there are validation issues before it starts its analysis.
+
+---
+
+## FR-020: Update tab content API endpoint
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** High
+
+### Description
+
+Add a `PUT /api/tabs/:id/content` endpoint that updates the XML content of an existing tab. This completes the read-write loop — Claude Code can read content via FR-019, transform it, and push the result back into the same tab.
+
+### Suggested Request Body
+
+```json
+{
+  "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE task ...>..."
+}
+```
+
+### Suggested Response
+
+```json
+{
+  "id": "tab-2",
+  "status": "updated"
+}
+```
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+This is where the integration goes from "read-only" to "useful." A skill that can read content and write it back can do real work: reformat XML, add missing `<shortdesc>` elements, normalize `<uicontrol>` usage, or apply terminology corrections across a topic. The key UX consideration is feedback — when content changes in the editor because a skill updated it, the author should see a toast like `"Content updated from terminal"` so the change isn't invisible. Without feedback, the XML pane silently changes and the author might not notice, especially if they're focused on the visual pane.
+
+The `PUT` should also trigger a sync to the visual editor so the author sees the updated content in both panes immediately, matching the behavior of typing directly in the XML editor.
+
+---
+
+## FR-021: Save tab to Heretto API endpoint
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** High
+
+### Description
+
+Add a `POST /api/tabs/:id/save` endpoint that triggers a save to Heretto for a specific tab. This completes the full lifecycle: a Claude Code skill can read a topic, edit it, and save it back to Heretto without the author touching the browser.
+
+### Suggested Response
+
+```json
+{
+  "id": "tab-2",
+  "status": "saved",
+  "herettoFile": { "uuid": "abc-123", "name": "Setting up a Traffic Analysis" }
+}
+```
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+This is the endpoint that closes the loop. Without it, a Claude Code skill can push edited content into the editor but the author still has to manually click `Save to Heretto` in the browser. That breaks the terminal workflow — the whole point of CLI integration is that the author can stay in their terminal.
+
+The save should follow the same verification pattern we already use (`PUT` → fetch-back → compare) and return the result. If the save fails (not connected to Heretto, tab not linked to a Heretto file, conflict state), the response should include a clear error: `"Tab is not connected to Heretto"` or `"Conflict — resolve in the editor first"`. Those error messages can flow directly into the Claude Code skill's output to the user.
+
+---
+
+## FR-022: Format tab XML API endpoint
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Low
+**Impact:** Medium
+
+### Description
+
+Add a `POST /api/tabs/:id/format` endpoint that triggers XML formatting (pretty-print) on a specific tab. Useful for Claude Code skills that generate or transform XML and want to ensure the result is cleanly formatted before the author sees it.
+
+### Suggested Response
+
+```json
+{
+  "id": "tab-2",
+  "status": "formatted"
+}
+```
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Skills that generate XML — whether from scratch or by transforming existing content — don't always produce cleanly indented output. Rather than requiring every skill to implement its own XML formatter, this endpoint lets them push content via FR-020 and then call format to clean it up. It's the API equivalent of the author clicking the Format button in the toolbar. One less thing for skill authors to worry about, and consistent formatting regardless of where the XML came from.
+
+---
+
+## FR-023: Tab content statistics API endpoint
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Low
+**Impact:** Medium
+
+### Description
+
+Add a `GET /api/tabs/:id/stats` endpoint that returns the word count, character count, readability score, and grade level for a specific tab. These statistics are already computed by `analyzeText()` in `textAnalysis.ts` and displayed in the `BottomToolbar` — this endpoint exposes them to external tools.
+
+### Suggested Response
+
+```json
+{
+  "id": "tab-2",
+  "wordCount": 487,
+  "characterCount": 2841,
+  "readabilityScore": 42.3,
+  "gradeLevel": "12th",
+  "readingLevel": "College",
+  "sentenceCount": 31
+}
+```
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Imagine a Claude Code skill that says: "This topic is 2,400 words at a 12th-grade reading level — have you considered splitting the procedure section into two topics?" That's the kind of feedback that helps writers produce better content without leaving their terminal. We already compute all of this data in `BottomToolbar` via `analyzeText()`. Exposing it via API means skills can use readability as a decision input — flag topics that exceed a word count threshold, track reading level trends across a documentation set, or suggest simplification when the Flesch-Kincaid score drops too low. The data is already there; this endpoint just makes it accessible.
+
+---
+
+## FR-024: Table context menu (insert/delete rows and columns)
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** High
+
+### Description
+
+Add a right-click context menu on table cells in the Lexical visual editor. Currently, authors can edit content *within* existing table cells, but cannot add or remove rows, columns, or tables from the visual pane — they must switch to the XML editor and manually write DITA markup.
+
+The Lexical playground ships a [`TableActionMenuPlugin`](https://github.com/facebook/lexical/tree/main/packages/lexical-playground/src/plugins/TableActionMenuPlugin) that provides 16 table operations. Port the relevant subset to DITA Architect.
+
+### Operations to Include
+
+| Operation | Menu Label | Notes |
+|---|---|---|
+| Insert row above | `Insert row above` | Explicit direction eliminates ambiguity |
+| Insert row below | `Insert row below` | |
+| Insert column left | `Insert column left` | |
+| Insert column right | `Insert column right` | |
+| Delete row | `Delete row` | |
+| Delete column | `Delete column` | |
+| Delete table | `Delete table` | Confirmation dialog before destructive action |
+| Toggle header row | `Toggle header row` | Maps to DITA `<thead>` vs `<tbody>` |
+| Merge cells | `Merge cells` | Only show when multiple cells selected |
+| Unmerge cells | `Unmerge cells` | Only show on merged cells |
+
+### Operations to Defer
+
+Background color, vertical alignment, row striping, and column/row freeze are presentation-layer features that don't map to DITA semantics. Defer until there's demand.
+
+### Suggested Approach
+
+- Port `TableActionMenuPlugin` from the [Lexical playground source](https://github.com/facebook/lexical/tree/main/packages/lexical-playground/src/plugins/TableActionMenuPlugin). The underlying commands (`INSERT_TABLE_ROW_COMMAND`, `INSERT_TABLE_COLUMN_COMMAND`, etc.) already exist in `@lexical/table`, which is already in our dependency tree.
+- Style the context menu to match the existing dropdown pattern: `bg-[var(--app-surface-raised)]`, `border-[var(--app-border-subtle)]`, `text-xs` sizing — consistent with the syntax theme dropdown.
+- Ensure Tab/Shift+Tab navigation between cells works (Tab in the last cell should create a new row).
+- Serializer impact: `createTableFromLexical` in `serializeLexicalToXml.ts` already handles CALS table output. New rows/columns created via the context menu will serialize correctly without changes.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+If I'm editing the Parameters table in a concept topic and I need to add a new `format` parameter, my only option today is to switch to the XML pane, find the right `<tbody>`, write `<row><entry>format</entry><entry>...</entry><entry>STRING</entry><entry>-</entry><entry>N</entry></row>`, and sync back. That's five nested elements for what should be a right-click and `"Insert row below"`.
+
+This is the single most common structural editing operation in DITA API documentation. Every concept topic with a parameters table, every reference topic with a properties table, every task topic with a troubleshooting table — they all need row insertion during the writing process. The gap between "I can edit cell text visually" and "I can't add a row visually" is the gap between a viewer and an editor.
+
+The good news is that Lexical has already solved this problem. The `@lexical/table` package provides the commands, and the playground provides a reference implementation of the context menu UI. We're porting proven code, not inventing new interactions.
+
+---
+
+## FR-025: Insert Table toolbar action
+
+**Requested:** 2026-03-16
+**Status:** Proposed
+**Priority:** Medium
+**Impact:** Medium
+
+### Description
+
+Add an "Insert Table" action to the WYSIWYG toolbar that opens a small dialog for specifying table dimensions (rows × columns), then inserts a new DITA table at the cursor position. This complements FR-024 (context menu for existing tables) by enabling table *creation* from the visual pane.
+
+### Suggested Interaction
+
+1. Author clicks the table icon in the toolbar (or selects `Insert > Table` from a dropdown).
+2. A small popover appears with two number inputs: `Rows` (default: 3) and `Columns` (default: 3), plus a `"Include header row"` checkbox (checked by default).
+3. Author adjusts values and clicks `Insert`.
+4. A new table appears at the cursor position with the specified dimensions. The first row is marked as a header row if the checkbox was checked.
+
+### Suggested Implementation
+
+- Use `INSERT_TABLE_COMMAND` from `@lexical/table`, which is already in our dependency tree.
+- The serializer should output CALS `<table>` format (with `<tgroup>`, `<colspec>`, `<thead>`, `<tbody>`) as the default for new tables. CALS supports column spans, row spans, and column width specifications — it's the standard format Heretto uses and what our parser/serializer already handles.
+- Toolbar button: use the Lucide `Table` icon, with `<Tooltip content="Insert table">` and `aria-label="Insert a new table"`.
+- The popover should match the existing toolbar dropdown styling.
+
+### Value Proposition (Maya Chen, UX Advisor)
+
+Right now, the only way to create a table in DITA Architect is to type the XML manually in the source pane — `<table>`, `<tgroup cols="3">`, `<colspec>` for each column, `<thead>`, `<row>`, `<entry>` for each header cell, `<tbody>`, more `<row>` and `<entry>` elements. That's a lot of markup for "I want a 3×3 table." A toolbar button with a rows-and-columns dialog reduces that to two clicks and two numbers.
+
+Have you considered defaulting to `"Include header row"` checked? In my experience reviewing DITA content, virtually every table has a header row. Starting with one saves authors from remembering to add it, and producing tables without `<thead>` is a common DITA quality issue that reviewers flag. A sensible default prevents a common mistake.
+
+For the toolbar placement, I'd suggest grouping it with the list buttons (ordered list, unordered list) since tables are structural elements in the same category. The tooltip `"Insert table"` is concise and matches the pattern of our other toolbar tooltips.
