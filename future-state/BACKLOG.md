@@ -38,14 +38,11 @@ No open P1 items.
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation. |
-| P2-15 | Improve HerettoReplaceModal recovery text | Polish | UX review (Maya Chen): make Heretto version history recovery path more specific — suggest "To recover, use Heretto's version history (topic -> History tab)." |
-| P2-16 | Improve DiffViewer empty state copy | Polish | UX review (Maya Chen): when no changes detected, use "No changes detected — your content matches the version in Heretto" instead of generic "No changes detected". |
-| P2-17 | Use contextual placeholder in HerettoStatusModal | Polish | UX review (Maya Chen): change email placeholder from "user@example.com" to "your.name@company.com" to clarify it's a work email. |
 | P2-18 | Investigate save confirmation feedback loop | Investigation | After clicking `Heretto > Save` or `Commit`, the status bar stays on `Unsaved changes` with no toast, progress indicator, or success/failure message. Needs investigation: is the PUT firing and succeeding silently (status indicator bug), or is the save not triggering at all (functional bug)? Either way, the UI should show `Saving...` → `Saved and verified` or an error. Found during Maya Chen authoring session (2026-03-13). |
 
-> P2-1 through P2-5, P2-7 through P2-14 have all shipped (v0.6.0–v0.7.1). See Completed section for details.
+> P2-1 through P2-5, P2-7 through P2-17 have all shipped (v0.6.0–v0.7.2). See Completed section for details.
 
-**Dependency chain:** P2-18 needs investigation to determine if it's a status indicator bug or a functional save bug. P2-6 is the only substantial feature item. P2-15, P2-16, P2-17 are trivial one-line copy changes.
+**Dependency chain:** P2-18 needs investigation to determine if it's a status indicator bug or a functional save bug. P2-6 is the only substantial feature item.
 
 ---
 
@@ -73,9 +70,7 @@ No open P1 items.
 
 **Session N (next):** P2-18 (investigate save feedback loop). Determine root cause — is save firing silently or not firing at all? Then fix accordingly.
 
-**Session N+1:** P2-15 + P2-16 + P2-17 (UX copy fixes). Three trivial one-line changes, ship as a quick batch.
-
-**Session N+2:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+1:** P2-6 (Inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract DownloadWarningModal when building export, version browser when a third release ships). **P3-1 through P3-4 are blocked** on LLM API key access — no timeline; defer to future roadmap unless key becomes available.
 
@@ -93,6 +88,9 @@ P1 bug fixes: word count, sync during conflict, format button placement. Tooltip
 | P1-10 | XML→visual sync blocked during conflict state | Bug | Removed redundant `pending === lastXmlRef.current` condition in `SyncManager.tsx` that prevented Ctrl+Enter sync during Heretto conflict state. |
 | P1-11 | Format XML button floats outside XML toolbar | Bug | Moved Format button from absolute-positioned overlay in `MonacoDitaEditor.tsx` into the XML toolbar row in `dita-architect.tsx`. Restyled to match existing toolbar button pattern. |
 | — | XML toolbar tooltips and aria-labels | Feature | Added `<Tooltip>` wrappers and aria-labels to all three XML toolbar items (syntax theme dropdown, format button, collapse button). Dynamic aria-label on syntax theme: `"Select syntax theme: {theme}"`. Keyboard shortcut in format tooltip: `"Format XML (Shift+Alt+F)"`. |
+| P2-15 | Improve HerettoReplaceModal recovery text | Polish | Changed to `"To recover, use Heretto's version history (topic → History tab)."` in HerettoReplaceModal.tsx. |
+| P2-16 | Improve DiffViewer empty state copy | Polish | Changed to `"No changes detected — your content matches the version in Heretto"` in DiffViewer.tsx. |
+| P2-17 | Use contextual placeholder in HerettoStatusModal | Polish | Changed email placeholder from `"user@example.com"` to `"your.name@company.com"` in HerettoStatusModal.tsx. |
 
 ---
 
