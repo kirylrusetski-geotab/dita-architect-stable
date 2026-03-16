@@ -21,6 +21,43 @@ export interface ReleaseNote {
  */
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.7.2',
+    date: '2026-03-16',
+    title: 'Table editing \u2014 right-click any table cell to insert or delete rows and columns, plus bug fixes and accessibility improvements.',
+    sections: [
+      {
+        heading: 'New Features',
+        items: [
+          'Table context menu \u2014 right-click any table cell in the visual editor to insert rows above or below, insert columns left or right, or delete rows and columns. Works for both CALS <table> and <simpletable> formats. No more switching to XML to restructure a table.',
+          'XML toolbar tooltips \u2014 all three XML toolbar items (syntax theme, Format XML, collapse) now show tooltips on hover. Format XML tooltip includes the keyboard shortcut: "Format XML (Shift+Alt+F)".',
+        ],
+      },
+      {
+        heading: 'Bug Fixes',
+        items: [
+          'Save status now updates correctly \u2014 the status bar no longer stays stuck on "Unsaved changes" after a successful save to Heretto.',
+          'Word and character count no longer shows zeros on initial load \u2014 counters reflect content immediately when a topic opens.',
+          'XML\u2192visual sync works during conflict state \u2014 Ctrl+Enter now syncs changes even when a Heretto conflict is showing.',
+          'Format XML button moved into the XML toolbar row \u2014 no longer floats outside the toolbar area.',
+        ],
+      },
+      {
+        heading: 'Accessibility',
+        items: [
+          'Aria-labels on all XML toolbar items \u2014 syntax theme dropdown now announces "Select syntax theme: {theme}", Format XML and Collapse buttons have matching labels.',
+          'Heretto modal copy improvements \u2014 replace modal shows specific recovery path ("topic \u2192 History tab"), diff viewer explains "your content matches the version in Heretto", email placeholder uses "your.name@company.com".',
+        ],
+      },
+      {
+        heading: 'Under the Hood',
+        items: [
+          '773 tests across 35 test suites \u2014 new coverage for table context menu operations, format button placement, bottom toolbar initial state, sync conflict handling, and XML toolbar tooltips.',
+          'Multi-agent development pipeline \u2014 9-agent workflow (kickoff, architecture, code discovery, implementation, code review, UX review, build verification, testing, wrapup) with three self-healing retry gates.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.7.1',
     date: '2026-03-13',
     title: 'Heretto integration \u2014 draft topics, preview diffs, and replace live documents directly from the editor.',
