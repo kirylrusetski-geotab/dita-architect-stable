@@ -112,3 +112,13 @@
 - Key insight: Fixes were already implemented - this run provided validation and hardening
 - No regressions introduced, no new tech debt
 - Next run should note: Format button defensive checks rely on Monaco?.editor API null-safety pattern
+
+---
+
+### 2026-03-16T19:00:00.000Z
+
+- **Fixed P2-18**: Save confirmation feedback loop. Root cause: `handleHerettoSave` in `useHerettoCms.ts` (line 479) was missing `herettoDirty: false` in the `setTabs` call after successful save. The `useEffect` deriving dirty state only watched `xmlContent` in its dependency array, not `savedXmlRef.current`, so it never re-fired after save. One-line fix.
+- **Fixed 3 test failures**: Updated `xml-toolbar-tooltips.test.tsx` to expect shortened tooltip text `"Collapse"` instead of `"Collapse XML editor"` (changed in prior session). Aria-label assertions unchanged.
+- All 759 tests passing
+- Backlog updated: P2-18 moved to Completed, execution order renumbered (5 sessions remaining)
+- Next run should know: Save flow now correctly resets `herettoDirty` after successful PUT+verify cycle

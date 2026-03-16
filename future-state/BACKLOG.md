@@ -37,16 +37,15 @@ No open P1 items.
 
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
-| P2-18 | Investigate save confirmation feedback loop | Investigation | After clicking `Heretto > Save` or `Commit`, the status bar stays on `Unsaved changes` with no toast, progress indicator, or success/failure message. Needs investigation: is the PUT firing and succeeding silently (status indicator bug), or is the save not triggering at all (functional bug)? Either way, the UI should show `Saving...` → `Saved and verified` or an error. Found during Maya Chen authoring session (2026-03-13). |
 | P2-19 | [Table context menu (insert/delete rows and columns)](feature-requests.md#fr-024-table-context-menu-insertdelete-rows-and-columns) | Feature | Right-click context menu on table cells: insert/delete rows and columns, toggle header row, merge/unmerge cells. Port from Lexical playground's `TableActionMenuPlugin`. Biggest visual-editor authoring gap — writers can edit cell text but can't structurally modify tables without dropping to XML. |
 | P2-20 | [Read-only API endpoints for Claude Code integration](feature-requests.md#fr-017-editor-status-api-endpoint) | Feature | `GET /api/status`, `GET /api/tabs`, `GET /api/tabs/:id/content`. Three read-only endpoints that let Claude Code skills query editor state. Foundation for the skill ecosystem. Trivial to build — same Vite plugin pattern as existing `/api/load-content`. |
 | P2-21 | [Insert Table toolbar action](feature-requests.md#fr-025-insert-table-toolbar-action) | Feature | Toolbar button to insert a new DITA table with a rows × columns dialog. Default to CALS `<table>` format with header row. Complements P2-19 (context menu for existing tables). |
 | P2-22 | [Write API endpoints for Claude Code integration](feature-requests.md#fr-020-update-tab-content-api-endpoint) | Feature | `PUT /api/tabs/:id/content`, `POST /api/tabs/:id/save`, `POST /api/tabs/:id/format`, `GET /api/tabs/:id/stats`. Completes the read-write loop — Claude Code skills can edit content and trigger saves. |
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation — needs design thought before committing. |
 
-> P2-1 through P2-5, P2-7 through P2-17 have all shipped (v0.6.0–v0.7.2). See Completed section for details.
+> P2-1 through P2-5, P2-7 through P2-18 have all shipped (v0.6.0–v0.7.2). See Completed section for details.
 
-**Dependency chain:** P2-18 is an investigation that may surface a one-line fix or a real bug. P2-19 (table context menu) is the biggest visual-editor gap. P2-20 (read-only API) unlocks the Claude Code skill ecosystem. P2-21 depends on the patterns established by P2-19. P2-22 depends on P2-20. P2-6 is substantial and needs design scoping before committing.
+**Dependency chain:** P2-19 (table context menu) is the biggest visual-editor gap. P2-20 (read-only API) unlocks the Claude Code skill ecosystem. P2-21 depends on the patterns established by P2-19. P2-22 depends on P2-20. P2-6 is substantial and needs design scoping before committing.
 
 ---
 
@@ -72,17 +71,15 @@ No open P1 items.
 
 ## Recommended Execution Order
 
-**Session N (next):** P2-18 (investigate save feedback loop). Quick investigation — may be a one-line fix or may surface a real bug. Blocking trust in the save workflow.
+**Session N (next):** P2-19 (table context menu). Port `TableActionMenuPlugin` from Lexical playground. Biggest visual-editor authoring gap — every writer editing API reference topics hits this.
 
-**Session N+1:** P2-19 (table context menu). Port `TableActionMenuPlugin` from Lexical playground. Biggest visual-editor authoring gap — every writer editing API reference topics hits this.
+**Session N+1:** P2-20 (read-only API endpoints). Three routes (`/api/status`, `/api/tabs`, `/api/tabs/:id/content`). Unlocks the Claude Code skill ecosystem.
 
-**Session N+2:** P2-20 (read-only API endpoints). Three routes (`/api/status`, `/api/tabs`, `/api/tabs/:id/content`). Unlocks the Claude Code skill ecosystem.
+**Session N+2:** P2-21 (Insert Table toolbar button). Quick follow-up to P2-19, leverages the same patterns.
 
-**Session N+3:** P2-21 (Insert Table toolbar button). Quick follow-up to P2-19, leverages the same patterns.
+**Session N+3:** P2-22 (write API endpoints). Completes the read-write loop for Claude Code integration.
 
-**Session N+4:** P2-22 (write API endpoints). Completes the read-write loop for Claude Code integration.
-
-**Session N+5:** P2-6 (inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+4:** P2-6 (inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract DownloadWarningModal when building export, version browser when a third release ships). **P3-1 through P3-4 are blocked** on LLM API key access — no timeline; defer to future roadmap unless key becomes available.
 
@@ -92,7 +89,7 @@ No open P1 items.
 
 ### Shipped in v0.7.2 (2026-03-16)
 
-P1 bug fixes: word count, sync during conflict, format button placement. Tooltips and aria-labels on XML toolbar.
+P1 bug fixes: word count, sync during conflict, format button placement. Tooltips and aria-labels on XML toolbar. Save feedback loop fix.
 
 | Former ID | Item | Type | Resolution |
 |-----------|------|------|------------|
@@ -103,6 +100,7 @@ P1 bug fixes: word count, sync during conflict, format button placement. Tooltip
 | P2-15 | Improve HerettoReplaceModal recovery text | Polish | Changed to `"To recover, use Heretto's version history (topic → History tab)."` in HerettoReplaceModal.tsx. |
 | P2-16 | Improve DiffViewer empty state copy | Polish | Changed to `"No changes detected — your content matches the version in Heretto"` in DiffViewer.tsx. |
 | P2-17 | Use contextual placeholder in HerettoStatusModal | Polish | Changed email placeholder from `"user@example.com"` to `"your.name@company.com"` in HerettoStatusModal.tsx. |
+| P2-18 | Save confirmation feedback loop | Bug | `handleHerettoSave` in `useHerettoCms.ts` was missing `herettoDirty: false` in the `setTabs` call after successful save. Status bar stayed on `Unsaved changes` because the `useEffect` deriving dirty state only watched `xmlContent`, not `savedXmlRef.current`. One-line fix. |
 
 ---
 

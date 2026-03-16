@@ -476,7 +476,7 @@ export function useHerettoCms({
 
       setTabs(prev => prev.map(t => {
         if (t.id !== tabId) return t;
-        return { ...t, herettoLastSaved: new Date(), herettoRemoteChanged: false };
+        return { ...t, herettoLastSaved: new Date(), herettoRemoteChanged: false, herettoDirty: false };
       }));
     } catch (err) {
       if (abort.signal.aborted) return;

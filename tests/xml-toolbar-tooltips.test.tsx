@@ -217,15 +217,15 @@ describe('XML Toolbar Tooltips Implementation', () => {
   });
 
   describe('collapse XML editor button tooltip implementation', () => {
-    it('renders Collapse button with tooltip content "Collapse XML editor"', () => {
+    it('renders Collapse button with tooltip content "Collapse"', () => {
       render(<DitaArchitect />);
 
-      // Find Collapse button by aria-label
+      // Find Collapse button by aria-label (aria-label kept as full description)
       const collapseButton = screen.getByRole('button', { name: 'Collapse XML editor' });
       expect(collapseButton).toBeInTheDocument();
 
-      // The tooltip content should be in the DOM
-      expect(screen.getByText('Collapse XML editor')).toBeInTheDocument();
+      // The tooltip content should be the shortened text
+      expect(screen.getByText('Collapse')).toBeInTheDocument();
     });
 
     it('Collapse button has correct aria-label', () => {
@@ -254,7 +254,7 @@ describe('XML Toolbar Tooltips Implementation', () => {
       // All three tooltip contents should be present in DOM
       expect(screen.getByText('Syntax theme')).toBeInTheDocument();
       expect(screen.getByText('Format XML (Shift+Alt+F)')).toBeInTheDocument();
-      expect(screen.getByText('Collapse XML editor')).toBeInTheDocument();
+      expect(screen.getByText('Collapse')).toBeInTheDocument();
     });
 
     it('XML toolbar buttons have proper accessibility attributes', () => {
@@ -296,9 +296,9 @@ describe('XML Toolbar Tooltips Implementation', () => {
     it('collapse button tooltip content matches specification exactly', () => {
       render(<DitaArchitect />);
 
-      const tooltipContent = screen.getByText('Collapse XML editor');
+      const tooltipContent = screen.getByText('Collapse');
       expect(tooltipContent).toBeInTheDocument();
-      expect(tooltipContent.textContent).toBe('Collapse XML editor');
+      expect(tooltipContent.textContent).toBe('Collapse');
     });
   });
 
