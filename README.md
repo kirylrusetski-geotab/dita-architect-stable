@@ -1,113 +1,158 @@
 # DITA Architect
 
-A split-pane DITA XML authoring tool with a visual WYSIWYG editor (Lexical) on the left and an XML source editor (Monaco) on the right. Bidirectional sync keeps both panes in sync as you edit.
+A browser-based DITA XML authoring tool with a split-pane editor: WYSIWYG visual editing on the left, XML source on the right, with bidirectional sync between them.
+
+Built for technical writers who need to edit DITA content without a heavyweight desktop CMS client.
 
 ## Features
 
-- **Visual Editor** -- Rich text editing with heading, paragraph, list, quote, and link support mapped to DITA elements
-- **XML Source Editor** -- Full Monaco editor with syntax highlighting, auto-close tags, XML formatting (Shift+Alt+F), and context-aware DITA element completion
-- **Bidirectional Sync** -- Edits in either pane propagate to the other; press Ctrl+Enter to force a sync
-- **DITA Authoring Flow** -- Pressing Enter after the title automatically creates a short description, then regular paragraphs
-- **XML Validation** -- Structural well-formedness checking with clickable error details that jump to the problematic line
-- **Heretto CMS Integration** -- Browse, open, edit, and save DITA files directly from Heretto CMS
-- **5 App Themes** -- Dark (default), Light, Claude, Nord, Solarized -- applied to the entire UI
-- **7 Syntax Themes** -- Material, GitHub, Monokai, Dracula, One Dark, Catppuccin, Daylight -- independent of the app theme
-- **Topic Management** -- Create new Task, Concept, or Reference topics; convert between types; save/open files
-- **Import Verification** -- Round-trip integrity check on file import with unsupported element detection
+- **Split-pane editing** -- Lexical-powered visual editor and Monaco XML source editor, synced bidirectionally
+- **Heretto CMS integration** -- Browse, search, open, edit, and save topics directly to Heretto CMS with conflict detection and background polling
+- **Table context menu** -- Right-click any table cell to insert/delete rows and columns (CALS `<table>` and `<simpletable>`)
+- **Edit mode with tracked changes** -- Isolate edits before committing; word-level insertions highlighted, deletions shown with strikethrough
+- **DITA-aware auto-completion** -- Context-sensitive element suggestions in the XML editor based on DITA content models
+- **Format XML** -- One-click beautify (or Shift+Alt+F) with `<codeblock>` and `xml:space="preserve"` protection
+- **Replace in Heretto** -- Draft a topic, preview the diff against the live version, and replace it directly from the editor
+- **Multi-tab editing** -- Open several topics with independent undo history and sync state
+- **5 app themes** -- Dark, Light, Claude, Nord, Solarized
+- **7 syntax themes** -- Material, GitHub, Monokai, Dracula, One Dark, Catppuccin, Daylight
+- **Body element indicators** -- Hover labels and left-edge color bars for `prereq`, `context`, `result`, `postreq`
+- **Conkeyref/keyref placeholder chips** -- Unresolved references display as visible chips instead of blank space
+- **Readability metrics** -- Word count, character count, Flesch-Kincaid score in the status bar
+- **Import verification** -- Round-trip integrity check on file import with unsupported element detection
 
 ## Supported DITA Elements
 
 ### Block elements
 
-`<title>`, `<shortdesc>`, `<prereq>`, `<context>`, `<result>`, `<postreq>`, `<p>`, `<note>`, `<steps>` / `<ol>` / `<ul>`, `<step>` / `<li>`, `<cmd>`, `<section>`, `<table>`, `<simpletable>`, `<codeblock>`, `<fig>`, `<image>` (block-level)
+`<title>`, `<shortdesc>`, `<prereq>`, `<context>`, `<result>`, `<postreq>`, `<p>`, `<note>`, `<steps>` / `<ol>` / `<ul>`, `<step>` / `<li>`, `<cmd>`, `<section>`, `<table>`, `<simpletable>`, `<codeblock>`, `<fig>`, `<image>`
 
 ### Inline elements
 
-| Element | Lexical rendering |
+| Element | Visual rendering |
 |---|---|
 | `<b>`, `<strong>` | **Bold** text |
 | `<i>`, `<em>` | *Italic* text |
 | `<codeph>` | `Code` formatted text |
-| `<uicontrol>` | **Bold** text (preserves tag on round-trip) |
-| `<wintitle>` | *Italic* text (preserves tag on round-trip) |
+| `<uicontrol>` | **Bold** (preserves tag on round-trip) |
+| `<wintitle>` | *Italic* (preserves tag on round-trip) |
 | `<xref>` | Clickable link |
 | `<ph>` with conkeyref/keyref/conref | Inline reference chip |
 | `<term>` with keyref | Inline reference chip |
-| `<image>` (inline, inside `<cmd>`) | Inline image path chip |
-
-### Structural containers (preserved but not directly rendered)
-
-`<task>`, `<concept>`, `<reference>`, `<topic>`, `<taskbody>`, `<conbody>`, `<refbody>`, `<body>`, `<tgroup>`, `<thead>`, `<tbody>`, `<row>`, `<entry>`, `<sthead>`, `<strow>`, `<stentry>`, `<option>`, `<alt>`
 
 Unrecognized elements are rendered as read-only opaque blocks in the visual editor and are fully preserved in the XML source.
 
-## XML Round-Trip Preservation
-
-The serializer uses a DOM-patching strategy to preserve elements it doesn't directly edit:
-
-- **Inline element preservation** -- When editing text inside elements like `<cmd>`, the serializer diffs old and new text, maps the change to a specific DOM segment, and updates only that segment. Inline wrappers like `<uicontrol>`, `<wintitle>`, and their attributes are preserved.
-- **Processing instruction handling** -- Heretto review markers (`<?ezd-review-start?>` / `<?ezd-review-end?>`) are filtered from Lexical rendering but preserved in the XML output.
-- **Formatting whitespace normalization** -- XML beautification (indentation, newlines) does not affect Lexical rendering. The parser normalizes formatting whitespace so the visual editor shows clean content regardless of XML formatting.
-
 ## Getting Started
 
-### 1. Install Node.js (one-time setup)
+### Prerequisites
 
-You need Node.js to run the app. In Claude Code, ask:
+- Node.js 20+
+- npm 10+
 
-> Check if I have Node.js installed, and if not, install it for me
+### Install and run
 
-If Claude reports a version of v18 or higher, you're good to go. If not, Claude will walk you through installing it.
+```bash
+git clone https://github.com/kirylrusetski-geotab/dita-architect-stable.git
+cd dita-architect-stable
+npm install
+npm run dev
+```
 
-### 2. Download the project
+The editor opens at [http://localhost:3000](http://localhost:3000).
 
-In Claude Code, ask:
+### Updating to the latest version
 
-> Clone the technical-content-solutions repo from git.geotab.com
+```bash
+git pull
+npm install
+npm run dev
+```
 
-### 3. Install dependencies and start the app
+### Heretto CMS connection (optional)
 
-In Claude Code, ask:
+To connect to Heretto CMS, create `~/heretto.json`:
 
-> Install dependencies and start the dev server for the dita-architect project
+```json
+{
+  "email": "your.email@company.com",
+  "token": "your-heretto-api-token"
+}
+```
 
-Claude will run `npm install` to download the libraries the app needs, then start the local server. Once it's running, open the URL Claude provides (usually http://localhost:5173) in your browser.
+You can also configure credentials from the Heretto connection modal inside the app.
 
-### 4. Updating to the latest version
+Without Heretto credentials, the editor works fully offline -- open local files via drag-and-drop or create new topics from templates (task, concept, reference).
 
-When changes are pushed to the repo, ask Claude:
+## Scripts
 
-> Pull the latest changes for technical-content-solutions and restart the dita-architect dev server
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server on localhost:3000 |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview production build |
+| `npm test` | Run test suite |
+| `npm run test:watch` | Run tests in watch mode |
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| UI Framework | [React 19](https://react.dev) |
+| Visual Editor | [Lexical 0.16.0](https://lexical.dev) |
+| XML Editor | [Monaco Editor](https://microsoft.github.io/monaco-editor/) |
+| Build Tool | [Vite 6](https://vite.dev) |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com) |
+| Icons | [Lucide React](https://lucide.dev) |
+| Tests | Vitest + Testing Library |
+| Types | TypeScript 5.8 |
 
 ## Project Structure
 
 ```
+dita-architect.tsx              Main application component
+index.css                       Theme definitions and editor styles
+textAnalysis.ts                 Word count, character count, readability scoring
+
 components/
-  Toolbar.tsx            -- Visual editor toolbar with theme switcher
-  BottomToolbar.tsx      -- Status bar (word/character count, readability)
-  MonacoDitaEditor.tsx   -- Monaco wrapper with validation, completion, formatting
-  SyncManager.tsx        -- Bidirectional Lexical <-> XML sync with focus awareness
-  ShortdescPlugin.tsx    -- H1 -> shortdesc -> paragraph authoring flow
-  EmptyToH1Plugin.tsx    -- Auto-converts first empty paragraph to H1
-  Tooltip.tsx            -- Reusable tooltip component
-  DitaOpaqueNode.tsx     -- Read-only block for unrecognized DITA elements
-  DitaCodeBlockNode.tsx  -- Editable code block node (<codeblock>)
-  DitaImageNode.tsx      -- Block-level image/figure display (<fig>, <image>)
-  DitaPhRefNode.tsx      -- Inline reference chip (<ph>, <term> keyrefs, inline <image>)
+  Toolbar.tsx                   Visual editor toolbar with theme switcher
+  BottomToolbar.tsx             Status bar (word/char count, readability)
+  MonacoDitaEditor.tsx          Monaco wrapper with validation and completion
+  SyncManager.tsx               Bidirectional Lexical <-> XML sync
+  TableActionMenuPlugin.tsx     Right-click table context menu
+  EditModePlugin.tsx            Edit mode toggle (read-only lock)
+  TrackedChangesPlugin.tsx      Tracked insertions/deletions
+  ShortdescPlugin.tsx           H1 -> shortdesc -> paragraph authoring flow
+  DitaOpaqueNode.tsx            Read-only block for unrecognized elements
+  DitaCodeBlockNode.tsx         Editable <codeblock> node
+  DitaImageNode.tsx             Block-level <fig>/<image> display
+  DitaPhRefNode.tsx             Inline reference chip (<ph>, <term> keyrefs)
+  ReleaseNotesModal.tsx         What's New modal
+  Tooltip.tsx                   Reusable hover tooltip
+
 sync/
-  parseXmlToLexical.ts   -- XML -> Lexical tree parser
-  serializeLexicalToXml.ts -- Lexical tree -> DITA XML serializer (DOM-patching)
-  nodeOriginMap.ts       -- Maps Lexical node keys to DITA element origins
-dita-architect.tsx       -- Main application component with Heretto integration
-textAnalysis.ts          -- Word count, character count, readability scoring
-index.css                -- Theme definitions and editor styles
+  parseXmlToLexical.ts          XML -> Lexical tree parser
+  serializeLexicalToXml.ts      Lexical tree -> DITA XML serializer (DOM-patching)
+  nodeOriginMap.ts              Maps Lexical node keys to DITA element origins
+
+hooks/
+  useTabManager.ts              Tab state: open/close/switch, type conversion
+  useHerettoCms.ts              Heretto CMS API: browse, search, open, save
+  useLocalFile.ts               Local file open/save, drag-and-drop
+  useEditorUi.ts                UI state: themes, dropdowns, keyboard shortcuts
+
+constants/
+  version.ts                    App version and release notes
+  dita.ts                       DITA templates and initial content
+  heretto.ts                    Heretto root UUID and folder cache
+
+lib/
+  xml-utils.ts                  XML validation, formatting, comparison
+  heretto-utils.ts              Heretto API response parsing
+  dita.ts                       DITA element definitions
+
+tests/                          773 tests across 35 test suites
 ```
 
-## Tech Stack
+## License
 
-- [React 19](https://react.dev)
-- [Lexical](https://lexical.dev) -- WYSIWYG rich text editor
-- [Monaco Editor](https://microsoft.github.io/monaco-editor/) -- XML source editor
-- [Vite](https://vite.dev) -- Build tool and dev server
-- [Tailwind CSS 4](https://tailwindcss.com) -- Utility-first styling
-- [Lucide](https://lucide.dev) -- Icons
+Internal use -- Geotab Inc.
