@@ -191,7 +191,7 @@ export const HerettoReplaceModal = ({
                   This will overwrite the existing file in Heretto CMS.
                 </p>
                 <p className="text-xs" style={{ color: 'var(--app-text-secondary)' }}>
-                  This action cannot be undone from DITA Architect. You can restore previous versions from Heretto's version history if needed.
+                  This action cannot be undone from DITA Architect. To recover, use Heretto's version history (topic → History tab).
                 </p>
               </div>
             </div>
