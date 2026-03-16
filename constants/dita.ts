@@ -38,13 +38,13 @@ export const INITIAL_DITA: string = DITA_TEMPLATES.task
   .replace('Task title', 'Setting up the widget')
   .replace('Short description of the task.', 'To set up the widget, you need Node.js 18.')
   .replace(
-    '<steps>\n    <step><cmd>First step.</cmd></step>\n  </steps>',
+    '<steps>\n      <step><cmd>First step.</cmd></step>\n    </steps>',
     `<prereq>First, download the widget package from the repo.</prereq>
-  <context>The widget runs locally on your machine and connects to the cloud dashboard. Make sure you have an active internet connection before starting.</context>
-  <steps>
-    <step><cmd>Extract it to your folder.</cmd></step>
-    <step><cmd>Run npm install widget-component and finally configure it in your settings.</cmd></step>
-    <step><cmd>Check the browser console to make sure it works.</cmd></step>
-  </steps>
-  <result>The widget appears in your browser at localhost:3000. You should see a green status indicator confirming the connection to the cloud dashboard.</result>`,
+    <context>The widget runs locally on your machine and connects to the cloud dashboard. Make sure you have an active internet connection before starting.</context>
+    <steps>
+      <step><cmd>Extract it to your folder.</cmd></step>
+      <step><cmd>Run npm install widget-component and finally configure it in your settings.</cmd></step>
+      <step><cmd>Check the browser console to make sure it works.</cmd></step>
+    </steps>
+    <result>The widget appears in your browser at localhost:3000. You should see a green status indicator confirming the connection to the cloud dashboard.</result>`,
   );

@@ -493,6 +493,7 @@ body {
 .dita-editor-postreq {
   position: relative;
   padding-left: 0.75rem;
+  padding-right: 6rem;
   margin-bottom: 1rem;
   line-height: 1.625;
   color: var(--editor-text);
@@ -544,6 +545,18 @@ body {
 
 .dita-editor-postreq::after {
   content: 'Postrequisites';
+}
+
+.dita-editor-prereq:hover,
+.dita-editor-context:hover,
+.dita-editor-result:hover,
+.dita-editor-postreq:hover {
+  border-top: 1px solid var(--app-border-subtle);
+  border-right: 1px solid var(--app-border-subtle);
+  border-bottom: 1px solid var(--app-border-subtle);
+  border-radius: 0 4px 4px 0;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 .dita-editor-prereq:hover::after,
