@@ -21,6 +21,41 @@ export interface ReleaseNote {
  */
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.8.0',
+    date: '2026-03-17',
+    title: 'Insert Table, write API, and a critical parser fix \u2014 create tables visually, let Claude Code edit your content, and section-heavy task topics now render correctly.',
+    sections: [
+      {
+        heading: 'New Features',
+        items: [
+          'Insert Table \u2014 click the table icon in the toolbar to create a new DITA table. Choose rows (up to 50), columns (up to 10), and whether to include a header row. Tables are generated as valid DITA CALS format with proper colspec elements.',
+          'Write API endpoints \u2014 Claude Code skills can now edit content and trigger saves via four new endpoints: PUT /api/tabs/:id/content (update XML), POST /api/tabs/:id/save (save to Heretto), POST /api/tabs/:id/format (beautify XML), and GET /api/tabs/:id/stats (word count, readability). Completes the read-write loop started in v0.7.2.',
+        ],
+      },
+      {
+        heading: 'Bug Fixes',
+        items: [
+          'Task topics with sections now render correctly \u2014 the topic-level title and short description were invisible in the visual editor when the topic contained <section> elements. The parser now correctly scopes to the topic root, so the H1 title and shortdesc always appear above section content.',
+        ],
+      },
+      {
+        heading: 'Accessibility',
+        items: [
+          'Insert Table modal supports keyboard navigation \u2014 press Enter to create the table, Escape to cancel. Helper text below the inputs reads "Press Enter to create, Escape to cancel." Matches the existing link modal pattern.',
+        ],
+      },
+      {
+        heading: 'Under the Hood',
+        items: [
+          'Bidirectional sync extended with a third update source ("api") so content loaded via write endpoints syncs to the visual editor automatically.',
+          'Editor state bridge expanded with write callbacks for content update, save, and format operations.',
+          'Parser uses scoped selectors (:scope > title) for reliable heading hierarchy across all DITA topic types.',
+          '29 new tests across 8 test suites covering table creation, keyboard navigation, write API endpoints, API sync integration, and parser edge cases.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.7.2',
     date: '2026-03-16',
     title: 'Table editing \u2014 right-click any table cell to insert or delete rows and columns, plus bug fixes and accessibility improvements.',
