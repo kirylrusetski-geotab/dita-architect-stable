@@ -21,7 +21,9 @@ This is the single prioritized backlog for DITA Architect. Every actionable item
 
 ### P0 — Fix Now
 
-No open P0 items.
+| ID | Item | Type | Rationale |
+|----|------|------|-----------|
+| P0-3 | Task-level `<title>` and `<shortdesc>` not rendered in visual editor | Bug | `parseXmlToLexical.ts:500-506` — task-level title and shortdesc are parsed but not visible in Lexical for task topics containing `<section>` elements. The visual editor starts at the section's `<title>` (H2), skipping the topic title (H1) and shortdesc entirely. Confirmed by manual testing on localhost:3000. |
 
 ---
 
@@ -73,14 +75,20 @@ No open P1 items.
 | P3-20 | Insert Table modal help text for size constraints | Polish | UX review (Maya Chen, P2-21 pipeline): no indication of max table size (50 rows × 10 columns). Add help text below inputs. |
 | P3-21 | Clarify Insert Table "Include header row" label | Polish | UX review (Maya Chen, P2-21 pipeline): checkbox label is ambiguous. Change to "Include header row (first row as table headers)". |
 | P3-22 | Insert Table modal ARIA dialog attributes | Accessibility | UX review (Maya Chen, P2-21 pipeline): modal needs proper ARIA dialog role and label attributes for screen reader support. |
+| P3-23 | Insert Table modal verb consistency | Polish | UX review (Maya Chen, P3-19 pipeline): helper text uses "create" but link modal uses "insert". Align to `"Press Enter to insert, Escape to cancel."` for consistency. |
+| P3-24 | Insert Table modal aria-labels on number inputs | Accessibility | UX review (Maya Chen, P3-19 pipeline): number inputs need explicit `aria-label="Number of rows"` and `aria-label="Number of columns"` for screen readers. Also add `aria-describedby` linking helper text to inputs. |
+| P3-25 | Template placeholder text should look editable | Polish | UX review (Maya Chen, product question): default template text (`Task title`, `Short description of the task.`) looks like real content in both editors. Should use a lighter visual treatment (gray italic, `"Click to add title"`) to signal editability. |
+| P3-26 | Out-of-sync indicator for visual editor | Feature | UX review (Maya Chen, product question): when the XML editor has been updated but Ctrl+Enter hasn't been pressed, the visual editor shows stale content with no visual indicator. Add a subtle banner or dimmed overlay like `"Visual editor is out of sync — press Ctrl+Enter to refresh"`. |
 
 ---
 
 ## Recommended Execution Order
 
-**Session N (next):** P2-22 (write API endpoints). Completes the read-write loop for Claude Code integration.
+**Session N (next):** P0-3 (parser bug — task title/shortdesc invisible). Fix before any other work.
 
-**Session N+1:** P2-6 (inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N+1:** P2-22 (write API endpoints). Completes the read-write loop for Claude Code integration.
+
+**Session N+2:** P2-6 (inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract DownloadWarningModal when building export, version browser when a third release ships). **P3-1 through P3-4 are blocked** on LLM API key access — no timeline; defer to future roadmap unless key becomes available.
 

@@ -497,12 +497,17 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
       }
     };
 
-    const title = doc.querySelector('title');
-    if (title && title.parentElement?.tagName.toLowerCase() !== 'section') {
+    // Get the topic root element
+    const topicElement = doc.querySelector('task, concept, reference, topic');
+
+    // Find title as direct child of topic element
+    const title = topicElement?.querySelector(':scope > title');
+    if (title) {
       appendResult(traverse(title));
     }
 
-    const shortdesc = doc.querySelector('shortdesc');
+    // Find shortdesc as direct child of topic element
+    const shortdesc = topicElement?.querySelector(':scope > shortdesc');
     if (shortdesc) appendResult(traverse(shortdesc));
 
     const body = doc.querySelector('taskbody, conbody, refbody, body');
