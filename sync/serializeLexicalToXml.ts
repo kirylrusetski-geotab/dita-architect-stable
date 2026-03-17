@@ -398,7 +398,15 @@ const createTableFromLexical = (tableNode: any, doc: Document): Element => {
   });
 
   const firstRow = rows[0];
-  const colCount = firstRow && firstRow.getChildren ? firstRow.getChildren().length : 1;
+  // Calculate column count by considering colspan values
+  let colCount = 1;
+  if (firstRow && firstRow.getChildren) {
+    const cells = firstRow.getChildren();
+    colCount = cells.reduce((count: number, cell: any) => {
+      const colspan = cell.getColSpan && cell.getColSpan() > 1 ? cell.getColSpan() : 1;
+      return count + colspan;
+    }, 0);
+  }
 
   const tgroup = doc.createElement('tgroup');
   tgroup.setAttribute('cols', String(colCount));
@@ -406,11 +414,25 @@ const createTableFromLexical = (tableNode: any, doc: Document): Element => {
   const serializeRow = (row: any, container: Element) => {
     const rowEl = doc.createElement('row');
     const cells = row.getChildren ? row.getChildren() : [];
+    let colIndex = 1; // DITA columns are 1-based
+
     cells.forEach((cell: any) => {
       const entry = doc.createElement('entry');
+
+      // Handle rowspan (morerows)
       if (cell.getRowSpan && cell.getRowSpan() > 1) {
         entry.setAttribute('morerows', String(cell.getRowSpan() - 1));
       }
+
+      // Handle colspan (namest/nameend)
+      if (cell.getColSpan && cell.getColSpan() > 1) {
+        const colspan = cell.getColSpan();
+        const startCol = `col${colIndex}`;
+        const endCol = `col${colIndex + colspan - 1}`;
+        entry.setAttribute('namest', startCol);
+        entry.setAttribute('nameend', endCol);
+      }
+
       const cellChildren = cell.getChildren ? cell.getChildren() : [];
       if (cellChildren.length === 1 && cellChildren[0].getType() === 'paragraph') {
         serializeInlineContent(cellChildren[0], doc).forEach((n: Node) => entry.appendChild(n));
@@ -424,6 +446,10 @@ const createTableFromLexical = (tableNode: any, doc: Document): Element => {
         });
       }
       rowEl.appendChild(entry);
+
+      // Advance column index by colspan amount
+      const colspan = cell.getColSpan && cell.getColSpan() > 1 ? cell.getColSpan() : 1;
+      colIndex += colspan;
     });
     container.appendChild(rowEl);
   };
@@ -509,11 +535,17 @@ const patchTableElement = (domEl: Element, lexicalNode: any, doc: Document) => {
 
   const lexicalRows = lexicalNode.getChildren ? lexicalNode.getChildren() : [];
 
-  // Recalculate @cols attribute based on actual column count
+  // Recalculate @cols attribute based on actual column count (considering colspan)
   if (lexicalRows.length > 0) {
     const firstRow = lexicalRows[0];
     const firstRowCells = firstRow.getChildren ? firstRow.getChildren() : [];
-    const actualColCount = firstRowCells.length;
+    let actualColCount = 1;
+    if (firstRowCells.length > 0) {
+      actualColCount = firstRowCells.reduce((count: number, cell: any) => {
+        const colspan = cell.getColSpan && cell.getColSpan() > 1 ? cell.getColSpan() : 1;
+        return count + colspan;
+      }, 0);
+    }
     if (actualColCount > 0) {
       tgroup.setAttribute('cols', String(actualColCount));
     }
@@ -557,6 +589,37 @@ const patchTableRow = (domRow: Element, lexicalRow: any, doc: Document) => {
 
 const patchTableEntry = (domEntry: Element, lexicalCell: any, doc: Document) => {
   const cellChildren = lexicalCell.getChildren ? lexicalCell.getChildren() : [];
+
+  // Update colspan attributes if changed
+  const lexColSpan = lexicalCell.getColSpan ? lexicalCell.getColSpan() : 1;
+  const lexRowSpan = lexicalCell.getRowSpan ? lexicalCell.getRowSpan() : 1;
+
+  // Handle rowspan (morerows)
+  if (lexRowSpan > 1) {
+    domEntry.setAttribute('morerows', String(lexRowSpan - 1));
+  } else {
+    domEntry.removeAttribute('morerows');
+  }
+
+  // Handle colspan (namest/nameend) - preserve existing column naming if present
+  if (lexColSpan > 1) {
+    const existingNamest = domEntry.getAttribute('namest');
+    if (existingNamest) {
+      // Extract column number from existing namest (e.g., "col3" -> 3)
+      const colNumMatch = existingNamest.match(/col(\d+)/);
+      if (colNumMatch) {
+        const startCol = parseInt(colNumMatch[1], 10);
+        const endCol = startCol + lexColSpan - 1;
+        domEntry.setAttribute('namest', `col${startCol}`);
+        domEntry.setAttribute('nameend', `col${endCol}`);
+      }
+    }
+    // Note: If no existing namest, we can't determine column position during patching
+    // This would only happen with new merged cells, which would go through createTableFromLexical
+  } else {
+    domEntry.removeAttribute('namest');
+    domEntry.removeAttribute('nameend');
+  }
 
   // Check if entry has <p> children in DOM
   const domParagraphs = Array.from(domEntry.children).filter(

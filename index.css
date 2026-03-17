@@ -712,6 +712,19 @@ body {
   color: var(--app-text-primary);
 }
 
+.table-action-menu-item:disabled,
+.table-action-menu-item.disabled {
+  color: var(--app-text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.table-action-menu-item:disabled:hover,
+.table-action-menu-item.disabled:hover {
+  background-color: transparent;
+  color: var(--app-text-muted);
+}
+
 .table-action-menu-separator {
   height: 1px;
   background-color: var(--app-border-subtle);

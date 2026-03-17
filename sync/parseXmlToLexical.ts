@@ -310,11 +310,31 @@ export const parseXmlToLexical = (xmlString: string, editor: any, originMap: Nod
                   ? TableCellHeaderStates.ROW
                   : TableCellHeaderStates.NO_STATUS;
                 const cellNode = $createTableCellNode(headerState);
+
+                // Handle rowspan (morerows)
                 const morerows = entry.getAttribute('morerows');
                 if (morerows) {
                   const span = parseInt(morerows, 10);
                   if (span > 0) cellNode.setRowSpan(span + 1);
                 }
+
+                // Handle colspan (namest/nameend)
+                const namest = entry.getAttribute('namest');
+                const nameend = entry.getAttribute('nameend');
+                if (namest && nameend) {
+                  // Extract column numbers (e.g., "col1" -> 1, "col3" -> 3)
+                  const startMatch = namest.match(/col(\d+)/);
+                  const endMatch = nameend.match(/col(\d+)/);
+                  if (startMatch && endMatch) {
+                    const startCol = parseInt(startMatch[1], 10);
+                    const endCol = parseInt(endMatch[1], 10);
+                    const colspan = endCol - startCol + 1;
+                    if (colspan > 1) {
+                      cellNode.setColSpan(colspan);
+                    }
+                  }
+                }
+
                 parseCellContent(entry).forEach(n => cellNode.append(n));
                 rowNode.append(cellNode);
               });
