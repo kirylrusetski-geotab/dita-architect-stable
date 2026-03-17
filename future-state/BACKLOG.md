@@ -31,7 +31,7 @@ No open P0 items.
 
 No open P1 items.
 
-> P1-8 through P1-11 have all shipped (v0.6.0–v0.7.2). See Completed section for details.
+> P1-8 through P1-12 have all shipped (v0.6.0–v0.8.0). See Completed section for details.
 
 ---
 
@@ -93,11 +93,12 @@ No open P1 items.
 
 ### Shipped in v0.8.0 (2026-03-17)
 
-Insert Table, write API, keyboard navigation, and parser fix.
+Insert Table, write API, keyboard navigation, parser fix, and tooltip fix.
 
 | Former ID | Item | Type | Resolution |
 |-----------|------|------|------------|
 | P0-3 | Task-level title and shortdesc not rendered in visual editor | Bug | Replaced broad `doc.querySelector('title')` with scoped `topicElement.querySelector(':scope > title')` to ensure topic-level title and shortdesc are selected, not nested section titles. 7 tests covering all DITA topic types with sections. |
+| P1-12 | `Expand XML editor` tooltip covers header status text | Bug | Replaced native `title` attribute with `<Tooltip>` component using `placement="left"`. Added `left` as a new Tooltip placement option. Also added `aria-label` for screen reader support. |
 | P2-21 | Insert Table toolbar action | Feature | Toolbar button opens modal with rows (1-50), columns (1-10), and header row checkbox. Generates DITA CALS `<table>` with sequential colspec elements. Defaults to 3×3 with header. |
 | P2-22 | Write API endpoints for Claude Code integration | Feature | Four endpoints: `PUT /api/tabs/:id/content` (update XML), `POST /api/tabs/:id/save` (save to Heretto), `POST /api/tabs/:id/format` (beautify XML), `GET /api/tabs/:id/stats` (word count, readability). Bidirectional sync extended with `'api'` update source. |
 | P3-19 | Insert Table modal keyboard navigation | Accessibility | Enter key creates table, Escape key closes modal. Helper text "Press Enter to create, Escape to cancel." follows link modal pattern. |
