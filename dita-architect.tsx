@@ -1021,11 +1021,13 @@ export default function ProfessionalDitaEditor() {
               cursor: 'pointer',
             }}
             onClick={() => setCodeEditorCollapsed(false)}
-            title="Expand XML editor"
+            aria-label="Expand XML editor"
           >
-            <div className="p-2">
-              <PanelRightOpen className="w-4 h-4" style={{ color: 'var(--app-text-muted)' }} />
-            </div>
+            <Tooltip content="Expand" placement="left">
+              <div className="p-2">
+                <PanelRightOpen className="w-4 h-4" style={{ color: 'var(--app-text-muted)' }} />
+              </div>
+            </Tooltip>
             <div
               className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap"
               style={{
