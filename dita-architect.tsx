@@ -9,11 +9,13 @@ import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
+import { createCommand } from 'lexical';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { TableNode, TableRowNode, TableCellNode } from '@lexical/table';
+import { TableNode, TableRowNode, TableCellNode, $createTableNode, $createTableRowNode, $createTableCellNode, TableCellHeaderStates } from '@lexical/table';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
-import { ParagraphNode, TextNode } from 'lexical';
+import { ParagraphNode, TextNode, $getSelection, $isRangeSelection, $createParagraphNode, COMMAND_PRIORITY_EDITOR } from 'lexical';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { MonacoDitaEditor } from './components/MonacoDitaEditor';
 import { Toolbar } from './components/Toolbar';
 import { BottomToolbar } from './components/BottomToolbar';
@@ -44,7 +46,7 @@ import { HerettoReplaceBar } from './components/HerettoReplaceBar';
 import { SYNTAX_THEME_OPTIONS } from './components/MonacoDitaEditor';
 import type { XmlError } from './components/MonacoDitaEditor';
 import { formatRelativeTime, formatXml } from './lib/xml-utils';
-import { updateEditorStatus, updateTabsState } from './lib/editor-state-bridge';
+import { updateEditorStatus, updateTabsState, setSyncTriggerCallback, setSaveHandlerCallback } from './lib/editor-state-bridge';
 import { useEditorUi } from './hooks/useEditorUi';
 import { useTabManager } from './hooks/useTabManager';
 import { createTab } from './types/tab';
@@ -105,6 +107,59 @@ const editorConfig = {
     TrackedDeletionNode,
   ],
 };
+
+// Custom table insertion command
+export const INSERT_TABLE_COMMAND = createCommand<{ rows: number; columns: number; includeHeaders: boolean }>('INSERT_TABLE_COMMAND');
+
+// Table insertion plugin
+function TableInsertPlugin() {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    return editor.registerCommand(
+      INSERT_TABLE_COMMAND,
+      (payload: { rows: number; columns: number; includeHeaders: boolean }) => {
+        const { rows, columns, includeHeaders } = payload;
+
+        editor.update(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            // Create table
+            const table = $createTableNode();
+
+            // Create rows
+            for (let i = 0; i < rows; i++) {
+              const row = $createTableRowNode();
+
+              // Create cells for each column
+              for (let j = 0; j < columns; j++) {
+                const headerState = (i === 0 && includeHeaders) ? TableCellHeaderStates.ROW : 0;
+                const cell = $createTableCellNode(headerState);
+                const paragraph = $createParagraphNode();
+                cell.append(paragraph);
+                row.append(cell);
+              }
+
+              table.append(row);
+            }
+
+            // Insert the table
+            if (selection.anchor.getNode() === selection.focus.getNode()) {
+              selection.anchor.getNode().insertAfter(table);
+            } else {
+              selection.insertNodes([table]);
+            }
+          }
+        });
+
+        return true;
+      },
+      COMMAND_PRIORITY_EDITOR,
+    );
+  }, [editor]);
+
+  return null;
+}
 
 const HerettoLogo = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
@@ -241,6 +296,36 @@ export default function ProfessionalDitaEditor() {
   useEffect(() => {
     updateTabsState(tabs, activeTabId);
   }, [tabs, activeTabId]);
+
+  // Register callbacks for API-triggered operations
+  useEffect(() => {
+    setSyncTriggerCallback((tabId: string, xmlContent: string) => {
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) return false;
+      updateTab(tabId, { xmlContent, lastUpdatedBy: 'api', syncTrigger: tab.syncTrigger + 1 });
+      return true;
+    });
+
+    setSaveHandlerCallback(async (tabId: string) => {
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) {
+        return { success: false, error: 'Tab not found' };
+      }
+      if (!tab.herettoFile) {
+        return { success: false, error: 'Tab has no associated Heretto file' };
+      }
+
+      try {
+        await handleHerettoSave(tabId);
+        return { success: true };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error during save'
+        };
+      }
+    });
+  }, [updateTab, handleHerettoSave, tabs]);
 
   const {
     fileInputRef,
@@ -836,7 +921,7 @@ export default function ProfessionalDitaEditor() {
 
                       {tab.herettoDirty && (
                         <button
-                          onClick={handleHerettoSave}
+                          onClick={() => handleHerettoSave()}
                           disabled={herettoSaving}
                           className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors hover-heretto"
                           style={{
@@ -876,6 +961,7 @@ export default function ProfessionalDitaEditor() {
                   <ListPlugin />
                   <LinkPlugin />
                   <TablePlugin />
+                  <TableInsertPlugin />
                   <ClearEditorPlugin />
                   <EmptyToH1Plugin />
 

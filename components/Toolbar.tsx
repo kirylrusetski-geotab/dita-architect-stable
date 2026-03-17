@@ -10,9 +10,11 @@ import {
 } from 'lexical';
 import { $createHeadingNode, $createQuoteNode } from '@lexical/rich-text';
 import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
+// Import custom table command from main component
+import { INSERT_TABLE_COMMAND } from '../dita-architect';
 import { TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { $setBlocksType } from '@lexical/selection';
-import { FileText, AlertTriangle, Heading1, Heading2, ListOrdered, List, Undo, Redo, Trash2, Link, ChevronDown, Pencil, Check, X } from 'lucide-react';
+import { FileText, AlertTriangle, Heading1, Heading2, ListOrdered, List, Table, Undo, Redo, Trash2, Link, ChevronDown, Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip } from './Tooltip';
 
@@ -53,6 +55,11 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
   const [linkUrl, setLinkUrl] = useState('');
   const [linkError, setLinkError] = useState('');
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+  const [tableRows, setTableRows] = useState(3);
+  const [tableCols, setTableCols] = useState(3);
+  const [tableIncludeHeader, setTableIncludeHeader] = useState(true);
+  const tableRowsInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -203,6 +210,17 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
           <List className="w-4 h-4" />
         </button>
       </Tooltip>
+      <Tooltip content="Insert Table">
+        <button aria-label="Insert table" onClick={() => {
+          setTableRows(3);
+          setTableCols(3);
+          setTableIncludeHeader(true);
+          setIsTableModalOpen(true);
+          setTimeout(() => tableRowsInputRef.current?.focus(), 0);
+        }} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
+          <Table className="w-4 h-4" />
+        </button>
+      </Tooltip>
       <div className="w-px h-4 mx-2" style={{ backgroundColor: 'var(--editor-toolbar-divider)' }} />
       <Tooltip content="Warning Note">
         <button aria-label="Warning note" onClick={() => formatQuote()} className="p-1 rounded transition-colors hover-toolbar" style={{ color: 'var(--editor-toolbar-text-strong)' }}>
@@ -314,6 +332,141 @@ export const Toolbar = ({ currentTheme, onThemeChange, editMode = false, onEnter
                 className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Insert Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Insert Table Modal */}
+      {isTableModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 100 }}
+          onClick={() => setIsTableModalOpen(false)}
+        >
+          <div
+            className="rounded-xl p-6 shadow-2xl w-[400px]"
+            style={{
+              backgroundColor: 'var(--app-surface)',
+              border: '1px solid var(--app-border-subtle)',
+            }}
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setIsTableModalOpen(false);
+              }
+            }}
+          >
+            <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--app-text-primary)' }}>Insert Table</h3>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
+                  Rows
+                </label>
+                <input
+                  ref={tableRowsInputRef}
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={tableRows}
+                  onChange={e => setTableRows(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+                        rows: tableRows,
+                        columns: tableCols,
+                        includeHeaders: tableIncludeHeader,
+                      });
+                      setIsTableModalOpen(false);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{
+                    backgroundColor: 'var(--app-surface-raised)',
+                    border: '1px solid var(--app-border-subtle)',
+                    color: 'var(--app-text-primary)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--app-text-secondary)' }}>
+                  Columns
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={tableCols}
+                  onChange={e => setTableCols(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+                        rows: tableRows,
+                        columns: tableCols,
+                        includeHeaders: tableIncludeHeader,
+                      });
+                      setIsTableModalOpen(false);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{
+                    backgroundColor: 'var(--app-surface-raised)',
+                    border: '1px solid var(--app-border-subtle)',
+                    color: 'var(--app-text-primary)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={tableIncludeHeader}
+                  onChange={e => setTableIncludeHeader(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-xs font-medium" style={{ color: 'var(--app-text-secondary)' }}>
+                  Include header row
+                </span>
+              </label>
+            </div>
+
+            <p className="text-[10px] mb-4" style={{ color: 'var(--app-text-muted)' }}>
+              Press Enter to create, Escape to cancel.
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsTableModalOpen(false)}
+                className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors hover-btn"
+                style={{
+                  backgroundColor: 'var(--app-surface-raised)',
+                  border: '1px solid var(--app-border-subtle)',
+                  color: 'var(--app-text-secondary)',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+                    rows: tableRows,
+                    columns: tableCols,
+                    includeHeaders: tableIncludeHeader,
+                  });
+                  setIsTableModalOpen(false);
+                }}
+                className="flex-1 py-2 rounded-lg text-sm font-medium bg-dita-600 hover:bg-dita-500 text-white transition-colors"
+              >
+                Create Table
               </button>
             </div>
           </div>

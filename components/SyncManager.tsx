@@ -6,7 +6,7 @@ import { parseXmlToLexical, serializeLexicalToXml, createNodeOriginMap, createXm
 interface SyncManagerProps {
   xmlContent: string;
   onLexicalChange: (serializedXml: string) => void;
-  lastUpdatedBy: 'editor' | 'code';
+  lastUpdatedBy: 'editor' | 'code' | 'api';
   syncTrigger?: number;
   editMode?: boolean;
   children?: React.ReactNode;
@@ -113,7 +113,7 @@ export const SyncManager = ({ xmlContent, onLexicalChange, lastUpdatedBy, syncTr
   // Sync XML → Lexical: only if Lexical is focused, otherwise buffer
   useEffect(() => {
     if (editMode) return;
-    if (lastUpdatedBy === 'code' && xmlContent !== lastXmlRef.current) {
+    if ((lastUpdatedBy === 'code' || lastUpdatedBy === 'api') && xmlContent !== lastXmlRef.current) {
       const lexicalRoot = editor.getRootElement();
       const activeEl = document.activeElement;
       const lexicalHasFocus = lexicalRoot && activeEl && lexicalRoot.contains(activeEl);

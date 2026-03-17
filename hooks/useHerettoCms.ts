@@ -18,7 +18,7 @@ interface UseHerettoCmsParams {
 
 export function useHerettoCms({
   activeTab,
-  tabs: _tabs,
+  tabs,
   setTabs,
   setActiveTabId,
   setConfirmModal,
@@ -407,13 +407,13 @@ export function useHerettoCms({
     toast.success(`Opened ${item.name} from Heretto`);
   }, [importVerification, setTabs, setActiveTabId]);
 
-  const handleHerettoSave = useCallback(async () => {
-    const tab = activeTab;
+  const handleHerettoSave = useCallback(async (tabId?: string) => {
+    const tab = tabId ? (tabs.find(t => t.id === tabId) ?? activeTab) : activeTab;
     if (!tab.herettoFile) {
       openHerettoBrowser('save');
       return;
     }
-    const tabId = tab.id;
+    const savedTabId = tab.id;
     const herettoFile = tab.herettoFile;
     const content = tab.xmlContent;
 
@@ -475,7 +475,7 @@ export function useHerettoCms({
       tab.savedXmlRef.current = content;
 
       setTabs(prev => prev.map(t => {
-        if (t.id !== tabId) return t;
+        if (t.id !== savedTabId) return t;
         return { ...t, herettoLastSaved: new Date(), herettoRemoteChanged: false, herettoDirty: false };
       }));
     } catch (err) {
@@ -486,7 +486,7 @@ export function useHerettoCms({
     } finally {
       if (!abort.signal.aborted) setHerettoSaving(false);
     }
-  }, [activeTab, openHerettoBrowser, setTabs]);
+  }, [activeTab, tabs, openHerettoBrowser, setTabs]);
 
   const doHerettoRefresh = useCallback(async (tabId: string, file: { uuid: string; name: string }, savedXmlRef: { current: string }) => {
     // Abort any in-flight refresh to avoid concurrent overwrites

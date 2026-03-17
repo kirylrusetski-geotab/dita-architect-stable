@@ -134,7 +134,7 @@ describe('Heretto Save Feedback Loop Improvements', () => {
   describe('save progress state transitions', () => {
     it('follows the correct state transition sequence', () => {
       // idle -> saving -> verifying -> complete -> idle
-      const handleSaveFunction = useHerettoCmsContent.match(/handleHerettoSave = useCallback\(async \(\) => \{[\s\S]*?\}, \[/)?.[0] || '';
+      const handleSaveFunction = useHerettoCmsContent.match(/handleHerettoSave = useCallback\(async \([^)]*\) => \{[\s\S]*?\}, \[/)?.[0] || '';
 
       // Should set states in the correct order
       const savingIndex = handleSaveFunction.indexOf("setHerettoSaveProgress('saving')");

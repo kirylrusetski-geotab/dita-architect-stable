@@ -5,7 +5,7 @@ import type { HerettoFile } from './heretto';
 export interface Tab {
   id: string;
   xmlContent: string;
-  lastUpdatedBy: 'editor' | 'code';
+  lastUpdatedBy: 'editor' | 'code' | 'api';
   savedXmlRef: { current: string };
   herettoFile: HerettoFile | null;
   herettoLastSaved: Date | null;

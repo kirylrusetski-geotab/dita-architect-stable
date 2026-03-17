@@ -93,7 +93,7 @@ describe('P1 SyncManager conflict sync fix implementation', () => {
   describe('automatic XML sync effect modification', () => {
     it('forces pending XML in automatic sync when lastUpdatedBy is code', () => {
       // Should find the automatic sync effect that also forces pending
-      const autoSyncMatch = syncManagerContent.match(/if \(lastUpdatedBy === 'code'[\s\S]*?pendingXmlRef\.current = xmlContent;[\s\S]*?\}/);
+      const autoSyncMatch = syncManagerContent.match(/if \(\(lastUpdatedBy === 'code'[\s\S]*?pendingXmlRef\.current = xmlContent;[\s\S]*?\}/);
       expect(autoSyncMatch).toBeTruthy();
     });
 
@@ -104,7 +104,7 @@ describe('P1 SyncManager conflict sync fix implementation', () => {
 
     it('preserves automatic sync effect dependencies', () => {
       // Should have proper dependency array for the auto sync effect
-      const autoSyncEffect = syncManagerContent.match(/useEffect\(\(\) => \{[\s\S]*?if \(lastUpdatedBy === 'code'[\s\S]*?\}, \[(.*?)\]\);/);
+      const autoSyncEffect = syncManagerContent.match(/useEffect\(\(\) => \{[\s\S]*?if \(\(lastUpdatedBy === 'code'[\s\S]*?\}, \[(.*?)\]\);/);
       expect(autoSyncEffect).toBeTruthy();
       expect(autoSyncEffect![1]).toContain('xmlContent');
       expect(autoSyncEffect![1]).toContain('editor');

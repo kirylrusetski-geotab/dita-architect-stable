@@ -411,6 +411,14 @@ const createTableFromLexical = (tableNode: any, doc: Document): Element => {
   const tgroup = doc.createElement('tgroup');
   tgroup.setAttribute('cols', String(colCount));
 
+  // Generate colspec elements
+  for (let i = 1; i <= colCount; i++) {
+    const colspec = doc.createElement('colspec');
+    colspec.setAttribute('colname', `col${i}`);
+    colspec.setAttribute('colwidth', '1*');
+    tgroup.appendChild(colspec);
+  }
+
   const serializeRow = (row: any, container: Element) => {
     const rowEl = doc.createElement('row');
     const cells = row.getChildren ? row.getChildren() : [];

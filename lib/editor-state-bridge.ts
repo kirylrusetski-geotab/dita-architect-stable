@@ -34,8 +34,20 @@ export interface EditorState {
 // Cannot be initialized here since vite.config.ts manages the state object
 let editorState: EditorState | null = null;
 
+// Callbacks for API-triggered operations (set by main app)
+let syncTriggerCallback: ((tabId: string, xmlContent: string) => boolean) | null = null;
+let saveHandlerCallback: ((tabId: string) => Promise<{ success: boolean; error?: string }>) | null = null;
+
 export function setEditorStateReference(state: EditorState): void {
   editorState = state;
+}
+
+export function setSyncTriggerCallback(callback: (tabId: string, xmlContent: string) => boolean): void {
+  syncTriggerCallback = callback;
+}
+
+export function setSaveHandlerCallback(callback: (tabId: string) => Promise<{ success: boolean; error?: string }>): void {
+  saveHandlerCallback = callback;
 }
 
 export function updateEditorStatus(status: EditorStatus): void {
@@ -79,4 +91,16 @@ export function updateTabsState(tabs: Tab[], activeTabId: string): void {
 
   editorState.tabCount = tabs.length;
   editorState.activeTabId = activeTabId;
+}
+
+export function updateTabContent(tabId: string, xmlContent: string): boolean {
+  if (!syncTriggerCallback) return false;
+  return syncTriggerCallback(tabId, xmlContent);
+}
+
+export function triggerTabSave(tabId: string): Promise<{ success: boolean; error?: string }> {
+  if (!saveHandlerCallback) {
+    return Promise.resolve({ success: false, error: 'Save handler not initialized' });
+  }
+  return saveHandlerCallback(tabId);
 }

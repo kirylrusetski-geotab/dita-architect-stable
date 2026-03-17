@@ -21,6 +21,96 @@ try {
 
 const herettoConfigPath = path.join(os.homedir(), 'heretto.json');
 
+// XML validation function for server-side use
+function validateXmlStructure(xml: string): void {
+  const trimmed = xml.trim();
+  if (!trimmed) {
+    throw new Error('Empty XML content');
+  }
+
+  // Check for basic XML structure
+  if (!trimmed.includes('<') || !trimmed.includes('>')) {
+    throw new Error('Invalid XML: missing opening or closing tags');
+  }
+
+  // Must start with < and end with >
+  if (!trimmed.startsWith('<') || !trimmed.endsWith('>')) {
+    throw new Error('Invalid XML: must start and end with tag brackets');
+  }
+
+  // Parse and validate tag structure
+  const tagStack: string[] = [];
+  let inTag = false;
+  let inQuote = false;
+  let quoteChar = '';
+  let tagContent = '';
+  let i = 0;
+
+  while (i < trimmed.length) {
+    const char = trimmed[i];
+
+    if (!inTag && char === '<') {
+      inTag = true;
+      tagContent = '<';
+    } else if (inTag) {
+      tagContent += char;
+
+      if (!inQuote && (char === '"' || char === "'")) {
+        inQuote = true;
+        quoteChar = char;
+      } else if (inQuote && char === quoteChar) {
+        inQuote = false;
+      } else if (!inQuote && char === '>') {
+        inTag = false;
+
+        // Process the complete tag
+        const tag = tagContent.trim();
+
+        // Skip comments, processing instructions, and doctype
+        if (tag.startsWith('<!--') || tag.startsWith('<?') || tag.startsWith('<!')) {
+          // Valid special tags, skip validation
+        } else if (tag.startsWith('</')) {
+          // Closing tag
+          const tagName = tag.slice(2, -1).trim().split(/\s/)[0];
+          if (!tagName) {
+            throw new Error('Invalid XML: empty closing tag');
+          }
+          const lastOpen = tagStack.pop();
+          if (!lastOpen || lastOpen !== tagName) {
+            throw new Error(`Invalid XML: mismatched closing tag </${tagName}>, expected </${lastOpen || 'none'}>`);
+          }
+        } else if (tag.endsWith('/>')) {
+          // Self-closing tag
+          const tagName = tag.slice(1, -2).trim().split(/\s/)[0];
+          if (!tagName) {
+            throw new Error('Invalid XML: empty self-closing tag');
+          }
+        } else {
+          // Opening tag
+          const tagName = tag.slice(1, -1).trim().split(/\s/)[0];
+          if (!tagName) {
+            throw new Error('Invalid XML: empty opening tag');
+          }
+          tagStack.push(tagName);
+        }
+
+        tagContent = '';
+      }
+    }
+    i++;
+  }
+
+  // Check for unclosed tags
+  if (tagStack.length > 0) {
+    throw new Error(`Invalid XML: unclosed tag <${tagStack[tagStack.length - 1]}>`);
+  }
+
+  // Check for unfinished tag
+  if (inTag) {
+    throw new Error('Invalid XML: incomplete tag at end of document');
+  }
+}
+
 // Module-level queue for pending external content loads
 interface PendingLoad {
   xml: string;
@@ -242,6 +332,132 @@ export default defineConfig({
             } else {
               res.writeHead(405);
               res.end();
+            }
+          });
+        },
+      },
+      {
+        name: 'write-api',
+        configureServer(server) {
+          // PUT /api/tabs/:id/content - Update tab content
+          server.middlewares.use((req, res, next) => {
+            if (req.method === 'PUT' && req.url?.startsWith('/api/tabs/') && req.url.endsWith('/content')) {
+              const urlPath = req.url || '';
+              const match = urlPath.match(/^\/api\/tabs\/([^\/]+)\/content$/);
+              if (!match) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Not found' }));
+                return;
+              }
+
+              const tabId = match[1];
+              const tab = editorState.tabs.get(tabId);
+              if (!tab) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Tab not found' }));
+                return;
+              }
+
+              let body = '';
+              req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+              req.on('end', async () => {
+                try {
+                  const { xml } = JSON.parse(body);
+                  if (typeof xml !== 'string') {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'xml field is required and must be a string' }));
+                    return;
+                  }
+
+                  // XML validation (server-side)
+                  try {
+                    validateXmlStructure(xml);
+                  } catch (parseError) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                      error: 'Invalid XML format',
+                      details: parseError instanceof Error ? parseError.message : 'Unknown parse error'
+                    }));
+                    return;
+                  }
+
+                  // Import and call the bridge function
+                  const bridge = await import('./lib/editor-state-bridge');
+                  const success = bridge.updateTabContent(tabId, xml);
+
+                  if (!success) {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Failed to update tab content' }));
+                    return;
+                  }
+
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ success: true, tabId }));
+                } catch (parseError) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Invalid JSON in request body' }));
+                }
+              });
+            } else {
+              next();
+            }
+          });
+
+          // POST /api/tabs/:id/save - Trigger tab save to Heretto
+          server.middlewares.use((req, res, next) => {
+            if (req.method === 'POST' && req.url?.startsWith('/api/tabs/') && req.url.endsWith('/save')) {
+              const urlPath = req.url || '';
+              const match = urlPath.match(/^\/api\/tabs\/([^\/]+)\/save$/);
+              if (!match) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Not found' }));
+                return;
+              }
+
+              const tabId = match[1];
+              const tab = editorState.tabs.get(tabId);
+              if (!tab) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Tab not found' }));
+                return;
+              }
+
+              if (!tab.herettoFile) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Tab has no associated Heretto file to save to' }));
+                return;
+              }
+
+              // Trigger the save operation
+              import('./lib/editor-state-bridge').then(async bridge => {
+                try {
+                  const result = await bridge.triggerTabSave(tabId);
+                  if (result.success) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: true, tabId }));
+                  } else {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                      error: 'Save operation failed',
+                      details: result.error || 'Unknown error'
+                    }));
+                  }
+                } catch (error) {
+                  res.writeHead(500, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({
+                    error: 'Internal server error during save',
+                    details: error instanceof Error ? error.message : 'Unknown error'
+                  }));
+                }
+              }).catch(error => {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                  error: 'Failed to load save handler',
+                  details: error instanceof Error ? error.message : 'Unknown error'
+                }));
+              });
+            } else {
+              next();
             }
           });
         },
