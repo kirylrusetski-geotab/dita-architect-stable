@@ -31,6 +31,38 @@ const pendingLoads: PendingLoad[] = [];
 
 const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 
+// Module-level state for read-only API endpoints
+interface EditorState {
+  version: string;
+  herettoConnected: boolean;
+  tabCount: number;
+  activeTabId: string;
+  theme: string;
+  tabs: Map<string, {
+    id: string;
+    fileName: string | null;
+    herettoFile: { uuid: string; name: string; path: string } | null;
+    dirty: boolean;
+    xmlErrorCount: number;
+    xmlContent: string;
+    xmlErrors: Array<{ line: number; column: number; message: string; severity: 'error' | 'warning' }>;
+  }>;
+}
+
+const editorState: EditorState = {
+  version: pkg.version,
+  herettoConnected: false,
+  tabCount: 0,
+  activeTabId: '',
+  theme: 'dark',
+  tabs: new Map()
+};
+
+// Set up reference for the bridge to update this state
+import('./lib/editor-state-bridge').then(bridge => {
+  bridge.setEditorStateReference(editorState);
+});
+
 export default defineConfig({
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
@@ -132,6 +164,81 @@ export default defineConfig({
               const loads = [...pendingLoads];
               pendingLoads.length = 0; // Clear the queue
               res.end(JSON.stringify(loads));
+            } else {
+              res.writeHead(405);
+              res.end();
+            }
+          });
+        },
+      },
+      {
+        name: 'read-only-api',
+        configureServer(server) {
+          // GET /api/status
+          server.middlewares.use('/api/status', (req, res) => {
+            if (req.method === 'GET') {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                version: editorState.version,
+                herettoConnected: editorState.herettoConnected,
+                tabCount: editorState.tabCount,
+                activeTabId: editorState.activeTabId,
+                theme: editorState.theme
+              }));
+            } else {
+              res.writeHead(405);
+              res.end();
+            }
+          });
+
+          // GET /api/tabs/:id/content (more specific route must come first)
+          server.middlewares.use((req, res, next) => {
+            if (req.method === 'GET' && req.url?.startsWith('/api/tabs/') && req.url.endsWith('/content')) {
+              const urlPath = req.url || '';
+              const match = urlPath.match(/^\/api\/tabs\/([^\/]+)\/content$/);
+              if (!match) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Not found' }));
+                return;
+              }
+
+              const tabId = match[1];
+              const tab = editorState.tabs.get(tabId);
+              if (!tab) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Tab not found' }));
+                return;
+              }
+
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                id: tab.id,
+                fileName: tab.fileName,
+                herettoFile: tab.herettoFile,
+                dirty: tab.dirty,
+                xmlErrors: tab.xmlErrors,
+                xml: tab.xmlContent
+              }));
+            } else {
+              next();
+            }
+          });
+
+          // GET /api/tabs (general route comes after specific route)
+          server.middlewares.use('/api/tabs', (req, res) => {
+            if (req.method === 'GET') {
+              const tabs = Array.from(editorState.tabs.values()).map(tab => ({
+                id: tab.id,
+                fileName: tab.fileName,
+                herettoFile: tab.herettoFile,
+                dirty: tab.dirty,
+                xmlErrorCount: tab.xmlErrorCount
+              }));
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                activeTabId: editorState.activeTabId,
+                tabs
+              }));
             } else {
               res.writeHead(405);
               res.end();

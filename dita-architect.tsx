@@ -44,6 +44,7 @@ import { HerettoReplaceBar } from './components/HerettoReplaceBar';
 import { SYNTAX_THEME_OPTIONS } from './components/MonacoDitaEditor';
 import type { XmlError } from './components/MonacoDitaEditor';
 import { formatRelativeTime, formatXml } from './lib/xml-utils';
+import { updateEditorStatus, updateTabsState } from './lib/editor-state-bridge';
 import { useEditorUi } from './hooks/useEditorUi';
 import { useTabManager } from './hooks/useTabManager';
 import { createTab } from './types/tab';
@@ -231,6 +232,15 @@ export default function ProfessionalDitaEditor() {
     herettoDropdownRef,
     setIsHerettoDropdownOpen,
   });
+
+  // Sync state to server for read-only API endpoints
+  useEffect(() => {
+    updateEditorStatus({ herettoConnected, theme: appTheme });
+  }, [herettoConnected, appTheme]);
+
+  useEffect(() => {
+    updateTabsState(tabs, activeTabId);
+  }, [tabs, activeTabId]);
 
   const {
     fileInputRef,
