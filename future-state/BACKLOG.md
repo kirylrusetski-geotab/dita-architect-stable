@@ -21,9 +21,9 @@ This is the single prioritized backlog for DITA Architect. Every actionable item
 
 ### P0 — Fix Now
 
-| ID | Item | Type | Rationale |
-|----|------|------|-----------|
-| P0-3 | Task-level `<title>` and `<shortdesc>` not rendered in visual editor | Bug | `parseXmlToLexical.ts:500-506` — task-level title and shortdesc are parsed but not visible in Lexical for task topics containing `<section>` elements. The visual editor starts at the section's `<title>` (H2), skipping the topic title (H1) and shortdesc entirely. Confirmed by manual testing on localhost:3000. |
+No open P0 items.
+
+> P0-3 shipped in v0.8.0. See Completed section for details.
 
 ---
 
@@ -39,12 +39,11 @@ No open P1 items.
 
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
-| P2-22 | [Write API endpoints for Claude Code integration](feature-requests.md#fr-020-update-tab-content-api-endpoint) | Feature | `PUT /api/tabs/:id/content`, `POST /api/tabs/:id/save`, `POST /api/tabs/:id/format`, `GET /api/tabs/:id/stats`. Completes the read-write loop — Claude Code skills can edit content and trigger saves. |
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation — needs design thought before committing. |
 
-> P2-1 through P2-5, P2-7 through P2-21 have all shipped (v0.6.0–v0.7.5). See Completed section for details.
+> P2-1 through P2-5, P2-7 through P2-22 have all shipped (v0.6.0–v0.8.0). See Completed section for details.
 
-**Dependency chain:** P2-22 depends on P2-20 (shipped). P2-6 is substantial and needs design scoping before committing.
+**Dependency chain:** P2-6 is substantial and needs design scoping before committing.
 
 ---
 
@@ -84,11 +83,7 @@ No open P1 items.
 
 ## Recommended Execution Order
 
-**Session N (next):** P0-3 (parser bug — task title/shortdesc invisible). Fix before any other work.
-
-**Session N+1:** P2-22 (write API endpoints). Completes the read-write loop for Claude Code integration.
-
-**Session N+2:** P2-6 (inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
+**Session N (next):** P2-6 (inline validation hints). High impact but needs design thought — which validation rules to surface first, how to source xref/keyref resolution data. Worth scoping before committing.
 
 **Ongoing:** P3 items are picked up when the relevant feature area is being worked on (e.g., extract DownloadWarningModal when building export, version browser when a third release ships). **P3-1 through P3-4 are blocked** on LLM API key access — no timeline; defer to future roadmap unless key becomes available.
 
@@ -96,43 +91,27 @@ No open P1 items.
 
 ## Completed
 
-### Shipped in v0.7.6 (2026-03-17)
+### Shipped in v0.8.0 (2026-03-17)
 
-Insert Table modal keyboard navigation.
-
-| Former ID | Item | Type | Resolution |
-|-----------|------|------|------------|
-| P3-19 | Insert Table modal keyboard navigation | Accessibility | Enter key creates table from row/column inputs, Escape key closes modal. Helper text "Press Enter to create, Escape to cancel." added below inputs. Follows link modal pattern exactly. Single file change: `components/Toolbar.tsx`. Passed code review (Elena: PASS), build clean (Marcus: BUILD OK), 20 tests passing (Taylor: ALL PASS). Minor UX follow-ups: align verb to "insert" for consistency with link modal, add aria-labels on number inputs. |
-
----
-
-### Shipped in v0.7.5 (2026-03-17)
-
-Insert Table toolbar action with rows × columns modal dialog.
+Insert Table, write API, keyboard navigation, and parser fix.
 
 | Former ID | Item | Type | Resolution |
 |-----------|------|------|------------|
-| P2-21 | Insert Table toolbar action | Feature | Toolbar button (after list buttons) opens modal with rows (1-50), columns (1-10), and header row checkbox. Generates DITA CALS `<table>` with sequential colspec elements. Custom `INSERT_TABLE_COMMAND` maintains codebase patterns. Defaults to 3×3 with header. Passed code review (Elena: PASS), build clean (Marcus: BUILD OK), tests passing (Taylor: ALL PASS). UX follow-ups tracked as P3-20 through P3-22. |
+| P0-3 | Task-level title and shortdesc not rendered in visual editor | Bug | Replaced broad `doc.querySelector('title')` with scoped `topicElement.querySelector(':scope > title')` to ensure topic-level title and shortdesc are selected, not nested section titles. 7 tests covering all DITA topic types with sections. |
+| P2-21 | Insert Table toolbar action | Feature | Toolbar button opens modal with rows (1-50), columns (1-10), and header row checkbox. Generates DITA CALS `<table>` with sequential colspec elements. Defaults to 3×3 with header. |
+| P2-22 | Write API endpoints for Claude Code integration | Feature | Four endpoints: `PUT /api/tabs/:id/content` (update XML), `POST /api/tabs/:id/save` (save to Heretto), `POST /api/tabs/:id/format` (beautify XML), `GET /api/tabs/:id/stats` (word count, readability). Bidirectional sync extended with `'api'` update source. |
+| P3-19 | Insert Table modal keyboard navigation | Accessibility | Enter key creates table, Escape key closes modal. Helper text "Press Enter to create, Escape to cancel." follows link modal pattern. |
 
 ---
 
-### Shipped in v0.7.4 (2026-03-17)
+### Shipped in v0.7.3–v0.7.4 (2026-03-17)
 
-Read-only API endpoints for Claude Code integration.
-
-| Former ID | Item | Type | Resolution |
-|-----------|------|------|------------|
-| P2-20 | Read-only API endpoints for Claude Code integration | Feature | Three endpoints: `GET /api/status` (version, Heretto connection, tab count, active tab, theme), `GET /api/tabs` (list open tabs with metadata), `GET /api/tabs/:id/content` (full DITA XML + validation errors). State bridge via `lib/editor-state-bridge.ts` syncs React state to Vite server. 25 tests. Passed code review after TypeScript strict mode fix. |
-
----
-
-### Shipped in v0.7.3 (2026-03-17)
-
-Table context menu — toggle header row, merge/unmerge cells, simpletable constraint enforcement.
+Table context menu and read-only API endpoints.
 
 | Former ID | Item | Type | Resolution |
 |-----------|------|------|------------|
 | P2-19 | Table context menu (insert/delete rows and columns) | Feature | Right-click context menu on table cells with toggle header row, cell merge (CALS only), and cell unmerge. Conservative simpletable detection prevents invalid DITA spanning attributes. Menu height increased to 320px. Passed code review after retry (header/body boundary validation added). Build clean, 39/42 tests passing. Accessibility follow-up tracked as P3-13. |
+| P2-20 | Read-only API endpoints for Claude Code integration | Feature | Three endpoints: `GET /api/status` (version, Heretto connection, tab count, active tab, theme), `GET /api/tabs` (list open tabs with metadata), `GET /api/tabs/:id/content` (full DITA XML + validation errors). State bridge via `lib/editor-state-bridge.ts` syncs React state to Vite server. 25 tests. Passed code review after TypeScript strict mode fix. |
 
 ---
 
