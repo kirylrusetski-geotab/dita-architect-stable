@@ -396,7 +396,7 @@ export function useHerettoCms({
 
     const beautified = formatXml(firstContent);
     const newTab = createTab(beautified);
-    const parentCrumb = herettoBreadcrumbs[herettoBreadcrumbs.length - 2];
+    const parentCrumb = herettoBreadcrumbs[herettoBreadcrumbs.length - 1];
     newTab.herettoFile = {
       uuid: item.uuid,
       name: item.name,

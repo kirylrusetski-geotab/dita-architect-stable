@@ -132,7 +132,7 @@ async function fetchFolderItems(folderUuid: string): Promise<HerettoItem[] | nul
   }
 
   try {
-    const response = await fetch(`/heretto-api/folders/${folderUuid}/items`);
+    const response = await fetch(`/heretto-api/all-files/${folderUuid}`);
     if (!response.ok) {
       return null;
     }
