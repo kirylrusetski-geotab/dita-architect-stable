@@ -59,7 +59,7 @@ export function useTabManager({
 
     if (tab.xmlContent !== tab.savedXmlRef.current) {
       setConfirmModal({
-        message: 'This tab has unsaved changes. Close anyway?',
+        message: 'This tab has edits that haven\'t been saved. Close anyway?',
         onConfirm: () => { setConfirmModal(null); doCloseTab(tabId); },
       });
       return;
