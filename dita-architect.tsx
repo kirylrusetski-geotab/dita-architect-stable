@@ -900,13 +900,13 @@ export default function ProfessionalDitaEditor() {
                         ) : tab.herettoDirty ? (
                           <>
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                            <span>Unsaved changes</span>
+                            <span>Edited — not yet saved</span>
                           </>
                         ) : (
                           <>
                             <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
                             <span>
-                              Saved{tab.herettoLastSaved ? ` ${formatRelativeTime(tab.herettoLastSaved)}` : ''}
+                              Saved to Heretto{tab.herettoLastSaved ? ` ${formatRelativeTime(tab.herettoLastSaved)}` : ''}
                             </span>
                           </>
                         )}

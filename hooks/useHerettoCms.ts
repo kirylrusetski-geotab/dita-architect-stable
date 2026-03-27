@@ -535,7 +535,7 @@ export function useHerettoCms({
     if (!tab.herettoFile) return;
     if (tab.herettoDirty) {
       setConfirmModal({
-        message: 'You have unsaved changes. Refresh from Heretto anyway?',
+        message: 'You have edits that haven\'t been saved to Heretto. Refresh anyway?',
         onConfirm: () => { setConfirmModal(null); doHerettoRefresh(tab.id, tab.herettoFile!, tab.savedXmlRef); },
       });
       return;

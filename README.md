@@ -12,7 +12,7 @@ No installation beyond the initial setup. No heavy CMS client. Open a topic, edi
 
 **Work with tables without touching XML.** Right-click any table cell to insert or delete rows and columns. Works for both CALS tables and simpletables.
 
-**Open topics from Heretto.** Browse your Heretto CMS folders, search for topics, open them in the editor, and save changes back. The editor checks for conflicts if someone else edits the same topic while you're working.
+**Open topics from Heretto.** Browse your Heretto CMS folders, search for topics, open them in the editor, and save changes back. The editor detects when someone else edits the same topic in Heretto while you're working.
 
 **Replace topics in Heretto.** Draft a new version of a topic, preview a side-by-side diff against the live version, and replace it when you're ready.
 
