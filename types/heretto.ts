@@ -2,6 +2,8 @@ export interface HerettoFile {
   uuid: string;
   name: string;
   path: string;
+  parentFolderUuid?: string;
+  ancestorUuids?: string[];
 }
 
 export interface HerettoItem {

@@ -54,7 +54,9 @@ describe('Read-only API Integration Tests', () => {
         editModeAcceptTrigger: 0,
         editModeRejectTrigger: 0,
         snapshotRef: { current: null },
-        herettoReplaceTarget: null
+        herettoReplaceTarget: null,
+        inlineValidationErrors: new Map(),
+        validationTrigger: 0,
       };
 
       // Simulate React useEffect updating tabs state
@@ -98,7 +100,9 @@ describe('Read-only API Integration Tests', () => {
         editModeAcceptTrigger: 0,
         editModeRejectTrigger: 0,
         snapshotRef: { current: null },
-        herettoReplaceTarget: null
+        herettoReplaceTarget: null,
+        inlineValidationErrors: new Map(),
+        validationTrigger: 0,
       };
 
       updateTabsState([mockTab], 'temp-tab');
@@ -134,7 +138,9 @@ describe('Read-only API Integration Tests', () => {
         editModeAcceptTrigger: 0,
         editModeRejectTrigger: 0,
         snapshotRef: { current: null },
-        herettoReplaceTarget: null
+        herettoReplaceTarget: null,
+        inlineValidationErrors: new Map(),
+        validationTrigger: 0,
       };
 
       updateTabsState([mockTab], 'error-tab');
@@ -169,7 +175,9 @@ describe('Read-only API Integration Tests', () => {
         editModeAcceptTrigger: 0,
         editModeRejectTrigger: 0,
         snapshotRef: { current: null },
-        herettoReplaceTarget: null
+        herettoReplaceTarget: null,
+        inlineValidationErrors: new Map(),
+        validationTrigger: 0,
       };
 
       updateTabsState([mockTabClean], 'clean-tab');
@@ -209,7 +217,9 @@ describe('Read-only API Integration Tests', () => {
         editModeAcceptTrigger: 0,
         editModeRejectTrigger: 0,
         snapshotRef: { current: null },
-        herettoReplaceTarget: null
+        herettoReplaceTarget: null,
+        inlineValidationErrors: new Map(),
+        validationTrigger: 0,
       };
 
       updateTabsState([mockTab], 'ref-test');
@@ -253,7 +263,9 @@ describe('Read-only API Integration Tests', () => {
         editModeAcceptTrigger: 0,
         editModeRejectTrigger: 0,
         snapshotRef: { current: null },
-        herettoReplaceTarget: null
+        herettoReplaceTarget: null,
+        inlineValidationErrors: new Map(),
+        validationTrigger: 0,
       };
 
       updateTabsState([mockTab], 'serialize-test');
@@ -326,7 +338,9 @@ describe('Read-only API Integration Tests', () => {
           editModeAcceptTrigger: 0,
           editModeRejectTrigger: 0,
           snapshotRef: { current: null },
-          herettoReplaceTarget: null
+          herettoReplaceTarget: null,
+          inlineValidationErrors: new Map(),
+          validationTrigger: 0,
         };
 
         updateTabsState([tab], `rapid-${i}`);

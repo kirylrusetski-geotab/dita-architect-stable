@@ -129,6 +129,8 @@ const createMockTab = (id: string, overrides: Partial<Tab> = {}): Tab => ({
   editModeRejectTrigger: 0,
   snapshotRef: { current: null },
   herettoReplaceTarget: null,
+  inlineValidationErrors: new Map(),
+  validationTrigger: 0,
   ...overrides
 });
 

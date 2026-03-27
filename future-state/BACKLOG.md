@@ -1,6 +1,6 @@
 # DITA Architect Backlog
 
-**Last updated:** 2026-03-17
+**Last updated:** 2026-03-27
 
 This is the single prioritized backlog for DITA Architect. Every actionable item — bugs, features, integration work, asset extraction — lives here with a clear priority, dependency chain, and execution criteria.
 
@@ -40,10 +40,11 @@ No open P1 items.
 | ID | Item | Type | Rationale |
 |----|------|------|-----------|
 | P2-6 | [Inline validation hints in visual editor](feature-requests.md#fr-004-inline-validation-hints-in-the-visual-editor) | Feature | Authors can write entire topics with broken cross-references and not know until build time. Red underlines on dead `xref`, yellow squiggles on unresolved keyrefs — brings validation into the authoring moment. High impact but substantial implementation — needs design thought before committing. |
+| P2-23 | [Render Heretto images in the visual editor](feature-requests.md#fr-030-render-heretto-images-in-the-visual-editor) | Feature | Images from Heretto render as placeholder chips showing raw file paths. Writers can't see screenshots or diagrams in context. Needs a Vite proxy route for image binaries, a path resolver to map relative DITA hrefs to Heretto asset UUIDs, and updated rendering in `DitaImageNode`. |
 
 > P2-1 through P2-5, P2-7 through P2-22 have all shipped (v0.6.0–v0.8.0). See Completed section for details.
 
-**Dependency chain:** P2-6 is substantial and needs design scoping before committing.
+**Dependency chain:** P2-6 is substantial and needs design scoping before committing. P2-23 is independent — can be worked in any order relative to P2-6.
 
 ---
 
@@ -78,6 +79,7 @@ No open P1 items.
 | P3-24 | Insert Table modal aria-labels on number inputs | Accessibility | UX review (Maya Chen, P3-19 pipeline): number inputs need explicit `aria-label="Number of rows"` and `aria-label="Number of columns"` for screen readers. Also add `aria-describedby` linking helper text to inputs. |
 | P3-25 | Template placeholder text should look editable | Polish | UX review (Maya Chen, product question): default template text (`Task title`, `Short description of the task.`) looks like real content in both editors. Should use a lighter visual treatment (gray italic, `"Click to add title"`) to signal editability. |
 | P3-26 | Out-of-sync indicator for visual editor | Feature | UX review (Maya Chen, product question): when the XML editor has been updated but Ctrl+Enter hasn't been pressed, the visual editor shows stale content with no visual indicator. Add a subtle banner or dimmed overlay like `"Visual editor is out of sync — press Ctrl+Enter to refresh"`. |
+| P3-27 | ["Loaded from Heretto" status state for freshly opened topics](feature-requests.md#fr-031-loaded-from-heretto-status-state-for-freshly-opened-topics) | Bug/Polish | Opening a topic from Heretto immediately shows 🔴 `Updated in Heretto` due to formatting differences between beautified local XML and raw remote XML. Two fixes: (1) use `compareXml` instead of strict string equality in the poll comparison to eliminate false positives, (2) add a `herettoJustLoaded` state that shows 🟢 `Loaded from Heretto` until the writer edits or saves. |
 
 ---
 

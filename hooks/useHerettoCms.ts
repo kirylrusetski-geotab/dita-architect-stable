@@ -396,7 +396,14 @@ export function useHerettoCms({
 
     const beautified = formatXml(firstContent);
     const newTab = createTab(beautified);
-    newTab.herettoFile = { uuid: item.uuid, name: item.name, path: pathStr };
+    const parentCrumb = herettoBreadcrumbs[herettoBreadcrumbs.length - 2];
+    newTab.herettoFile = {
+      uuid: item.uuid,
+      name: item.name,
+      path: pathStr,
+      parentFolderUuid: parentCrumb?.uuid,
+      ancestorUuids: herettoBreadcrumbs.map(b => b.uuid),
+    };
     newTab.herettoLastSaved = new Date();
     setTabs(prev => [...prev, newTab]);
     setActiveTabId(newTab.id);
@@ -579,7 +586,16 @@ export function useHerettoCms({
 
       setTabs(prev => prev.map(t => {
         if (t.id !== tabId) return t;
-        return { ...t, herettoFile: { uuid: newUuid, name: finalName, path: pathStr } };
+        return {
+          ...t,
+          herettoFile: {
+            uuid: newUuid,
+            name: finalName,
+            path: pathStr,
+            parentFolderUuid: folderUuid,
+            ancestorUuids: herettoBreadcrumbs.map(b => b.uuid),
+          },
+        };
       }));
       setIsHerettoBrowserOpen(false);
       toast.success(`Created ${finalName} in Heretto`);

@@ -14,13 +14,16 @@ function ImageComponent({
   alt,
   title,
   isFig,
+  resolvedUrl,
 }: {
   href: string;
   alt: string;
   title: string;
   isFig: boolean;
+  resolvedUrl: string | null;
 }) {
   const isUrl = /^https?:\/\//.test(href);
+  const displayUrl = resolvedUrl ?? (isUrl ? href : null);
 
   return (
     <div
@@ -46,9 +49,9 @@ function ImageComponent({
           {title}
         </div>
       )}
-      {isUrl ? (
+      {displayUrl ? (
         <img
-          src={href}
+          src={displayUrl}
           alt={alt}
           style={{
             display: 'block',
@@ -56,6 +59,8 @@ function ImageComponent({
             height: 'auto',
           }}
         />
+      ) : !isUrl && resolvedUrl === null ? (
+        <div className="image-shimmer" />
       ) : (
         <div
           style={{
@@ -106,7 +111,7 @@ function ImageComponent({
           </div>
         </div>
       )}
-      {isUrl && alt && (
+      {displayUrl && alt && (
         <div
           style={{
             padding: '4px 10px',
@@ -127,6 +132,7 @@ export class DitaImageNode extends DecoratorNode<React.ReactElement> {
   __alt: string;
   __title: string;
   __isFig: boolean;
+  __resolvedUrl: string | null = null;
 
   constructor(href: string, alt: string, title: string, isFig: boolean, key?: NodeKey) {
     super(key);
@@ -134,14 +140,26 @@ export class DitaImageNode extends DecoratorNode<React.ReactElement> {
     this.__alt = alt;
     this.__title = title;
     this.__isFig = isFig;
+    this.__resolvedUrl = null;
   }
 
   static getType(): string {
     return 'ditaimage';
   }
 
+  setResolvedUrl(url: string | null): void {
+    const writableSelf = this.getWritable();
+    writableSelf.__resolvedUrl = url;
+  }
+
+  getResolvedUrl(): string | null {
+    return this.__resolvedUrl;
+  }
+
   static clone(node: DitaImageNode): DitaImageNode {
-    return new DitaImageNode(node.__href, node.__alt, node.__title, node.__isFig, node.__key);
+    const cloned = new DitaImageNode(node.__href, node.__alt, node.__title, node.__isFig, node.__key);
+    cloned.__resolvedUrl = node.__resolvedUrl;
+    return cloned;
   }
 
   createDOM(_config: EditorConfig): HTMLElement {
@@ -160,6 +178,7 @@ export class DitaImageNode extends DecoratorNode<React.ReactElement> {
         alt={this.__alt}
         title={this.__title}
         isFig={this.__isFig}
+        resolvedUrl={this.__resolvedUrl}
       />
     );
   }

@@ -27,11 +27,14 @@ import { EditModePlugin } from './components/EditModePlugin';
 import { TrackedChangesPlugin } from './components/TrackedChangesPlugin';
 import { EmptyToH1Plugin } from './components/EmptyToH1Plugin';
 import { ShortdescPlugin } from './components/ShortdescPlugin';
+import { HerettoImageResolverPlugin } from './components/HerettoImageResolverPlugin';
 import { DitaOpaqueNode } from './components/DitaOpaqueNode';
 import { DitaCodeBlockNode } from './components/DitaCodeBlockNode';
 import { DitaImageNode } from './components/DitaImageNode';
 import { DitaPhRefNode } from './components/DitaPhRefNode';
 import { TrackedDeletionNode } from './components/TrackedDeletionNode';
+import { ValidationDecoratorNode } from './components/ValidationDecoratorNode';
+import { InlineValidationPlugin } from './components/InlineValidationPlugin';
 import { Code, CheckCircle, AlertTriangle, BookOpen, Save, FolderOpen, RefreshCw, FilePlus, ChevronDown, CloudUpload, FileText, Loader2, X, PanelRightClose, PanelRightOpen, Upload, Code2 } from 'lucide-react';
 import { ConfirmModal } from './components/ConfirmModal';
 import { TopicTypeModal } from './components/TopicTypeModal';
@@ -105,6 +108,7 @@ const editorConfig = {
     DitaImageNode,
     DitaPhRefNode,
     TrackedDeletionNode,
+    ValidationDecoratorNode,
   ],
 };
 
@@ -891,7 +895,7 @@ export default function ProfessionalDitaEditor() {
                         ) : tab.herettoRemoteChanged ? (
                           <>
                             <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                            <span>{tab.herettoDirty ? 'Conflict — updated in Heretto' : 'Updated in Heretto'}</span>
+                            <span>{tab.herettoDirty ? 'Changes in both locations' : 'Updated in Heretto'}</span>
                           </>
                         ) : tab.herettoDirty ? (
                           <>
@@ -971,8 +975,13 @@ export default function ProfessionalDitaEditor() {
                     lastUpdatedBy={tab.lastUpdatedBy}
                     syncTrigger={tab.syncTrigger}
                     editMode={tab.editMode}
+                    onValidationTrigger={() => updateTab(tab.id, { validationTrigger: tab.validationTrigger + 1 })}
                   >
                     <ShortdescPlugin />
+                    <HerettoImageResolverPlugin
+                      herettoFile={tab.herettoFile}
+                      syncTrigger={tab.syncTrigger}
+                    />
                     <EditModePlugin
                       tabId={tab.id}
                       editMode={tab.editMode}
@@ -986,6 +995,11 @@ export default function ProfessionalDitaEditor() {
                       onRejectEdits={(tabId) => updateTab(tabId, { editMode: false })}
                     />
                   </SyncManager>
+                  <InlineValidationPlugin
+                    xmlContent={tab.xmlContent}
+                    validationTrigger={tab.validationTrigger}
+                    onValidationResults={(errors) => updateTab(tab.id, { inlineValidationErrors: errors })}
+                  />
                   <TableColumnSizer />
                   <TableActionMenuPlugin />
                   <TrackedChangesPlugin

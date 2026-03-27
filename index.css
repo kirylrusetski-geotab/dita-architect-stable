@@ -76,6 +76,25 @@ body {
   --editor-context-bar: #a78bfa;
   --editor-result-bar: #34d399;
   --editor-postreq-bar: #f472b6;
+
+  /* Inline validation */
+  --validation-broken-xref: #ef4444;
+  --validation-unresolved-keyref: #fbbf24;
+  --validation-unresolved-keyref-bg: rgba(251, 191, 36, 0.2);
+}
+
+/* --- DITA Validation Styling --- */
+
+.dita-validation-broken-xref {
+  text-decoration: underline;
+  text-decoration-color: var(--validation-broken-xref);
+  text-decoration-style: wavy;
+  text-underline-offset: 2px;
+}
+
+.dita-validation-unresolved-keyref {
+  background-color: var(--validation-unresolved-keyref-bg);
+  border-bottom: 2px solid var(--validation-unresolved-keyref);
 }
 
 [data-theme="light"] {
@@ -133,6 +152,11 @@ body {
   --editor-context-bar: #8b5cf6;
   --editor-result-bar: #10b981;
   --editor-postreq-bar: #ec4899;
+
+  /* Inline validation */
+  --validation-broken-xref: #dc2626;
+  --validation-unresolved-keyref: #d97706;
+  --validation-unresolved-keyref-bg: rgba(217, 119, 6, 0.15);
 }
 
 [data-theme="claude"] {
@@ -190,6 +214,11 @@ body {
   --editor-context-bar: #c4b5fd;
   --editor-result-bar: #6ee7b7;
   --editor-postreq-bar: #f9a8d4;
+
+  /* Inline validation */
+  --validation-broken-xref: #ef4444;
+  --validation-unresolved-keyref: #fbbf24;
+  --validation-unresolved-keyref-bg: rgba(251, 191, 36, 0.2);
 }
 
 [data-theme="nord"] {
@@ -247,6 +276,11 @@ body {
   --editor-context-bar: #b48ead;
   --editor-result-bar: #a3be8c;
   --editor-postreq-bar: #bf616a;
+
+  /* Inline validation */
+  --validation-broken-xref: #bf616a;
+  --validation-unresolved-keyref: #ebcb8b;
+  --validation-unresolved-keyref-bg: rgba(235, 203, 139, 0.15);
 }
 
 [data-theme="solarized"] {
@@ -304,6 +338,11 @@ body {
   --editor-context-bar: #6c71c4;
   --editor-result-bar: #859900;
   --editor-postreq-bar: #d33682;
+
+  /* Inline validation */
+  --validation-broken-xref: #dc322f;
+  --validation-unresolved-keyref: #b58900;
+  --validation-unresolved-keyref-bg: rgba(181, 137, 0, 0.15);
 }
 
 [data-theme="geotab"] {
@@ -361,6 +400,32 @@ body {
   --editor-context-bar: #8b7bb8;
   --editor-result-bar: #5baa8c;
   --editor-postreq-bar: #b87b8b;
+
+  /* Inline validation */
+  --validation-broken-xref: #ef4444;
+  --validation-unresolved-keyref: #fbbf24;
+  --validation-unresolved-keyref-bg: rgba(251, 191, 36, 0.2);
+}
+
+/* Shimmer animation for loading images */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.image-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  min-height: 100px;
+  display: inline-block;
+  min-width: 200px;
 }
 
 /* Custom scrollbar */

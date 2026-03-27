@@ -21,6 +21,38 @@ export interface ReleaseNote {
  */
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.9.0',
+    date: '2026-03-27',
+    title: 'Heretto images, inline validation, and status bar clarity \u2014 images from Heretto render in the visual editor, broken xrefs get wavy underlines, and the status bar speaks writer.',
+    sections: [
+      {
+        heading: 'New Features',
+        items: [
+          'Heretto image rendering \u2014 images referenced with relative paths (like `../images/diagram.png`) now resolve and display as actual images in the visual editor. A shimmer placeholder shows while the image loads, and the original relative href is preserved in the XML on save.',
+          'Inline validation hints \u2014 broken `<xref>` targets show a red wavy underline, and unresolved keyrefs get a yellow highlight. Validation runs automatically after each sync and updates in real time as you edit. Errors are tracked per-tab with no impact on the XML source.',
+        ],
+      },
+      {
+        heading: 'Bug Fixes',
+        items: [
+          'False-positive "Updated in Heretto" resolved \u2014 freshly opened topics no longer show a conflict warning caused by whitespace differences between beautified local XML and raw Heretto XML.',
+          'Status bar conflict label updated \u2014 `Conflict \u2014 updated in Heretto` now reads `Changes in both locations`, matching the writer-friendly vocabulary established in the rest of the UI.',
+        ],
+      },
+      {
+        heading: 'Under the Hood',
+        items: [
+          'Heretto image resolver with permanent URL cache \u2014 walks ancestor folder UUIDs to resolve relative DITA image paths, caches resolved URLs permanently (image UUIDs don\u2019t change), and reuses the existing folder listing cache.',
+          'UUID validation on image content URLs \u2014 defense-in-depth check before constructing `/heretto-api/all-files/{uuid}/content` paths.',
+          'XML ID extraction utility (`extractXmlIds`) for validation of internal xref targets.',
+          'Inline validation variables added to all six app themes \u2014 broken-xref red and unresolved-keyref yellow adapt to Dark, Light, Claude, Nord, Solarized, and Geotab themes.',
+          'SyncManager extended with `onValidationTrigger` callback to re-run validation after successful XML\u2192Lexical sync.',
+          '60+ new tests covering image path resolution, folder traversal, caching, UUID security checks, node state management, and inline validation.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.0',
     date: '2026-03-17',
     title: 'Insert Table, write API, and a critical parser fix \u2014 create tables visually, let Claude Code edit your content, and section-heavy task topics now render correctly.',
@@ -72,7 +104,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         items: [
           'Save status now updates correctly \u2014 the status bar no longer stays stuck on "Unsaved changes" after a successful save to Heretto.',
           'Word and character count no longer shows zeros on initial load \u2014 counters reflect content immediately when a topic opens.',
-          'XML\u2192visual sync works during conflict state \u2014 Ctrl+Enter now syncs changes even when a Heretto conflict is showing.',
+          'XML\u2192visual sync works when changes exist in both locations \u2014 Ctrl+Enter now syncs changes even when there are changes in both locations.',
           'Format XML button moved into the XML toolbar row \u2014 no longer floats outside the toolbar area.',
         ],
       },
@@ -86,7 +118,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         heading: 'Under the Hood',
         items: [
-          '773 tests across 35 test suites \u2014 new coverage for table context menu operations, format button placement, bottom toolbar initial state, sync conflict handling, and XML toolbar tooltips.',
+          '773 tests across 35 test suites \u2014 new coverage for table context menu operations, format button placement, bottom toolbar initial state, sync change detection handling, and XML toolbar tooltips.',
           'Multi-agent development pipeline \u2014 9-agent workflow (kickoff, architecture, code discovery, implementation, code review, UX review, build verification, testing, wrapup) with three self-healing retry gates.',
         ],
       },
@@ -100,7 +132,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         heading: 'New Features',
         items: [
-          'Replace in Heretto \u2014 draft a topic, preview the diff against the live version, and replace it directly from the editor. The three-step wizard shows you exactly what will change before you commit. After replacing, the tab transitions to a live Heretto-backed document with full save, refresh, and conflict detection.',
+          'Replace in Heretto \u2014 draft a topic, preview the diff against the live version, and replace it directly from the editor. The three-step wizard shows you exactly what will change before you save. After replacing, the tab transitions to a live Heretto-backed document with full save, refresh, and change detection.',
           'External content loading API \u2014 external tools can now load DITA content into the editor via a stable HTTP endpoint. Content is validated and beautified automatically, replacing the previous browser automation approach.',
           'Heretto empty states \u2014 empty folders now show "No topics in this folder" with a "Create new topic" button instead of blank space.',
           'Format XML \u2014 new toolbar button (or Shift+Alt+F) to beautify your XML source. Errors now tell you "Failed to format XML: Check for syntax errors" instead of a generic message.',
@@ -201,7 +233,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         heading: 'Edit Mode & Tracked Changes',
         items: [
-          'New Edit Mode \u2014 click the pencil icon to isolate changes before committing them to the document',
+          'New Edit Mode \u2014 click the pencil icon to isolate changes before saving them to the document',
           'Word-level tracked insertions highlighted via the CSS Custom Highlight API',
           'Tracked deletions rendered inline with strikethrough styling',
           'Accept merges changes into the XML source; Reject restores the pre-edit snapshot',
@@ -221,7 +253,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         items: [
           'File browser with breadcrumb navigation, folder-scoped search, and progress indicators',
           'Save new topics to any Heretto folder or overwrite existing files',
-          'Background polling detects remote changes and surfaces conflict indicators',
+          'Background polling detects remote changes and surfaces change indicators',
           'Credentials stored locally in ~/heretto.json \u2014 never sent to the browser',
         ],
       },

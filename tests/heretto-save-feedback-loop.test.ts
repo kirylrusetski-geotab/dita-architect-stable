@@ -115,6 +115,18 @@ describe('Heretto Save Feedback Loop Improvements', () => {
       expect(ditaArchitectContent).toMatch(statusChainRegex);
     });
 
+    it('displays writer-friendly conflict message when changes exist in both locations', () => {
+      // P3-11: Replace "Conflict — updated in Heretto" with writer-friendly "Changes in both locations"
+      expect(ditaArchitectContent).toContain('Changes in both locations');
+
+      // Should not contain old developer-centric "Conflict" terminology
+      expect(ditaArchitectContent).not.toContain('Conflict — updated in Heretto');
+
+      // Should show the message when both remote changes and local dirty state exist
+      const conflictConditionRegex = /tab\.herettoDirty \? 'Changes in both locations' : 'Updated in Heretto'/;
+      expect(ditaArchitectContent).toMatch(conflictConditionRegex);
+    });
+
     it('changes commit button text to save to heretto for consistency', () => {
       // Anna's plan: Change "Commit" button text (line 826) to "Save to Heretto" for consistency
       expect(ditaArchitectContent).toContain('Save to Heretto');

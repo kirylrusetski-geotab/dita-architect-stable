@@ -22,6 +22,8 @@ export interface Tab {
   editModeRejectTrigger: number;
   snapshotRef: { current: EditorState | null };
   herettoReplaceTarget?: { uuid: string; name?: string; path?: string } | null;
+  inlineValidationErrors: Map<string, { type: 'broken-xref' | 'unresolved-keyref', message: string }>;
+  validationTrigger: number;
 }
 
 let tabIdCounter = 0;
@@ -49,4 +51,6 @@ export const createTab = (xml: string): Tab => ({
   editModeRejectTrigger: 0,
   snapshotRef: { current: null },
   herettoReplaceTarget: null,
+  inlineValidationErrors: new Map(),
+  validationTrigger: 0,
 });

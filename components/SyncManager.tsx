@@ -10,9 +10,10 @@ interface SyncManagerProps {
   syncTrigger?: number;
   editMode?: boolean;
   children?: React.ReactNode;
+  onValidationTrigger?: () => void;
 }
 
-export const SyncManager = ({ xmlContent, onLexicalChange, lastUpdatedBy, syncTrigger = 0, editMode = false, children }: SyncManagerProps) => {
+export const SyncManager = ({ xmlContent, onLexicalChange, lastUpdatedBy, syncTrigger = 0, editMode = false, children, onValidationTrigger }: SyncManagerProps) => {
   const isSyncingFromXmlRef = useRef(false);
   const syncGenRef = useRef(0); // generation counter to avoid clearing stale syncs
   const [editor] = useLexicalComposerContext();
@@ -66,6 +67,8 @@ export const SyncManager = ({ xmlContent, onLexicalChange, lastUpdatedBy, syncTr
     if (success) {
       lastXmlRef.current = pending;
       masterXmlRef.current = pending;
+      // Trigger validation after successful sync
+      onValidationTrigger?.();
     }
     pendingXmlRef.current = null;
     clearSyncFlagAfterUpdate();
@@ -126,6 +129,8 @@ export const SyncManager = ({ xmlContent, onLexicalChange, lastUpdatedBy, syncTr
           if (success) {
             lastXmlRef.current = xmlContent;
             masterXmlRef.current = xmlContent;
+            // Trigger validation after successful sync
+            onValidationTrigger?.();
           }
           clearSyncFlagAfterUpdate();
         }, 800);

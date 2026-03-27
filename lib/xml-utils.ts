@@ -431,6 +431,39 @@ export function convertDitaTopic(
   return { ok: true, xml: newXml };
 }
 
+export function extractXmlIds(xmlString: string): Set<string> {
+  const ids = new Set<string>();
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlString, 'text/xml');
+
+    if (doc.querySelector('parsererror')) {
+      return ids;
+    }
+
+    // Walk through all elements and collect ID attributes
+    const walk = (element: Element) => {
+      const id = element.getAttribute('id');
+      if (id) {
+        ids.add(id);
+      }
+
+      // Recursively process child elements
+      for (const child of Array.from(element.children)) {
+        walk(child);
+      }
+    };
+
+    if (doc.documentElement) {
+      walk(doc.documentElement);
+    }
+  } catch (error) {
+    console.warn('Error extracting XML IDs:', error);
+  }
+
+  return ids;
+}
+
 export const formatRelativeTime = (date: Date): string => {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   if (seconds < 0) return 'just now';
